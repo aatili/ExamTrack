@@ -80,6 +80,7 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
+        self.camera_waiting = tk.PhotoImage(file = "Resources/camera_waiting.png")
 
         # Creating Cancvas
         canvas = Canvas(
@@ -104,12 +105,14 @@ class StartPage(tk.Frame):
         encode_list_known, student_ids = encode_list_with_ids
         print("Encode file loaded.")
 
-        current_mode = 0
-        counter = 0
-        student_id = -1
-        student_image = []
-        checked_flag = 0
-        tuition_flag = 0
+        self.imgholder = tk.PhotoImage(file = "Resources/no_pic.png")
+
+
+        self.profile_pic_frame_tk = tk.PhotoImage(file = "Resources/pic_frame.png")
+        canvas.create_image(58,58,anchor=NW,image=self.profile_pic_frame_tk)
+
+        profile_pic = canvas.create_image(60,60,anchor=NW,image=self.imgholder)
+
 
         # Define a practical font for putText
         font = cv2.FONT_HERSHEY_TRIPLEX
@@ -128,19 +131,26 @@ class StartPage(tk.Frame):
                     face_locations = face_recognition.face_locations(self.img_small)
                     face_encodings = face_recognition.face_encodings(self.img_small, face_locations)
 
+                    #converting to img and displaying
                     self.img = Image.fromarray(self.img_arr)
                     self.tkimg = ImageTk.PhotoImage(self.img)
                     panel.config(image=self.tkimg)
                     panel.tkimg = self.tkimg # save a reference to the image to avoid garbage collection
 
+                    #face detected
                     if face_locations:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
                             y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
+                            self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
+                            self.img = Image.fromarray(self.img_arr)
+                            self.tkimg = ImageTk.PhotoImage(self.img)
+                            panel.config(image=self.tkimg)
+                            panel.tkimg = self.tkimg
                             matches = face_recognition.compare_faces(encode_list_known, encode_face)
                             face_distances = face_recognition.face_distance(encode_list_known, encode_face)
                             match_index = np.argmin(face_distances)
-                            if matches[match_index]:
+                            if matches[match_index]: #face recognized
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                                 student_id = student_ids[match_index]
@@ -151,19 +161,32 @@ class StartPage(tk.Frame):
                                 panel.tkimg = self.tkimg
                                 #print(student_id)
 
+                                blob = bucket.get_blob(f'Images/{student_id}.png')
 
-                panel.after(25, scan) # change 25 to other value to adjust FPS
+                                if blob == None:
+                                    self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
+                                    canvas.itemconfig(profile_pic,image=self.img_holder)
+                                else:
+                                    img_data = np.frombuffer(blob.download_as_string(), np.uint8)
+                                    img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
+                                    img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
+                                    self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
+                                    canvas.itemconfig(profile_pic,image=self.img_holder)
+
+
+                panel.after(25, scan) # change value to adjust FPS
 
             if self.cap is None:
                 self.cap = cv2.VideoCapture(0)
-                self.cap.set(3, 400)
-                self.cap.set(4, 400)
+                self.cap.set(3, 640)
+                self.cap.set(4, 480)
                 scan() # start the capture loop
             else:
                 print('capture already started')
 
         panel = tk.Label(self)
-        panel.place(x=10,y=10)
+        panel.place(x=500,y=10)
+        panel.configure(image=self.camera_waiting)
         panel.tkraise()
 
         if self.cap:
@@ -181,8 +204,11 @@ class StartPage(tk.Frame):
                             command=lambda: controller.show_frame("PageTwo"))
         button2.pack()
 
-        magic_btn = tk.Button(self, text="Face Rec",command=start_rec)
-        magic_btn.pack()
+
+        magic_btn = Button(self, text='Start', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=start_rec)
+        magic_btn.place(x = 750,y = 520)
+        magic_btn.tkraise()
 
 
 app = ExamApp()

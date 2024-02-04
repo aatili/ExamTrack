@@ -313,7 +313,7 @@ class PageTwo(tk.Frame):
 
         # start exams/timers button
         start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                           activebackground='#917FB3',height='1',width='14',command= start_timers)
+                           activebackground='#917FB3',height='1',width='14',command= start_timers, disabledforeground='gray')
         start_btn.place(x = 650,y = 90)
 
 
