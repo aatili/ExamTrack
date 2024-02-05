@@ -1,45 +1,22 @@
 from tkinter import *
-# Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import pandas as pd
 from data import *
 import time
-import numpy as np
-import cv2
 from PIL import Image, ImageTk
 import tkinter as tk
-import os
-import pickle
 import numpy as np
 import cv2
-import face_recognition
-import cvzone
 import firebase_admin
 from firebase_admin import credentials, db, storage
-from PyQt5.QtWidgets import *
-import os
+
+cred = credentials.Certificate("serviceAccountKey.json")
+ui_app = firebase_admin.initialize_app(cred, {
+    'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
+    'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceApp")
+bucket = storage.bucket(app=ui_app)
 
 
 LARGE_FONT = ("Verdana", 12)
-
-class PageOne(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="Page One!!!", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame("StartPage"))
-        button1.pack()
-
-        button2 = tk.Button(self, text="Page Two",
-                            command=lambda: controller.show_frame("PageTwo"))
-        button2.pack()
-
 
 class PageTwo(tk.Frame):
 
