@@ -158,4 +158,20 @@ class PageOne(tk.Frame):
         magic_btn = Button(self, text='Start', bd='5',fg="#FFFFFF" ,bg='#910ac2',
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=start_rec)
         magic_btn.place(x = 750,y = 520)
-        magic_btn.tkraise()
+
+        #Confirm or Cancel Attendance once student recognized
+
+        def confirm_func():
+            return 0
+
+        def cancel_func():
+            return 1
+
+        confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=confirm_func)
+        confirm_btn.place(x = 270,y = 475)
+
+        cancel_btn = Button(self, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=cancel_func)
+        cancel_btn.place(x = 270,y = 520)
+
