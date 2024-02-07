@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
-from data import *
 import time
 from PIL import Image, ImageTk
 import tkinter as tk
@@ -26,6 +25,7 @@ class ExamApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
+        self.resizable(False, False)
         self.geometry("1200x600")
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand = True)
@@ -71,9 +71,6 @@ class StartPage(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-
-
-
         label = tk.Label(self, text="Start Page", font=LARGE_FONT)
         label.pack(pady=10,padx=10)
 
@@ -84,7 +81,6 @@ class StartPage(tk.Frame):
         button2 = tk.Button(self, text="Visit Page 2",
                             command=lambda: controller.show_frame("PageTwo"))
         button2.pack()
-
 
 
 

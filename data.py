@@ -550,3 +550,16 @@ table_data = [
     ["112233", "Emily", "Williams", "No", "No", "Yes"],
     ["005", "David", "Brown", "Yes", "Yes", "No"]
 ]
+
+attendance = {}
+for i in table_data:
+    attendance[i[0]] = 0
+
+
+def confirm_attendace(id):
+    attendance[id] = 1
+
+
+def check_attendance(id):
+    return attendance[id]
+

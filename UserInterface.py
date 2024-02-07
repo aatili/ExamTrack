@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
+
+import data
 from data import *
 import time
 from PIL import Image, ImageTk
@@ -125,11 +127,13 @@ class PageTwo(tk.Frame):
 
         #Selecting row in table
 
-        table_current_row = 0
+        self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
+        self.current_id = ""
         def table_select_row(a): #0:ID , 1:First Name , 2:Last Name , 3:Extra Time , 4:Tuition , 5:Confirmed
             cur_item = table.focus()
             cur_values = table.item(cur_item)['values']
-            canvas.itemconfig(student_id_label,text=cur_values[0])
+            canvas.itemconfig(student_id_label,text=str(cur_values[0]))
+            self.current_id = str(cur_values[0])
             canvas.itemconfig(student_name_label,text=cur_values[1]+' '+cur_values[2])
             temp_extra_time = 'No Extra Time'
             if cur_values[3] == 'Yes':
@@ -139,19 +143,18 @@ class PageTwo(tk.Frame):
             if cur_values[5] == 'Yes':
                 temp_confirmed = 'Confirmed'
             canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
-            global img_holder
 
             blob = bucket.get_blob(f'Images/{cur_values[0]}.png')
 
             if blob == None:
-                img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
-                canvas.itemconfig(profile_pic,image=img_holder)
+                self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
+                canvas.itemconfig(profile_pic,image=self.img_holder)
             else:
                 img_data = np.frombuffer(blob.download_as_string(), np.uint8)
                 img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
                 img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                canvas.itemconfig(profile_pic,image=img_holder)
+                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
+                canvas.itemconfig(profile_pic,image=self.img_holder)
             #canvas.itemconfig(l3,text=img_data)
 
 
@@ -293,22 +296,32 @@ class PageTwo(tk.Frame):
                            activebackground='#917FB3',height='1',width='14',command= start_timers, disabledforeground='gray')
         start_btn.place(x = 650,y = 90)
 
-
-
         face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#910ac2',
-                                      activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14')
+                                      activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
+                                      ,command=lambda: controller.show_frame("PageOne"))
 
         face_recognition_btn.place(x = 950,y = 90)
-
-
-        label = tk.Label(self, text="Page Two!!!", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
 
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
-        button2 = tk.Button(self, text="Page One",
-                            command=lambda: controller.show_frame("PageOne"))
-        button2.pack()
+        # confirm manually
 
+        def confirm_popup(id):
+            res=messagebox.askquestion('Manual Confirmation', 'Confirm Student ' + id +'?')
+            if res == 'yes' :
+                data.confirm_attendace(id)
+
+
+        confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+                           activebackground='#917FB3',height='1',width='14',
+                             command= lambda : confirm_popup(self.current_id) , disabledforeground='gray')
+        confirm_btn.place(x = 650,y = 430)
+
+
+        #add notes for student
+
+        add_notes_btn = Button(self, text='Add Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray')
+        add_notes_btn.place(x = 450,y = 430)

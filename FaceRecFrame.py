@@ -1,7 +1,6 @@
 from tkinter import *
 import tkinter as tk
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
-from data import *
 from PIL import Image, ImageTk
 import pickle
 import numpy as np
@@ -89,9 +88,11 @@ class PageOne(tk.Frame):
                     #face detected
                     if face_locations:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
+                            #addring red rectangle over face
                             y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                             self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
+                            #converting to img
                             self.img = Image.fromarray(self.img_arr)
                             self.tkimg = ImageTk.PhotoImage(self.img)
                             panel.config(image=self.tkimg)
@@ -100,22 +101,23 @@ class PageOne(tk.Frame):
                             face_distances = face_recognition.face_distance(encode_list_known, encode_face)
                             match_index = np.argmin(face_distances)
                             if matches[match_index]: #face recognized
+                                #addring green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                                 student_id = student_ids[match_index]
+                                #converting to img
                                 self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0)
                                 self.img = Image.fromarray(self.img_arr)
                                 self.tkimg = ImageTk.PhotoImage(self.img)
                                 panel.config(image=self.tkimg)
                                 panel.tkimg = self.tkimg
-                                #print(student_id)
-
+                                #getting picture from database
                                 blob = bucket.get_blob(f'Images/{student_id}.png')
 
-                                if blob == None:
+                                if blob == None: #no picture found
                                     self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
                                     canvas.itemconfig(profile_pic,image=self.img_holder)
-                                else:
+                                else: #convert and display picture
                                     img_data = np.frombuffer(blob.download_as_string(), np.uint8)
                                     img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
                                     img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
@@ -141,17 +143,16 @@ class PageOne(tk.Frame):
         if self.cap:
             self.cap.release()
 
+        def pause_rec():
+            if self.cap:
+                self.cap.release()
+            self.cap=None
+            panel.configure(image=self.camera_waiting)
 
-        label = tk.Label(self, text="Start Page", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button = tk.Button(self, text="Visit Page 1",
-                            command=lambda: controller.show_frame("PageOne"))
-        button.pack()
-
-        button2 = tk.Button(self, text="Visit Page 2",
-                            command=lambda: controller.show_frame("PageTwo"))
-        button2.pack()
+        back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                            activebackground='#917FB3',font=("Calibri", 14 * -1),height='1',width='14',
+                             command=lambda: [pause_rec(),controller.show_frame("PageTwo")])
+        back_btn.place(x = 20,y = 10)
 
 
         magic_btn = Button(self, text='Start', bd='5',fg="#FFFFFF" ,bg='#910ac2',
