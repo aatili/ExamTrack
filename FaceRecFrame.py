@@ -53,7 +53,7 @@ class PageOne(tk.Frame):
         encode_list_known, student_ids = encode_list_with_ids
         print("Encode file loaded.")
 
-        self.imgholder = tk.PhotoImage(file = "Resources/no_pic.png")
+        self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
 
 
         self.profile_pic_frame_tk = tk.PhotoImage(file = "Resources/pic_frame.png")
@@ -66,6 +66,7 @@ class PageOne(tk.Frame):
         font = cv2.FONT_HERSHEY_TRIPLEX
 
         self.cap = None
+        self.loaded_flag = 0
 
         def start_rec():
             def scan():
@@ -88,7 +89,7 @@ class PageOne(tk.Frame):
                     #face detected
                     if face_locations:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
-                            #addring red rectangle over face
+                            #adding red rectangle over face
                             y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                             self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
@@ -100,8 +101,8 @@ class PageOne(tk.Frame):
                             matches = face_recognition.compare_faces(encode_list_known, encode_face)
                             face_distances = face_recognition.face_distance(encode_list_known, encode_face)
                             match_index = np.argmin(face_distances)
-                            if matches[match_index]: #face recognized
-                                #addring green rectangle over face
+                            if matches[match_index] : #face recognized
+                                #adding green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                                 student_id = student_ids[match_index]
@@ -111,18 +112,24 @@ class PageOne(tk.Frame):
                                 self.tkimg = ImageTk.PhotoImage(self.img)
                                 panel.config(image=self.tkimg)
                                 panel.tkimg = self.tkimg
-                                #getting picture from database
-                                blob = bucket.get_blob(f'Images/{student_id}.png')
 
-                                if blob == None: #no picture found
-                                    self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
-                                    canvas.itemconfig(profile_pic,image=self.img_holder)
-                                else: #convert and display picture
-                                    img_data = np.frombuffer(blob.download_as_string(), np.uint8)
-                                    img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
-                                    img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                                    self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                                    canvas.itemconfig(profile_pic,image=self.img_holder)
+                                if self.loaded_flag==0:
+                                    self.loaded_flag = 1
+                                    #getting picture from database
+                                    blob = bucket.get_blob(f'Images/{student_id}.png')
+
+                                    if blob == None: #no picture found
+                                        self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
+                                        canvas.itemconfig(profile_pic,image=self.img_holder)
+                                    else: #convert and display picture
+                                        img_data = np.frombuffer(blob.download_as_string(), np.uint8)
+                                        img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
+                                        img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
+                                        self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
+                                        canvas.itemconfig(profile_pic,image=self.img_holder)
+                                    # enabling confirm/cancel buttons
+                                    confirm_btn["state"] = "normal"
+                                    cancel_btn["state"] = "normal"
 
 
                 panel.after(25, scan) # change value to adjust FPS
@@ -161,17 +168,22 @@ class PageOne(tk.Frame):
 
         #Confirm or Cancel Attendance once student recognized
 
-        def confirm_func():
-            return 0
+        def cancel_confirm_func(mode): # mode: confirm 1, cancel 0
+            self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
+            canvas.itemconfig(profile_pic,image=self.imgholder)
+            self.loaded_flag = 0
+            confirm_btn["state"] = "disabled"
+            cancel_btn["state"] = "disabled"
 
-        def cancel_func():
-            return 1
 
-        confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
-                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=confirm_func)
+
+        confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
+                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
+                             ,command=lambda: cancel_confirm_func(1))
         confirm_btn.place(x = 270,y = 475)
 
-        cancel_btn = Button(self, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
-                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=cancel_func)
+        cancel_btn = Button(self, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
+                           activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
+                            ,command=lambda: cancel_confirm_func(0))
         cancel_btn.place(x = 270,y = 520)
 
