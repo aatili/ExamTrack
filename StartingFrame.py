@@ -34,7 +34,7 @@ class ExamApp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, FaceRecFrame.PageOne, UserInterface.PageTwo):
+        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface):
 
             page_name = F.__name__
             frame = F(parent=container, controller=self)
@@ -72,11 +72,11 @@ class StartPage(tk.Frame):
 
 
         button = tk.Button(self, text="Face Recognition",
-                            command=lambda: controller.show_frame("PageOne"))
+                            command=lambda: controller.show_frame("FaceRec"))
         button.pack()
 
         button2 = tk.Button(self, text="User Interface",
-                            command=lambda: controller.show_frame("PageTwo"))
+                            command=lambda: controller.show_frame("UserInterface"))
         button2.pack()
 
 

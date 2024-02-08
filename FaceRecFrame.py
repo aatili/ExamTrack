@@ -11,7 +11,7 @@ import cvzone
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
-import data
+from data import *
 
 # Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -24,7 +24,7 @@ bucket = storage.bucket(app=face_rec_app)
 
 LARGE_FONT = ("Verdana", 12)
 
-class PageOne(tk.Frame):
+class FaceRec(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -124,6 +124,7 @@ class PageOne(tk.Frame):
 
         self.cap = None
         self.loaded_flag = 0
+        self.current_id = -1
 
         #Function to start capture loop
         def start_rec():
@@ -163,7 +164,7 @@ class PageOne(tk.Frame):
                                 #adding green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
-                                student_id = student_ids[match_index]
+                                self.current_id = student_ids[match_index]
                                 #converting to img
                                 self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0)
                                 self.img = Image.fromarray(self.img_arr)
@@ -174,19 +175,19 @@ class PageOne(tk.Frame):
                                 if self.loaded_flag==0:
                                     self.loaded_flag = 1
                                     #displaying student info
-                                    canvas.itemconfig(student_id_label,text=student_id)
+                                    canvas.itemconfig(student_id_label,text=self.current_id)
                                     canvas.itemconfig(student_name_label,
-                                                      text=data.student_get_name(student_id))
+                                                      text=student_get_name(self.current_id))
                                     canvas.itemconfig(student_major_label,
-                                                      text=data.student_get_major(student_id))
+                                                      text=student_get_major(self.current_id))
 
                                     canvas.itemconfig(student_extra_time_label,
-                                                      text=' Extra Time: '+data.student_get_extra_time(student_id))
+                                                      text=' Extra Time: '+student_get_extra_time(self.current_id))
                                     '''canvas.itemconfig(student_tuition_label,
-                                                      text='Paid Tuition: '+data.student_get_tuition(student_id))
+                                                      text='Paid Tuition: '+data.student_get_tuition(self.current_id))
                                     '''
                                     #getting picture from database
-                                    blob = bucket.get_blob(f'Images/{student_id}.png')
+                                    blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
                                     if blob == None: #no picture found
                                         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
@@ -230,7 +231,7 @@ class PageOne(tk.Frame):
 
         back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#910ac2',
                             activebackground='#917FB3',font=("Calibri", 14 * -1),height='1',width='14',
-                             command=lambda: [pause_rec(),controller.show_frame("PageTwo")])
+                             command=lambda: [pause_rec(),controller.show_frame("UserInterface")])
         back_btn.place(x = 20,y = 10)
 
 
@@ -240,12 +241,17 @@ class PageOne(tk.Frame):
 
         #Confirm or Cancel Attendance once student recognized
 
-        def cancel_confirm_func(mode): # mode: confirm 1, cancel 0
+        def cancel_confirm_func(mode,student_id): # mode: confirm 1, cancel 0
             self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
             canvas.itemconfig(profile_pic,image=self.imgholder)
             self.loaded_flag = 0
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
+            if mode:
+                student_confirm_attendace(student_id)
+            temp_confirmed = student_check_attendance(student_id)
+            print(temp_confirmed)
+            self.current_id = -1
             reset_profile_labels()
 
         def reset_profile_labels():
@@ -258,11 +264,11 @@ class PageOne(tk.Frame):
 
         confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda: cancel_confirm_func(1))
+                             ,command=lambda: cancel_confirm_func(1,self.current_id))
         confirm_btn.place(x = 270,y = 475)
 
         cancel_btn = Button(self, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                            ,command=lambda: cancel_confirm_func(0))
+                            ,command=lambda: cancel_confirm_func(0,self.current_id))
         cancel_btn.place(x = 270,y = 520)
 

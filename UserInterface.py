@@ -20,7 +20,7 @@ bucket = storage.bucket(app=ui_app)
 
 LARGE_FONT = ("Verdana", 12)
 
-class PageTwo(tk.Frame):
+class UserInterface(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -111,7 +111,10 @@ class PageTwo(tk.Frame):
 
         for column in table_columns:
             table.heading(column=column, text=column)
-            table.column(column=column, width=70)
+            if column == "major":
+                table.column(column=column, width=140)
+            else:
+                table.column(column=column, width=70)
 
         for row_data in table_data:
             table.insert(parent="", index="end", values=row_data)
@@ -132,17 +135,16 @@ class PageTwo(tk.Frame):
         def table_select_row(a): #0:ID , 1:First Name , 2:Last Name , 3:Extra Time , 4:Tuition , 5:Confirmed
             cur_item = table.focus()
             cur_values = table.item(cur_item)['values']
-            canvas.itemconfig(student_id_label,text=str(cur_values[0]))
             self.current_id = str(cur_values[0])
-            canvas.itemconfig(student_name_label,text=cur_values[1]+' '+cur_values[2])
-            temp_extra_time = 'No Extra Time'
-            if cur_values[3] == 'Yes':
-                temp_extra_time = 'Extra Time'
+            canvas.itemconfig(student_id_label,text=str(self.current_id))
+            canvas.itemconfig(student_name_label,text=student_get_name(self.current_id))
+            temp_extra_time = 'Extra Time: ' + student_get_extra_time(self.current_id)
             canvas.itemconfig(student_extra_time_label , text=temp_extra_time)
+            canvas.itemconfig(student_major_label , text=student_get_major(self.current_id))
             temp_confirmed = 'Not Confirmed'
             canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
 
-            blob = bucket.get_blob(f'Images/{cur_values[0]}.png')
+            blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
             if blob == None:
                 self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
@@ -294,12 +296,15 @@ class PageTwo(tk.Frame):
                            activebackground='#917FB3',height='1',width='14',command= start_timers, disabledforeground='gray')
         start_btn.place(x = 650,y = 90)
 
+
         face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#910ac2',
                                       activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                                      ,command=lambda: controller.show_frame("PageOne"))
+                                      ,command=lambda: controller.show_frame("FaceRec"))
 
         face_recognition_btn.place(x = 950,y = 90)
 
+
+        #temp button
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
@@ -309,7 +314,7 @@ class PageTwo(tk.Frame):
         def confirm_popup(id):
             res=messagebox.askquestion('Manual Confirmation', 'Confirm Student ' + id +'?')
             if res == 'yes' :
-                data.confirm_attendace(id)
+                data.student_confirm_attendace(id)
 
 
         confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),

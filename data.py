@@ -52,10 +52,15 @@ for i in table_data:
     attendance[i[0]] = 0
 
 
-def confirm_attendace(id):
-    attendance[id] = 1
+def student_confirm_attendace(id):
+    if id in attendance.keys():
+        attendance[id] = 1
+        return 0
+    else:
+        return -1
 
-
-def check_attendance(id):
-    return attendance[id]
+def student_check_attendance(id):
+    if id in attendance.keys():
+        return attendance[id]
+    return -1
 
