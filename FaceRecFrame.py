@@ -11,7 +11,7 @@ import cvzone
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
-from data import *
+from student_data import *
 
 # Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -248,9 +248,7 @@ class FaceRec(tk.Frame):
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
             if mode:
-                err_flag = student_confirm_attendace(student_id)
-            if err_flag==-1:
-                return
+                student_confirm_attendace(student_id)
             temp_confirmed = student_check_attendance(student_id)
             print(temp_confirmed)
             self.current_id = -1

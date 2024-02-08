@@ -1,8 +1,6 @@
 from tkinter import *
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
-
-import data
-from data import *
+from student_data import *
 import time
 from PIL import Image, ImageTk
 import tkinter as tk
