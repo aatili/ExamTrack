@@ -12,7 +12,6 @@ import UserInterface
 import FaceRecFrame
 
 
-LARGE_FONT = ("Verdana", 12)
 
 exam_number = "1"
 room_number = "102"
@@ -71,14 +70,12 @@ class StartPage(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-        label = tk.Label(self, text="Start Page", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
 
-        button = tk.Button(self, text="Visit Page 1",
+        button = tk.Button(self, text="Face Recognition",
                             command=lambda: controller.show_frame("PageOne"))
         button.pack()
 
-        button2 = tk.Button(self, text="Visit Page 2",
+        button2 = tk.Button(self, text="User Interface",
                             command=lambda: controller.show_frame("PageTwo"))
         button2.pack()
 

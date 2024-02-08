@@ -55,12 +55,12 @@ class PageTwo(tk.Frame):
         profile_pic = canvas.create_image(60,60,anchor=NW,image=self.profile_pic_tk)
 
 
-
+        #adding labels
         student_name_label = canvas.create_text(
             115.0,
             295.0,
             anchor="nw",
-            text="No Name",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -70,7 +70,7 @@ class PageTwo(tk.Frame):
             115.0,
             335.0,
             anchor="nw",
-            text="999999",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -80,7 +80,7 @@ class PageTwo(tk.Frame):
             373.0,
             justify=CENTER,
             anchor="nw",
-            text="No Major",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -90,7 +90,7 @@ class PageTwo(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="No Extra Time",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -100,7 +100,7 @@ class PageTwo(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="Not checked",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -140,8 +140,6 @@ class PageTwo(tk.Frame):
                 temp_extra_time = 'Extra Time'
             canvas.itemconfig(student_extra_time_label , text=temp_extra_time)
             temp_confirmed = 'Not Confirmed'
-            if cur_values[5] == 'Yes':
-                temp_confirmed = 'Confirmed'
             canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
 
             blob = bucket.get_blob(f'Images/{cur_values[0]}.png')

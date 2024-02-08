@@ -11,6 +11,8 @@ import cvzone
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
+import data
+
 # Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
 face_rec_app = firebase_admin.initialize_app(cred, {
@@ -53,13 +55,68 @@ class PageOne(tk.Frame):
         encode_list_known, student_ids = encode_list_with_ids
         print("Encode file loaded.")
 
+        # Creating Profile
+
+        self.profile_gui = tk.PhotoImage(file = "Resources/profile_ui2.png")
+        canvas.create_image(120,20,anchor=NW,image=self.profile_gui)
+
+        #adding profile pic
         self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
 
-
         self.profile_pic_frame_tk = tk.PhotoImage(file = "Resources/pic_frame.png")
-        canvas.create_image(58,58,anchor=NW,image=self.profile_pic_frame_tk)
+        canvas.create_image(158,58,anchor=NW,image=self.profile_pic_frame_tk)
 
-        profile_pic = canvas.create_image(60,60,anchor=NW,image=self.imgholder)
+        profile_pic = canvas.create_image(160,60,anchor=NW,image=self.imgholder)
+
+                #adding labels
+        student_name_label = canvas.create_text(
+            215.0,
+            295.0,
+            anchor="nw",
+            text="No Name",
+            fill="#d6b0e8",
+            font=("Inter Bold", 18 * -1)
+        )
+
+
+        student_id_label = canvas.create_text(
+            215.0,
+            335.0,
+            anchor="nw",
+            text="999999",
+            fill="#d6b0e8",
+            font=("Inter Bold", 18 * -1)
+        )
+
+        student_major_label = canvas.create_text(
+            215.0,
+            373.0,
+            justify=CENTER,
+            anchor="nw",
+            text="No Major",
+            fill="#d6b0e8",
+            font=("Inter Bold", 18 * -1)
+        )
+
+        student_extra_time_label = canvas.create_text(
+            190.0,
+            430.0,
+            justify=CENTER,
+            anchor="nw",
+            text="No Extra Time",
+            fill="#FFFFFF",
+            font=("Inter Bold", 13 * -1)
+        )
+
+        student_confirmed_label = canvas.create_text(
+            350.0,
+            430.0,
+            justify=CENTER,
+            anchor="nw",
+            text="Not checked",
+            fill="#FFFFFF",
+            font=("Inter Bold", 13 * -1)
+        )
 
 
         # Define a practical font for putText
@@ -68,6 +125,7 @@ class PageOne(tk.Frame):
         self.cap = None
         self.loaded_flag = 0
 
+        #Function to start capture loop
         def start_rec():
             def scan():
                 success, self.img = self.cap.read()
@@ -115,6 +173,18 @@ class PageOne(tk.Frame):
 
                                 if self.loaded_flag==0:
                                     self.loaded_flag = 1
+                                    #displaying student info
+                                    canvas.itemconfig(student_id_label,text=student_id)
+                                    canvas.itemconfig(student_name_label,
+                                                      text=data.student_get_name(student_id))
+                                    canvas.itemconfig(student_major_label,
+                                                      text=data.student_get_major(student_id))
+
+                                    canvas.itemconfig(student_extra_time_label,
+                                                      text=' Extra Time: '+data.student_get_extra_time(student_id))
+                                    '''canvas.itemconfig(student_tuition_label,
+                                                      text='Paid Tuition: '+data.student_get_tuition(student_id))
+                                    '''
                                     #getting picture from database
                                     blob = bucket.get_blob(f'Images/{student_id}.png')
 
@@ -127,6 +197,8 @@ class PageOne(tk.Frame):
                                         img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
                                         self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
                                         canvas.itemconfig(profile_pic,image=self.img_holder)
+
+
                                     # enabling confirm/cancel buttons
                                     confirm_btn["state"] = "normal"
                                     cancel_btn["state"] = "normal"
@@ -174,7 +246,14 @@ class PageOne(tk.Frame):
             self.loaded_flag = 0
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
+            reset_profile_labels()
 
+        def reset_profile_labels():
+            canvas.itemconfig(student_id_label,text="?")
+            canvas.itemconfig(student_name_label,text="?")
+            canvas.itemconfig(student_major_label,text="?")
+            canvas.itemconfig(student_extra_time_label,text="?")
+            #canvas.itemconfig(student_tuition_label,text="?")
 
 
         confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
