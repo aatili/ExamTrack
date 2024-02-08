@@ -132,9 +132,10 @@ class UserInterface(tk.Frame):
 
         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
         self.current_id = ""
-        def table_select_row(a): #0:ID , 1:First Name , 2:Last Name , 3:Extra Time , 4:Tuition , 5:Confirmed
+        def table_select_row(a):#view selected row items
             cur_item = table.focus()
-            cur_values = table.item(cur_item)['values']
+            cur_values = table.item(cur_item,option='values') # this option keeps ID as string
+            #cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
             canvas.itemconfig(student_id_label,text=str(self.current_id))
             canvas.itemconfig(student_name_label,text=student_get_name(self.current_id))

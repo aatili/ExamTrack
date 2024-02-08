@@ -68,12 +68,12 @@ class FaceRec(tk.Frame):
 
         profile_pic = canvas.create_image(160,60,anchor=NW,image=self.imgholder)
 
-                #adding labels
+        #adding labels
         student_name_label = canvas.create_text(
             215.0,
             295.0,
             anchor="nw",
-            text="No Name",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -83,7 +83,7 @@ class FaceRec(tk.Frame):
             215.0,
             335.0,
             anchor="nw",
-            text="999999",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -93,7 +93,7 @@ class FaceRec(tk.Frame):
             373.0,
             justify=CENTER,
             anchor="nw",
-            text="No Major",
+            text="?",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -103,7 +103,7 @@ class FaceRec(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="No Extra Time",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -113,7 +113,7 @@ class FaceRec(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="Not checked",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -124,7 +124,7 @@ class FaceRec(tk.Frame):
 
         self.cap = None
         self.loaded_flag = 0
-        self.current_id = -1
+        self.current_id = "-1"
 
         #Function to start capture loop
         def start_rec():
@@ -248,7 +248,9 @@ class FaceRec(tk.Frame):
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
             if mode:
-                student_confirm_attendace(student_id)
+                err_flag = student_confirm_attendace(student_id)
+            if err_flag==-1:
+                return
             temp_confirmed = student_check_attendance(student_id)
             print(temp_confirmed)
             self.current_id = -1
