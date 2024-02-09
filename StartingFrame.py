@@ -25,7 +25,8 @@ class ExamApp(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
         self.resizable(False, False)
-        self.geometry("1200x600")
+        self.title("Exam App")
+        self.geometry("1200x600+20+20")
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand = True)
 

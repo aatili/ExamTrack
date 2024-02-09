@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,scrolledtext
 from student_data import *
 import time
 from PIL import Image, ImageTk
@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
+from datetime import date
 
 cred = credentials.Certificate("serviceAccountKey.json")
 ui_app = firebase_admin.initialize_app(cred, {
@@ -145,7 +146,7 @@ class UserInterface(tk.Frame):
 
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
-            if blob == None:
+            if blob == None: #no picture retrieved from database
                 self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
                 canvas.itemconfig(profile_pic,image=self.img_holder)
             else:
@@ -154,9 +155,6 @@ class UserInterface(tk.Frame):
                 img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
                 self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
                 canvas.itemconfig(profile_pic,image=self.img_holder)
-            #canvas.itemconfig(l3,text=img_data)
-
-
 
         table.bind("<<TreeviewSelect>>", table_select_row)
 
@@ -311,9 +309,11 @@ class UserInterface(tk.Frame):
         # confirm manually
 
         def confirm_popup(id):
+            if len(id)==0:
+                return
             res=messagebox.askquestion('Manual Confirmation', 'Confirm Student ' + id +'?')
             if res == 'yes' :
-                data.student_confirm_attendace(id)
+                student_confirm_attendace(id)
 
 
         confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
@@ -322,8 +322,74 @@ class UserInterface(tk.Frame):
         confirm_btn.place(x = 650,y = 430)
 
 
-        #add notes for student
+        # Add Notes functionality
+
+
+
+        def add_note_popup(noted_id):
+            if len(noted_id)==0:
+                return
+            note_window = Toplevel(parent)
+            note_window.geometry("400x500")
+            note_window.title("Add Note")
+            note_window.configure(bg='#917FB3')
+            note_window_id_label = Label(note_window, text="Student ID:" , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_id_label.place(x=30,y=30)
+            note_window_id_label2 = Label(note_window, text=noted_id , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_id_label2.place(x=120,y=30)
+
+            note_window_reporter_label = Label(note_window, text="Reporter:" , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_reporter_label.place(x=30,y=70)
+            note_window_reporter_entry = Entry(note_window, bd =3,font=("Calibri", 16 * -1))
+            note_window_reporter_entry.place(x=120,y=70)
+
+            today = date.today()
+            d1 = today.strftime("%d/%m/%Y")
+            note_window_date_label = Label(note_window, text=d1, bg='#917FB3',font=("Calibri", 16 * -1),
+                                           borderwidth=3, relief="ridge")
+            note_window_date_label.place(x=300,y=5)
+
+            note_window_subject_label = Label(note_window, text="Subject:" , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_subject_label.place(x=30,y=110)
+            note_window_subject_entry = Entry(note_window, bd =3,font=("Calibri", 16 * -1))
+            note_window_subject_entry.place(x=120,y=110)
+
+            note_window_note_label = Label(note_window, text="Note:" , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_note_label.place(x=30,y=150)
+            #note_text = tk.Text(note_window, height=12, width=40,bd=3)
+            #note_text.place(x=30,y=190)
+            note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,
+                                      width=40, height=8,
+                                      font=("Calibri", 16*-1))
+
+            note_text_area.grid(column=0, row=2, pady=190, padx=30)
+
+            note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray')
+            note_confirm_btn.place(x = 30, y= 400)
+
+            #note cancel button
+            def note_window_cancel():
+                res=messagebox.askquestion('Cancel Note', 'Are you sure?',parent=note_window)
+                if res == 'yes':
+                    note_window.destroy()
+            note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray',command=note_window_cancel)
+            note_cancel_btn.place(x = 180, y= 400)
+
+
+
+
+
+
+
+
+
+
 
         add_notes_btn = Button(self, text='Add Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray')
+                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
+                               command=lambda: add_note_popup(self.current_id))
         add_notes_btn.place(x = 450,y = 430)
+
+
