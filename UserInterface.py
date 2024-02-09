@@ -290,7 +290,8 @@ class UserInterface(tk.Frame):
 
         # start exams/timers button
         start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                           activebackground='#917FB3',height='1',width='14',command= start_timers, disabledforeground='gray')
+                           activebackground='#917FB3',height='1',width='14',command= start_timers,
+                           disabledforeground='gray')
         start_btn.place(x = 650,y = 90)
 
 
@@ -322,20 +323,21 @@ class UserInterface(tk.Frame):
         confirm_btn.place(x = 650,y = 430)
 
 
-        # Add Notes functionality
+        # Add Notes
 
-
-
+        #Add Notes Window
         def add_note_popup(noted_id):
             if len(noted_id)==0:
                 return
             note_window = Toplevel(parent)
-            note_window.geometry("400x500")
+            note_window.geometry("400x500+350+100")
+            note_window.resizable(False,False)
             note_window.title("Add Note")
             note_window.configure(bg='#917FB3')
             note_window_id_label = Label(note_window, text="Student ID:" , bg='#917FB3',font=("Calibri", 16 * -1))
             note_window_id_label.place(x=30,y=30)
-            note_window_id_label2 = Label(note_window, text=noted_id , bg='#917FB3',font=("Calibri", 16 * -1))
+            note_window_id_label2 = Label(note_window, text=noted_id , bg='#917FB3',font=("Calibri", 16 * -1),
+                                          borderwidth=3, relief="ridge")
             note_window_id_label2.place(x=120,y=30)
 
             note_window_reporter_label = Label(note_window, text="Reporter:" , bg='#917FB3',font=("Calibri", 16 * -1))
@@ -359,13 +361,13 @@ class UserInterface(tk.Frame):
             #note_text = tk.Text(note_window, height=12, width=40,bd=3)
             #note_text.place(x=30,y=190)
             note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,
-                                      width=40, height=8,
-                                      font=("Calibri", 16*-1))
+                                      width=40, height=8,font=("Calibri", 16*-1))
 
             note_text_area.grid(column=0, row=2, pady=190, padx=30)
 
-            note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray')
+            note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                                      font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
+                                      disabledforeground='gray')
             note_confirm_btn.place(x = 30, y= 400)
 
             #note cancel button
@@ -373,23 +375,83 @@ class UserInterface(tk.Frame):
                 res=messagebox.askquestion('Cancel Note', 'Are you sure?',parent=note_window)
                 if res == 'yes':
                     note_window.destroy()
-            note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray',command=note_window_cancel)
+            note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                                     font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
+                                     disabledforeground='gray',command=note_window_cancel)
             note_cancel_btn.place(x = 180, y= 400)
 
 
-
-
-
-
-
-
-
-
-
+        # Interface add notes button
         add_notes_btn = Button(self, text='Add Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: add_note_popup(self.current_id))
-        add_notes_btn.place(x = 450,y = 430)
+        add_notes_btn.place(x = 360,y = 430)
+
+
+
+        #View Notes
+
+        #View Notes Window
+        def view_note_popup(noted_id):
+            if len(noted_id)==0:
+                return
+            view_note_window = Toplevel(parent)
+            view_note_window.geometry("500x500+350+100")
+            view_note_window.resizable(False,False)
+            view_note_window.title("View Notes")
+            view_note_window.configure(bg='#917FB3')
+
+            combo_dates = ttk.Combobox(view_note_window, state="readonly" , values=["Python", "C", "C++", "Java"])
+            combo_dates.place(x=30,y=30)
+
+            view_note_window_id_label = Label(view_note_window, text="Student ID:" ,
+                                              bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_id_label.place(x=30,y=70)
+            view_note_window_id_label2 = Label(view_note_window, text=noted_id ,bg='#917FB3',font=("Calibri", 16 * -1),
+                                               borderwidth=1, relief="groove")
+            view_note_window_id_label2.place(x=120,y=70)
+
+            view_note_window_reporter_label = Label(view_note_window, text="Reporter:" ,
+                                                    bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_reporter_label.place(x=30,y=110)
+            view_note_window_reporter_label2 = Label(view_note_window, text="Anonymos" ,
+                                                     bg='#917FB3',font=("Calibri", 16 * -1), borderwidth=1, relief="groove")
+            view_note_window_reporter_label2.place(x=120,y=110)
+
+            today = date.today()
+            d1 = today.strftime("%d/%m/%Y")
+            view_note_window_date_label = Label(view_note_window, text=d1, bg='#917FB3',font=("Calibri", 16 * -1),
+                                           borderwidth=3, relief="ridge")
+            view_note_window_date_label.place(x=400,y=5)
+
+
+            view_note_window_subject_label = Label(view_note_window, text="Subject:" ,
+                                                   bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_subject_label.place(x=30,y=150)
+            view_note_window_subject_label2 = Label(view_note_window, text="Note Subject" ,
+                                                    bg='#917FB3',font=("Calibri", 16 * -1), borderwidth=1, relief="groove")
+            view_note_window_subject_label2.place(x=120,y=150)
+
+            view_note_text_area = scrolledtext.ScrolledText(view_note_window, wrap=tk.WORD,bd=3,
+                                      width=50, height=8,font=("Calibri", 16*-1))
+
+            view_note_text_area.grid(column=0, row=2, pady=190, padx=30)
+            view_note_text_area.insert(INSERT,"Nothing to view")
+            view_note_text_area["state"] ="disabled"
+            view_note_window.update()
+
+
+            view_note_done_btn = Button(view_note_window, text='Done', bd='5',fg="#FFFFFF" ,bg='#910ac2'
+                                        ,font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',
+                                        width='14', disabledforeground='gray',command = view_note_window.destroy)
+            view_note_done_btn.place(x = 350, y= 400)
+
+
+
+        # Interface view notes button
+        view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
+                               command=lambda: view_note_popup(self.current_id))
+        view_notes_btn.place(x = 360,y = 480)
 
 

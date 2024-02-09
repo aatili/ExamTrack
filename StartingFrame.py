@@ -56,7 +56,7 @@ class StartPage(tk.Frame):
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
 
-        # Creating Cancvas
+        # Creating Canvas
         canvas = Canvas(
             self,
             bg = "#2A2F4F",
