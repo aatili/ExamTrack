@@ -12,13 +12,7 @@ import UserInterface
 import FaceRecFrame
 
 
-
-exam_number = "1"
-room_number = "102"
-
-
-
-#Class used to transition between Classes (tkinter pages)
+# Class used to transition between Classes (tkinter pages)
 class ExamApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -71,7 +65,6 @@ class StartPage(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-
         button = tk.Button(self, text="Face Recognition",
                             command=lambda: controller.show_frame("FaceRec"))
         button.pack()
@@ -79,7 +72,6 @@ class StartPage(tk.Frame):
         button2 = tk.Button(self, text="User Interface",
                             command=lambda: controller.show_frame("UserInterface"))
         button2.pack()
-
 
 
 app = ExamApp()

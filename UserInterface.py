@@ -18,8 +18,6 @@ ui_app = firebase_admin.initialize_app(cred, {
 bucket = storage.bucket(app=ui_app)
 
 
-LARGE_FONT = ("Verdana", 12)
-
 class UserInterface(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -159,72 +157,42 @@ class UserInterface(tk.Frame):
 
         table.bind("<<TreeviewSelect>>", table_select_row)
 
+        # Timers
 
-
-        #Timers
-
-        #time variables
-        time_mins = 2
-        time_mins_extra = 1
-        time_mins_waiver = 1
-        waiver_available = False
-
-        minute=StringVar()
-        second=StringVar()
-        minute_waiver=StringVar()
-        second_waiver=StringVar()
-
-        # setting the default value as 0
-        minute.set("00")
-        second.set("00")
-        minute_waiver.set("00")
-        second_waiver.set("00")
-
-
+        # time variables
+        self.waiver_available = False
+        self.extra_time_flag = 0
+        time_secs = 10
+        time_secs_extra = 5
+        time_secs_waiver = 5
 
         # Creating original timer labels
-        time_left_label = canvas.create_text(
-            515.0,
+        time_note_label = canvas.create_text(
+            525.0,
             75.0,
             anchor="nw",
             text="Time Left",
             fill="#FFFFFF",
             font=("Inter Bold", 11 * -1)
         )
-        minute_label= Label(self, width=3, font=("Arial",14,"" , ), fg="#FFFFFF",
-                           textvariable=minute, background="#917FB3")
-        minute_label.place(x=500,y=90)
+        time_label = Label(self, font=("Arial", 14, "", ), text="00:00", fg="#FFFFFF", background="#917FB3")
+        time_label.place(x=520, y=90)
 
-        seperate_time= Label(self, width=1, font=("Arial",14,"" , ), fg="#FFFFFF",
-                           text=':',background="#917FB3")
-        seperate_time.place(x=530,y=90)
-
-        second_label= Label(self, width=2, font=("Arial",14,""), fg="#FFFFFF",
-                           textvariable=second,background="#917FB3")
-        second_label.place(x=545,y=90)
-
-        if waiver_available:
-            #Creating Waiver labels
-            canvas.create_text(
-                410.0,
+        # Creating Waiver labels
+        waiver_label = canvas.create_text(
+                430.0,
                 75.0,
                 anchor="nw",
                 text="Waiver Time",
                 fill="#FFFFFF",
                 font=("Inter Bold", 11 * -1)
-            )
-            minute_label_waiver= Label(self, width=3, font=("Arial",14,"" , ), fg="#FFFFFF",
-                               textvariable=minute_waiver, background="#917FB3")
-            minute_label_waiver.place(x=400,y=90)
-
-            seperate_time_waiver= Label(self, width=1, font=("Arial",14,"" , ), fg="#FFFFFF",
-                               text=':',background="#917FB3")
-            seperate_time_waiver.place(x=430,y=90)
-
-            second_label_waiver= Label(self, width=2, font=("Arial",14,""), fg="#FFFFFF",
-                               textvariable=second_waiver,background="#917FB3")
-            second_label_waiver.place(x=445,y=90)
-        else:
+        )
+        waiver_time_label= Label(self, font=("Arial",14,"" , ), fg="#FFFFFF",
+                               text="00:00", background="#917FB3")
+        waiver_time_label.place(x=430,y=90)
+        if self.waiver_available == False:
+            waiver_time_label.place_forget()
+            canvas.itemconfig(waiver_label,text="")
             canvas.create_text(
                 370.0,
                 95.0,
@@ -234,64 +202,42 @@ class UserInterface(tk.Frame):
                 font=("Inter Bold", 14 * -1)
             )
 
+        def countdown(total_seconds):
+            minutes = total_seconds // 60
+            seconds = total_seconds % 60
+            if total_seconds >= 0:
+                time_label.config(text="{:02d}:{:02d}".format(minutes, seconds))
+                self.after(1000, countdown,total_seconds-1)
+            else:
+                if self.extra_time_flag:
+                    messagebox.showinfo("Time Countdown", "Extra Time is Up ")
+                else:
+                    messagebox.showinfo("Time Countdown", "Original Time is Up ")
+                    canvas.itemconfig(time_note_label, text="Extra Time")
+                    self.extra_time_flag = 1
+                    countdown(time_secs_extra)
 
-        def exam_timer(time_mins,minute,second,extra,waiver_flag):
-                temp = time_mins * 60
-                temp_waiver = time_mins_waiver * 60
-                while temp >-1:
-                    #divmod(firstvalue = temp//60, secondvalue = temp%60)
-                    mins,secs = divmod(temp,60)
-
-                    if waiver_flag == 0:
-                        mins_waiver,secs_waiver =  divmod(temp_waiver,60)
-
-                    # using format () method to store the value up to
-                    # two decimal places
-                    minute.set("{:02d}".format(mins))
-                    second.set("{:02d}".format(secs))
-
-                    if(waiver_flag == 0):
-                        minute_waiver.set("{:02d}".format(mins_waiver))
-                        second_waiver.set("{:02d}".format(secs_waiver))
+        def waiver_countdown(waiver_total_seconds):
+            waiver_minutes = waiver_total_seconds // 60
+            waiver_seconds = waiver_total_seconds % 60
+            if waiver_total_seconds >= 0:
+                waiver_time_label.config(text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
+                self.after(1000, waiver_countdown, waiver_total_seconds-1)
+            else:
+                messagebox.showinfo("Time Countdown", "Waiver Time is Up ")
 
 
-                    # updating the GUI window after decrementing the
-                    # temp value every time
 
-                    self.update()
-                    time.sleep(1)
-
-                    # when temp value = 0; then a messagebox pop's up
-                    # with a message:"Time's up"
-                    if (temp_waiver==0):
-                        if not extra and waiver_available and waiver_flag == 0:
-                            messagebox.showinfo("Time Countdown", "Waiver Time is up ")
-                            waiver_flag = 1
-
-                    if (temp == 0):
-                        if extra:
-                            messagebox.showinfo("Time Countdown", "Extra Time is up ")
-                        else:
-                            messagebox.showinfo("Time Countdown", "Original Time is up ")
-
-                    # after every one sec the value of temp will be decremented
-                    # by one
-                    temp -= 1
-                    if waiver_flag == 0:
-                        temp_waiver -= 1
-
-        def start_timers():
+        def start_countdown():
             start_btn["state"] = "disabled"
-            waiver_flag = 1  #no waiver available
-            if waiver_available:
-                waiver_flag = 0
-            exam_timer(time_mins , minute , second, 0 , waiver_flag) #original timer
-            canvas.itemconfig(time_left_label, text = 'Extra Time')
-            exam_timer(time_mins_extra , minute , second , 1, 1) #extra time timer
+            countdown(time_secs)
+            if self.waiver_available:
+                waiver_countdown(time_secs_waiver)
+
 
         # start exams/timers button
         start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                           activebackground='#917FB3',height='1',width='14',command= start_timers,
+                           activebackground='#917FB3',height='1',width='14',command= start_countdown,
                            disabledforeground='gray')
         start_btn.place(x = 650,y = 90)
 
