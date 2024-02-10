@@ -58,7 +58,7 @@ class UserInterface(tk.Frame):
             115.0,
             295.0,
             anchor="nw",
-            text="?",
+            text="(Name)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -68,7 +68,7 @@ class UserInterface(tk.Frame):
             115.0,
             335.0,
             anchor="nw",
-            text="?",
+            text="(ID)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -78,7 +78,7 @@ class UserInterface(tk.Frame):
             373.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="(Major)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -88,7 +88,7 @@ class UserInterface(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="(ET)",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -98,7 +98,7 @@ class UserInterface(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="(CF)",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -132,6 +132,8 @@ class UserInterface(tk.Frame):
 
         def table_select_row(a):#view selected row items
             cur_item = table.focus()
+            print(cur_item)
+            print(type(cur_item))
             cur_values = table.item(cur_item,option='values') # this option keeps ID as string
             # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
@@ -160,43 +162,38 @@ class UserInterface(tk.Frame):
 
         # Searching the table
 
-        l1 = tk.Label(self, text="Search", width=5, font=18)  # added one Label
-        l1.place(x=900 , y=350)
+        canvas.create_text(
+            900,
+            175,
+            anchor="nw",
+            text="Search ID:",
+            fill="#FFFFFF",
+            font=("Inter Bold", 18 * -1)
+        )
 
-        e1 = tk.Entry(self, width=35, bg="yellow", font=18)  # added one Entry box
-        e1.place(x=900,y=380)
+        search_entry = tk.Entry(self, width=20, bg="#917FB3", font=18 , borderwidth=3)
+        search_entry.place(x=900,y=210)
 
         def my_search(*args):
-            l1 = list(table_df)  # List of column names as headers
-            query = e1.get().strip() # get user entered string
+            query = search_entry.get().strip() # get entry string
             str1 = table_df.id.str.contains(query, case=False)
-            df2 = table_df[(str1)]  # combine all conditions using | operator
+            df2 = table_df[str1]
             r_set = df2.to_numpy().tolist()  # Create list of list using rows
-            trv = ttk.Treeview(self, selectmode="browse")  # selectmode="browse" or "extended"
-            trv.place(x=360, y=150, height=260)
-            trv["height"] = 10  # Number of rows to display, default is 10
-            trv["show"] = "headings"
-            # column identifiers
-            trv["columns"] = l1
-            for i in l1:
-                trv.column(i, width=90, anchor="c")
-                # Headings of respective columns
-                trv.heading(i, text=i)
+            table.delete(*table.get_children())
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
-                trv.insert("", "end", iid=v[0], values=v)  # adding row
+                table.insert("", "end", iid=v[0], values=v)  # adding row
 
-        e1.bind("<KeyRelease>",my_search)
-
+        search_entry.bind("<KeyRelease>", my_search)
 
         # Timers
 
         # time variables
-        self.waiver_available = False
+        self.waiver_available = True
         self.extra_time_flag = 0
-        time_secs = 10
+        time_secs = 30
         time_secs_extra = 5
-        time_secs_waiver = 5
+        time_secs_waiver = 15
 
         # Creating original timer labels
         time_note_label = canvas.create_text(
@@ -205,26 +202,45 @@ class UserInterface(tk.Frame):
             anchor="nw",
             text="Time Left",
             fill="#FFFFFF",
-            font=("Inter Bold", 11 * -1)
+            font=("Inter Bold", 12 * -1)
         )
-        time_label = Label(self, font=("Arial", 14, "", ), text="00:00", fg="#FFFFFF", background="#917FB3")
-        time_label.place(x=520, y=90)
+        time_label = canvas.create_text(
+            525.0,
+            93.0,
+            anchor="nw",
+            text="00:00",
+            fill="#FFFFFF",
+            font=("Arial", 15, "", )
+        )
+
+        '''bbox = canvas.bbox(time_label)
+        rect_item = canvas.create_rectangle(bbox, outline="white")
+        canvas.tag_raise(time_label,rect_item)'''
 
         # Creating Waiver labels
         waiver_label = canvas.create_text(
-                430.0,
+                425.0,
                 75.0,
                 anchor="nw",
                 text="Waiver Time",
                 fill="#FFFFFF",
-                font=("Inter Bold", 11 * -1)
+                font=("Inter Bold", 12 * -1)
         )
-        waiver_time_label= Label(self, font=("Arial",14,"" , ), fg="#FFFFFF",
-                               text="00:00", background="#917FB3")
-        waiver_time_label.place(x=430,y=90)
-        if self.waiver_available == False:
-            waiver_time_label.place_forget()
+        waiver_time_label = canvas.create_text(
+                430.0,
+                93.0,
+                anchor="nw",
+                text="00:00",
+                fill="#FFFFFF",
+                font=("Arial",15,"" , )
+        )
+        bbox2 = canvas.bbox(waiver_time_label)
+        rect_item2 = canvas.create_rectangle(bbox2, outline="white")
+        canvas.tag_raise(waiver_time_label,rect_item2)
+
+        if not self.waiver_available:
             canvas.itemconfig(waiver_label,text="")
+            canvas.itemconfig(waiver_time_label,text="")
             canvas.create_text(
                 370.0,
                 95.0,
@@ -238,7 +254,7 @@ class UserInterface(tk.Frame):
             minutes = total_seconds // 60
             seconds = total_seconds % 60
             if total_seconds >= 0:
-                time_label.config(text="{:02d}:{:02d}".format(minutes, seconds))
+                canvas.itemconfig(time_label, text="{:02d}:{:02d}".format(minutes, seconds))
                 self.after(1000, countdown,total_seconds-1)
             else:
                 if self.extra_time_flag:
@@ -253,7 +269,7 @@ class UserInterface(tk.Frame):
             waiver_minutes = waiver_total_seconds // 60
             waiver_seconds = waiver_total_seconds % 60
             if waiver_total_seconds >= 0:
-                waiver_time_label.config(text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
+                canvas.itemconfig(waiver_time_label, text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
                 self.after(1000, waiver_countdown, waiver_total_seconds-1)
             else:
                 messagebox.showinfo("Time Countdown", "Waiver Time is Up ")

@@ -73,7 +73,7 @@ class FaceRec(tk.Frame):
             215.0,
             295.0,
             anchor="nw",
-            text="?",
+            text="(Name)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -83,7 +83,7 @@ class FaceRec(tk.Frame):
             215.0,
             335.0,
             anchor="nw",
-            text="?",
+            text="(ID)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -93,7 +93,7 @@ class FaceRec(tk.Frame):
             373.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="(Major)",
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
@@ -250,7 +250,6 @@ class FaceRec(tk.Frame):
             if mode:
                 student_confirm_attendace(student_id)
             temp_confirmed = student_check_attendance(student_id)
-            print(temp_confirmed)
             self.current_id = -1
             reset_profile_labels()
 
@@ -267,7 +266,7 @@ class FaceRec(tk.Frame):
                              ,command=lambda: cancel_confirm_func(1,self.current_id))
         confirm_btn.place(x = 270,y = 475)
 
-        cancel_btn = Button(self, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
+        cancel_btn = Button(self, text='Dismiss', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
                             ,command=lambda: cancel_confirm_func(0,self.current_id))
         cancel_btn.place(x = 270,y = 520)
