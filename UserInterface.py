@@ -125,15 +125,15 @@ class UserInterface(tk.Frame):
 
         table.place(x=360, y=150, height=260)
 
-
         #Selecting row in table
 
         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
         self.current_id = ""
+
         def table_select_row(a):#view selected row items
             cur_item = table.focus()
             cur_values = table.item(cur_item,option='values') # this option keeps ID as string
-            #cur_values = table.item(cur_item)['values'] # this option converts ID into integer
+            # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
             canvas.itemconfig(student_id_label,text=str(self.current_id))
             canvas.itemconfig(student_name_label,text=student_get_name(self.current_id))
@@ -145,7 +145,7 @@ class UserInterface(tk.Frame):
 
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
-            if blob == None: #no picture retrieved from database
+            if blob is None: # no picture retrieved from database
                 self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
                 canvas.itemconfig(profile_pic,image=self.img_holder)
             else:
@@ -156,6 +156,38 @@ class UserInterface(tk.Frame):
                 canvas.itemconfig(profile_pic,image=self.img_holder)
 
         table.bind("<<TreeviewSelect>>", table_select_row)
+
+
+        # Searching the table
+
+        l1 = tk.Label(self, text="Search", width=5, font=18)  # added one Label
+        l1.place(x=900 , y=350)
+
+        e1 = tk.Entry(self, width=35, bg="yellow", font=18)  # added one Entry box
+        e1.place(x=900,y=380)
+
+        def my_search(*args):
+            l1 = list(table_df)  # List of column names as headers
+            query = e1.get().strip() # get user entered string
+            str1 = table_df.id.str.contains(query, case=False)
+            df2 = table_df[(str1)]  # combine all conditions using | operator
+            r_set = df2.to_numpy().tolist()  # Create list of list using rows
+            trv = ttk.Treeview(self, selectmode="browse")  # selectmode="browse" or "extended"
+            trv.place(x=360, y=150, height=260)
+            trv["height"] = 10  # Number of rows to display, default is 10
+            trv["show"] = "headings"
+            # column identifiers
+            trv["columns"] = l1
+            for i in l1:
+                trv.column(i, width=90, anchor="c")
+                # Headings of respective columns
+                trv.heading(i, text=i)
+            for dt in r_set:
+                v = [r for r in dt]  # creating a list from each row
+                trv.insert("", "end", iid=v[0], values=v)  # adding row
+
+        e1.bind("<KeyRelease>",my_search)
+
 
         # Timers
 
@@ -324,9 +356,13 @@ class UserInterface(tk.Frame):
                         'note': note_text_area.get("1.0",END)
                     }
                 }}
-                for key, value in temp_data.items():
-                    ref.child(key).update(value)
-                messagebox.showinfo("Add Note Message","Submitted Succesfully!",parent=note_window)
+
+                try:
+                    for key, value in temp_data.items():
+                        ref.child(key).update(value)
+                except ValueError:
+                        messagebox.showerror("Add Note Error","Failed to Submit.",parent=note_window)
+                messagebox.showinfo("Add Note Message","Submitted Succesfully.",parent=note_window)
                 note_window.destroy()
 
 
@@ -418,7 +454,6 @@ class UserInterface(tk.Frame):
             ref = db.reference(f'Notes/{noted_id}',app=ui_app)
             res_dict = ref.order_by_key().get()
             res_keys = list(res_dict.keys())
-
 
             #Combobox functionality
 

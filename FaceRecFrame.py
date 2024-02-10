@@ -174,7 +174,7 @@ class FaceRec(tk.Frame):
 
                                 if self.loaded_flag==0:
                                     self.loaded_flag = 1
-                                    #displaying student info
+                                    # displaying student info
                                     canvas.itemconfig(student_id_label,text=self.current_id)
                                     canvas.itemconfig(student_name_label,
                                                       text=student_get_name(self.current_id))
