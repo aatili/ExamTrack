@@ -8,7 +8,8 @@ import numpy as np
 import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
-from datetime import date
+from datetime import date,datetime
+
 
 cred = credentials.Certificate("serviceAccountKey.json")
 ui_app = firebase_admin.initialize_app(cred, {
@@ -365,9 +366,28 @@ class UserInterface(tk.Frame):
 
             note_text_area.grid(column=0, row=2, pady=190, padx=30)
 
+            #note confirm button
+            def note_window_confirm():
+                ref = db.reference('Notes',app=ui_app)
+                now = datetime.now()
+                dt_string = now.strftime("%d-%m-%Y %H:%M")
+                temp_data = {noted_id:{
+                    dt_string:{
+                        'subject':note_window_subject_entry.get(),
+                        'reporter':note_window_reporter_entry.get(),
+                        'note': note_text_area.get("1.0",END)
+                    }
+                }}
+                for key, value in temp_data.items():
+                    ref.child(key).update(value)
+                messagebox.showinfo("Add Note Message","Submitted Succesfully!",parent=note_window)
+                note_window.destroy()
+
+
+
             note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
                                       font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
-                                      disabledforeground='gray')
+                                      disabledforeground='gray',command=note_window_confirm)
             note_confirm_btn.place(x = 30, y= 400)
 
             #note cancel button
@@ -375,6 +395,7 @@ class UserInterface(tk.Frame):
                 res=messagebox.askquestion('Cancel Note', 'Are you sure?',parent=note_window)
                 if res == 'yes':
                     note_window.destroy()
+
             note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
                                      font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
                                      disabledforeground='gray',command=note_window_cancel)
@@ -401,22 +422,24 @@ class UserInterface(tk.Frame):
             view_note_window.title("View Notes")
             view_note_window.configure(bg='#917FB3')
 
-            combo_dates = ttk.Combobox(view_note_window, state="readonly" , values=["Python", "C", "C++", "Java"])
-            combo_dates.place(x=30,y=30)
-
-            view_note_window_id_label = Label(view_note_window, text="Student ID:" ,
+            view_note_window_label =  Label(view_note_window, text="Select Date:" ,
                                               bg='#917FB3',font=("Calibri", 16 * -1))
-            view_note_window_id_label.place(x=30,y=70)
-            view_note_window_id_label2 = Label(view_note_window, text=noted_id ,bg='#917FB3',font=("Calibri", 16 * -1),
-                                               borderwidth=1, relief="groove")
-            view_note_window_id_label2.place(x=120,y=70)
+            view_note_window_label.place(x=30,y=30)
 
-            view_note_window_reporter_label = Label(view_note_window, text="Reporter:" ,
+
+            view_note_window_id = Label(view_note_window, text="Student ID:" ,
+                                              bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_id.place(x=30,y=70)
+            view_note_window_id2 = Label(view_note_window, text=noted_id ,bg='#917FB3',font=("Calibri", 16 * -1),
+                                               borderwidth=1, relief="groove")
+            view_note_window_id2.place(x=120,y=70)
+
+            view_note_window_reporter = Label(view_note_window, text="Reporter:" ,
                                                     bg='#917FB3',font=("Calibri", 16 * -1))
-            view_note_window_reporter_label.place(x=30,y=110)
-            view_note_window_reporter_label2 = Label(view_note_window, text="Anonymos" ,
-                                                     bg='#917FB3',font=("Calibri", 16 * -1), borderwidth=1, relief="groove")
-            view_note_window_reporter_label2.place(x=120,y=110)
+            view_note_window_reporter.place(x=30,y=110)
+            view_note_window_reporter2 = Label(view_note_window, text="Anonymos" ,
+                                                     bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_reporter2.place(x=120,y=110)
 
             today = date.today()
             d1 = today.strftime("%d/%m/%Y")
@@ -425,14 +448,14 @@ class UserInterface(tk.Frame):
             view_note_window_date_label.place(x=400,y=5)
 
 
-            view_note_window_subject_label = Label(view_note_window, text="Subject:" ,
+            view_note_window_subject = Label(view_note_window, text="Subject:" ,
                                                    bg='#917FB3',font=("Calibri", 16 * -1))
-            view_note_window_subject_label.place(x=30,y=150)
-            view_note_window_subject_label2 = Label(view_note_window, text="Note Subject" ,
-                                                    bg='#917FB3',font=("Calibri", 16 * -1), borderwidth=1, relief="groove")
-            view_note_window_subject_label2.place(x=120,y=150)
+            view_note_window_subject.place(x=30,y=150)
+            view_note_window_subject2 = Label(view_note_window, text="Note Subject" ,
+                                                    bg='#917FB3',font=("Calibri", 16 * -1))
+            view_note_window_subject2.place(x=120,y=150)
 
-            view_note_text_area = scrolledtext.ScrolledText(view_note_window, wrap=tk.WORD,bd=3,
+            view_note_text_area = scrolledtext.ScrolledText(view_note_window, wrap=tk.WORD,bd=3,background="gray",
                                       width=50, height=8,font=("Calibri", 16*-1))
 
             view_note_text_area.grid(column=0, row=2, pady=190, padx=30)
@@ -446,12 +469,48 @@ class UserInterface(tk.Frame):
                                         width='14', disabledforeground='gray',command = view_note_window.destroy)
             view_note_done_btn.place(x = 350, y= 400)
 
+            ref = db.reference(f'Notes/{noted_id}',app=ui_app)
+            res_dict = ref.order_by_key().get()
+            res_keys = list(res_dict.keys())
+
+
+            #Combobox functionality
+
+            def combo_changed(event):
+                selected_date = combo_dates.get()
+                view_note_window_reporter2.configure(text = res_dict[selected_date]['reporter'])
+                view_note_window_subject2.configure(text = res_dict[selected_date]['subject'])
+                view_note_text_area.configure(state='normal')
+                view_note_text_area.delete("1.0","end")
+                view_note_text_area.insert(INSERT,res_dict[selected_date]['note'])
+                view_note_text_area.configure(state='disabled')
+
+
+
+            combo_dates = ttk.Combobox(view_note_window, state="readonly" , values=res_keys,
+                                       background="gray",font=("Calibri", 16 * -1))
+            combo_dates.place(x=120,y=35)
+
+            combo_dates.bind("<<ComboboxSelected>>", combo_changed)
+
+
 
 
         # Interface view notes button
+
+        #open view notes window only if student has notes
+        def popup_notes_exist(req_id):
+            ref = db.reference(f'Notes/{req_id}',app=ui_app)
+            if ref.get():
+                view_note_popup(req_id)
+            else:
+                messagebox.showinfo("View Notes Message","Student has no notes!")
+
+
+
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
-                               command=lambda: view_note_popup(self.current_id))
+                               command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x = 360,y = 480)
 
 
