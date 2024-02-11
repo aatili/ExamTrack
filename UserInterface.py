@@ -1,7 +1,5 @@
 from tkinter import *
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,scrolledtext
-from student_data import *
-import time
 from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
@@ -9,6 +7,9 @@ import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
 from datetime import date,datetime
+
+from student_data import *
+from OfflineFeatures import *
 
 
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -23,8 +24,9 @@ class UserInterface(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        self.parent = parent
         self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
-
+        self.offline = OfflineFeatures()
         # Creating Cancvas
         canvas = Canvas(
             self,
@@ -88,7 +90,7 @@ class UserInterface(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="(ET)",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -98,7 +100,7 @@ class UserInterface(tk.Frame):
             430.0,
             justify=CENTER,
             anchor="nw",
-            text="(CF)",
+            text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
         )
@@ -132,8 +134,6 @@ class UserInterface(tk.Frame):
 
         def table_select_row(a):#view selected row items
             cur_item = table.focus()
-            print(cur_item)
-            print(type(cur_item))
             cur_values = table.item(cur_item,option='values') # this option keeps ID as string
             # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
@@ -164,15 +164,15 @@ class UserInterface(tk.Frame):
 
         canvas.create_text(
             900,
-            175,
+            150,
             anchor="nw",
             text="Search ID:",
             fill="#FFFFFF",
-            font=("Inter Bold", 18 * -1)
+            font=("Calibri Bold", 18 * -1)
         )
 
         search_entry = tk.Entry(self, width=20, bg="#917FB3", font=18 , borderwidth=3)
-        search_entry.place(x=900,y=210)
+        search_entry.place(x=900,y=185)
 
         def my_search(*args):
             query = search_entry.get().strip() # get entry string
@@ -213,9 +213,9 @@ class UserInterface(tk.Frame):
             font=("Arial", 15, "", )
         )
 
-        '''bbox = canvas.bbox(time_label)
-        rect_item = canvas.create_rectangle(bbox, outline="white")
-        canvas.tag_raise(time_label,rect_item)'''
+        bbox = canvas.bbox(time_label)
+        rect_item = canvas.create_rectangle(bbox, outline="purple")
+        canvas.tag_raise(time_label,rect_item)
 
         # Creating Waiver labels
         waiver_label = canvas.create_text(
@@ -235,7 +235,7 @@ class UserInterface(tk.Frame):
                 font=("Arial",15,"" , )
         )
         bbox2 = canvas.bbox(waiver_time_label)
-        rect_item2 = canvas.create_rectangle(bbox2, outline="white")
+        rect_item2 = canvas.create_rectangle(bbox2, outline="purple")
         canvas.tag_raise(waiver_time_label,rect_item2)
 
         if not self.waiver_available:
@@ -303,23 +303,13 @@ class UserInterface(tk.Frame):
         button1.pack()
 
         # confirm manually
-
-        def confirm_popup(id):
-            if len(id)==0:
-                return
-            res=messagebox.askquestion('Manual Confirmation', 'Confirm Student ' + id +'?')
-            if res == 'yes' :
-                student_confirm_attendace(id)
-
-
         confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                            activebackground='#917FB3',height='1',width='14',
-                             command= lambda : confirm_popup(self.current_id) , disabledforeground='gray')
+                             command= lambda : self.offline.confirm_popup2(self.parent,self.current_id) , disabledforeground='gray')
         confirm_btn.place(x = 650,y = 430)
 
 
         # Add Notes
-
         #Add Notes Window
         def add_note_popup(noted_id):
             if len(noted_id)==0:
@@ -481,7 +471,6 @@ class UserInterface(tk.Frame):
                 view_note_text_area.delete("1.0","end")
                 view_note_text_area.insert(INSERT,res_dict[selected_date]['note'])
                 view_note_text_area.configure(state='disabled')
-
 
 
             combo_dates = ttk.Combobox(view_note_window, state="readonly" , values=res_keys,

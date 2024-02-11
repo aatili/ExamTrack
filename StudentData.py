@@ -1,6 +1,30 @@
 # Table data
 import pandas as pd
 
+# Constants
+
+STUDENT_NOT_FOUND = -1
+STUDENT_COFIRMED = 0
+STUDENT_ALREADY_CONFIRMED = 1
+
+
+
+# Attendance and Confirmation
+
+students_attendance = {}  # exam attendance
+students_manual_confirm = {}  # students manually confirmed - will contain the reason
+students_auto_confirm = {}   # students auto confirmed
+
+# Notes
+
+# Breaks
+
+
+
+
+
+# Sample data
+
 table_columns =  ["id", "first_name", "last_name", "extra_time", "tuition","major"]
 table_data = [    
     ["243731", "Adnan", "Atili", "No" , "Yes","Information Systems"],
@@ -12,11 +36,16 @@ table_data = [
 ]
 table_df = pd.DataFrame(table_data, columns=table_columns)
 
+
 #print(table_df.loc[table_df['ID']=='002', 'First Name'].values[0])
 
 #print(table_df.columns.tolist())
 
 #print(table_df.values.tolist())
+
+#initiate attendance
+for i in table_data:
+    students_attendance[i[0]] = False
 
 def student_get_name(student_id):
     temp_first = "No"
@@ -45,22 +74,49 @@ def student_get_major(student_id):
     return temp_first
 
 
-
-# exam attendance
-attendance = {}
-for i in table_data:
-    attendance[i[0]] = 0
-
-
-def student_confirm_attendace(id):
-    if id in attendance.keys():
-        attendance[id] = 1
-        return 0
+def student_confirm_attendance(student_id):
+    if student_id in students_attendance.keys():
+        if students_attendance[student_id]:
+            return STUDENT_ALREADY_CONFIRMED
+        else:
+            students_attendance[student_id] = True
+            return STUDENT_COFIRMED
     else:
-        return -1
+        return STUDENT_NOT_FOUND
 
-def student_check_attendance(id):
-    if id in attendance.keys():
-        return attendance[id]
-    return -1
+def student_auto_confirm_attendance(student_id):
+    res = student_confirm_attendance(student_id)
+    if res != STUDENT_COFIRMED:
+        return res
+    else:
+        students_auto_confirm[student_id] = True
+        return res
+
+
+def student_manual_confirm_attendance(student_id,reason):
+    res = student_confirm_attendance(student_id)
+    if res != STUDENT_COFIRMED:
+        return res
+    else:
+        students_manual_confirm[student_id] = reason
+        return res
+
+
+def student_check_attendance(student_id):
+    if student_id in students_attendance.keys():
+        return True
+    return False
+
+def student_check_manual_attendance(student_id):
+    if student_id in students_manual_confirm.keys():
+        return True
+    return False
+
+def student_check_manual_reason(student_id):
+    if student_check_manual_attendance(student_id):
+        return students_manual_confirm[student_id]
+    else:
+        return None
+
+
 

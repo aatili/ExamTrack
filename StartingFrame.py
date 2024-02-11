@@ -12,7 +12,7 @@ import UserInterface
 import FaceRecFrame
 
 
-# Class used to transition between Classes (tkinter pages)
+# Class used to transition between tkinter pages
 class ExamApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
