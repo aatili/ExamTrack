@@ -11,7 +11,7 @@ import cvzone
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
-from student_data import *
+from StudentData import *
 
 # Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")

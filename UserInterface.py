@@ -8,7 +8,7 @@ import firebase_admin
 from firebase_admin import credentials, db, storage
 from datetime import date,datetime
 
-from student_data import *
+from StudentData import *
 from OfflineFeatures import *
 
 
@@ -305,7 +305,7 @@ class UserInterface(tk.Frame):
         # confirm manually
         confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                            activebackground='#917FB3',height='1',width='14',
-                             command= lambda : self.offline.confirm_popup2(self.parent,self.current_id) , disabledforeground='gray')
+                             command= lambda : self.offline.confirm_popup(self.parent,self.current_id), disabledforeground='gray')
         confirm_btn.place(x = 650,y = 430)
 
 
@@ -327,7 +327,7 @@ class UserInterface(tk.Frame):
 
             note_window_reporter_label = Label(note_window, text="Reporter:" , bg='#917FB3',font=("Calibri", 16 * -1))
             note_window_reporter_label.place(x=30,y=70)
-            note_window_reporter_entry = Entry(note_window, bd =3,font=("Calibri", 16 * -1))
+            note_window_reporter_entry = Entry(note_window, bd =3,bg='#E5BEEC',font=("Calibri", 16 * -1))
             note_window_reporter_entry.place(x=120,y=70)
 
             today = date.today()
@@ -338,14 +338,14 @@ class UserInterface(tk.Frame):
 
             note_window_subject_label = Label(note_window, text="Subject:" , bg='#917FB3',font=("Calibri", 16 * -1))
             note_window_subject_label.place(x=30,y=110)
-            note_window_subject_entry = Entry(note_window, bd =3,font=("Calibri", 16 * -1))
+            note_window_subject_entry = Entry(note_window,bg='#E5BEEC', bd =3,font=("Calibri", 16 * -1))
             note_window_subject_entry.place(x=120,y=110)
 
             note_window_note_label = Label(note_window, text="Note:" , bg='#917FB3',font=("Calibri", 16 * -1))
             note_window_note_label.place(x=30,y=150)
             #note_text = tk.Text(note_window, height=12, width=40,bd=3)
             #note_text.place(x=30,y=190)
-            note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,
+            note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,bg='#E5BEEC',
                                       width=40, height=8,font=("Calibri", 16*-1))
 
             note_text_area.grid(column=0, row=2, pady=190, padx=30)
@@ -443,7 +443,7 @@ class UserInterface(tk.Frame):
                                                     bg='#917FB3',font=("Calibri", 16 * -1))
             view_note_window_subject2.place(x=120,y=150)
 
-            view_note_text_area = scrolledtext.ScrolledText(view_note_window, wrap=tk.WORD,bd=3,background="gray",
+            view_note_text_area = scrolledtext.ScrolledText(view_note_window, wrap=tk.WORD,bd=3,background="#b6a4ba",
                                       width=50, height=8,font=("Calibri", 16*-1))
 
             view_note_text_area.grid(column=0, row=2, pady=190, padx=30)
@@ -479,20 +479,15 @@ class UserInterface(tk.Frame):
 
             combo_dates.bind("<<ComboboxSelected>>", combo_changed)
 
-
-
-
         # Interface view notes button
 
-        #open view notes window only if student has notes
+        # open view notes window only if student has notes
         def popup_notes_exist(req_id):
             ref = db.reference(f'Notes/{req_id}',app=ui_app)
             if ref.get():
                 view_note_popup(req_id)
             else:
                 messagebox.showinfo("View Notes Message","Student has no notes!")
-
-
 
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
