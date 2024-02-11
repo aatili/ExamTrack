@@ -51,6 +51,8 @@ def student_get_name(student_id):
     return temp_first + ' ' + temp_last
 
 
+# GET Functions
+
 def student_get_extra_time(student_id):
     temp_first = "No"
     if student_id in table_df['id'].values:
@@ -71,6 +73,8 @@ def student_get_major(student_id):
         temp_first = table_df.loc[table_df['id'] == student_id, 'major'].values[0]
     return temp_first
 
+
+# Attendance Functions: Confirm or Check
 
 def student_confirm_attendance(student_id):
     if student_id in students_attendance.keys():
@@ -103,7 +107,7 @@ def student_manual_confirm_attendance(student_id, reason):
 
 def student_check_attendance(student_id):
     if student_id in students_attendance.keys():
-        return True
+        return students_attendance[student_id]
     return False
 
 

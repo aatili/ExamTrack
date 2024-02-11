@@ -239,35 +239,44 @@ class FaceRec(tk.Frame):
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=start_rec)
         magic_btn.place(x = 750,y = 520)
 
-        #Confirm or Cancel Attendance once student recognized
+        # Confirm or Cancel Attendance once student recognized
 
-        def cancel_confirm_func(mode,student_id): # mode: confirm 1, cancel 0
+        def rec_confirm_func(student_id): # mode: confirm 1, cancel 0
             self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
             canvas.itemconfig(profile_pic,image=self.imgholder)
             self.loaded_flag = 0
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
-            if mode:
-                student_confirm_attendace(student_id)
-            temp_confirmed = student_check_attendance(student_id)
+            if student_check_attendance(student_id):
+                messagebox.showinfo("Confirm Message", "Student has been confirmed already.", parent=self)
+            else:
+                student_auto_confirm_attendance(student_id)
+            print(student_check_attendance(student_id))
+            self.current_id = -1
+            reset_profile_labels()
+
+        def rec_dismiss_function():
+            self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
+            canvas.itemconfig(profile_pic,image=self.imgholder)
+            self.loaded_flag = 0
             self.current_id = -1
             reset_profile_labels()
 
         def reset_profile_labels():
-            canvas.itemconfig(student_id_label,text="?")
-            canvas.itemconfig(student_name_label,text="?")
-            canvas.itemconfig(student_major_label,text="?")
+            canvas.itemconfig(student_id_label,text="(ID)")
+            canvas.itemconfig(student_name_label,text="(Name)")
+            canvas.itemconfig(student_major_label,text="(Major)")
             canvas.itemconfig(student_extra_time_label,text="?")
             #canvas.itemconfig(student_tuition_label,text="?")
 
 
         confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda: cancel_confirm_func(1,self.current_id))
+                             ,command=lambda: rec_confirm_func(self.current_id))
         confirm_btn.place(x = 270,y = 475)
 
         cancel_btn = Button(self, text='Dismiss', bd='5',fg="#FFFFFF" ,bg='#910ac2',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                            ,command=lambda: cancel_confirm_func(0,self.current_id))
+                            ,command=rec_dismiss_function)
         cancel_btn.place(x = 270,y = 520)
 

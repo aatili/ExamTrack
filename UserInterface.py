@@ -191,9 +191,10 @@ class UserInterface(tk.Frame):
         # time variables
         self.waiver_available = True
         self.extra_time_flag = 0
-        time_secs = 30
+        self.waiver_total_seconds = 15
+        self.total_seconds = 30
+
         time_secs_extra = 5
-        time_secs_waiver = 15
 
         # Creating original timer labels
         time_note_label = canvas.create_text(
@@ -250,37 +251,40 @@ class UserInterface(tk.Frame):
                 font=("Inter Bold", 14 * -1)
             )
 
-        def countdown(total_seconds):
-            minutes = total_seconds // 60
-            seconds = total_seconds % 60
-            if total_seconds >= 0:
+        def countdown():
+            minutes = self.total_seconds // 60
+            seconds = self.total_seconds % 60
+            if self.total_seconds >= 0:
                 canvas.itemconfig(time_label, text="{:02d}:{:02d}".format(minutes, seconds))
-                self.after(1000, countdown,total_seconds-1)
+                self.after(1000, countdown)
+                self.total_seconds -= 1
             else:
                 if self.extra_time_flag:
-                    messagebox.showinfo("Time Countdown", "Extra Time is Up ")
+                    messagebox.showinfo("Time Countdown", "Extra time is over.")
                 else:
-                    messagebox.showinfo("Time Countdown", "Original Time is Up ")
+                    messagebox.showinfo("Time Countdown", "Original time is over.")
                     canvas.itemconfig(time_note_label, text="Extra Time")
                     self.extra_time_flag = 1
-                    countdown(time_secs_extra)
+                    self.total_seconds = time_secs_extra
+                    countdown()
 
-        def waiver_countdown(waiver_total_seconds):
-            waiver_minutes = waiver_total_seconds // 60
-            waiver_seconds = waiver_total_seconds % 60
-            if waiver_total_seconds >= 0:
+        def waiver_countdown():
+            waiver_minutes = self.waiver_total_seconds // 60
+            waiver_seconds = self.waiver_total_seconds % 60
+            if self.waiver_total_seconds >= 0:
                 canvas.itemconfig(waiver_time_label, text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
-                self.after(1000, waiver_countdown, waiver_total_seconds-1)
+                self.after(1000, waiver_countdown)
+                self.waiver_total_seconds -= 1
             else:
-                messagebox.showinfo("Time Countdown", "Waiver Time is Up ")
+                messagebox.showinfo("Time Countdown", "Waiver time is over.")
 
 
 
         def start_countdown():
             start_btn["state"] = "disabled"
-            countdown(time_secs)
+            countdown()
             if self.waiver_available:
-                waiver_countdown(time_secs_waiver)
+                waiver_countdown()
 
 
         # start exams/timers button
@@ -302,6 +306,7 @@ class UserInterface(tk.Frame):
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
+
         # confirm manually
         confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                            activebackground='#917FB3',height='1',width='14',
@@ -312,7 +317,7 @@ class UserInterface(tk.Frame):
         # Add Notes
         #Add Notes Window
         def add_note_popup(noted_id):
-            if len(noted_id)==0:
+            if len(noted_id) == 0:
                 return
             note_window = Toplevel(parent)
             note_window.geometry("400x500+350+100")
@@ -343,10 +348,10 @@ class UserInterface(tk.Frame):
 
             note_window_note_label = Label(note_window, text="Note:" , bg='#917FB3',font=("Calibri", 16 * -1))
             note_window_note_label.place(x=30,y=150)
-            #note_text = tk.Text(note_window, height=12, width=40,bd=3)
-            #note_text.place(x=30,y=190)
-            note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,bg='#E5BEEC',
-                                      width=40, height=8,font=("Calibri", 16*-1))
+            # note_text = tk.Text(note_window, height=12, width=40,bd=3)
+            # note_text.place(x=30,y=190)
+            note_text_area = scrolledtext.ScrolledText(note_window, wrap=tk.WORD,bd=3,bg='#E5BEEC',width=40,
+                                                       height=8,font=("Calibri", 16*-1))
 
             note_text_area.grid(column=0, row=2, pady=190, padx=30)
 
@@ -367,18 +372,17 @@ class UserInterface(tk.Frame):
                     for key, value in temp_data.items():
                         ref.child(key).update(value)
                 except ValueError:
-                        messagebox.showerror("Add Note Error","Failed to Submit.",parent=note_window)
-                messagebox.showinfo("Add Note Message","Submitted Succesfully.",parent=note_window)
+                    messagebox.showerror("Add Note Error","Failed to submit.",parent=note_window)
+                messagebox.showinfo("Add Note Message","Submitted succesfully.",parent=note_window)
                 note_window.destroy()
 
-
-
+            # note confirm button
             note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
                                       font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
                                       disabledforeground='gray',command=note_window_confirm)
             note_confirm_btn.place(x = 30, y= 400)
 
-            #note cancel button
+            # note cancel button
             def note_window_cancel():
                 res=messagebox.askquestion('Cancel Note', 'Are you sure?',parent=note_window)
                 if res == 'yes':
@@ -389,18 +393,15 @@ class UserInterface(tk.Frame):
                                      disabledforeground='gray',command=note_window_cancel)
             note_cancel_btn.place(x = 180, y= 400)
 
-
         # Interface add notes button
         add_notes_btn = Button(self, text='Add Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: add_note_popup(self.current_id))
         add_notes_btn.place(x = 360,y = 430)
 
+        # View Notes
 
-
-        #View Notes
-
-        #View Notes Window
+        # View Notes Window
         def view_note_popup(noted_id):
             if len(noted_id)==0:
                 return
@@ -425,7 +426,7 @@ class UserInterface(tk.Frame):
             view_note_window_reporter = Label(view_note_window, text="Reporter:" ,
                                                     bg='#917FB3',font=("Calibri", 16 * -1))
             view_note_window_reporter.place(x=30,y=110)
-            view_note_window_reporter2 = Label(view_note_window, text="Anonymos" ,
+            view_note_window_reporter2 = Label(view_note_window, text="(Reporter)" ,
                                                      bg='#917FB3',font=("Calibri", 16 * -1))
             view_note_window_reporter2.place(x=120,y=110)
 
@@ -435,11 +436,10 @@ class UserInterface(tk.Frame):
                                            borderwidth=3, relief="ridge")
             view_note_window_date_label.place(x=400,y=5)
 
-
             view_note_window_subject = Label(view_note_window, text="Subject:" ,
                                                    bg='#917FB3',font=("Calibri", 16 * -1))
             view_note_window_subject.place(x=30,y=150)
-            view_note_window_subject2 = Label(view_note_window, text="Note Subject" ,
+            view_note_window_subject2 = Label(view_note_window, text="(Subject)" ,
                                                     bg='#917FB3',font=("Calibri", 16 * -1))
             view_note_window_subject2.place(x=120,y=150)
 
@@ -447,7 +447,7 @@ class UserInterface(tk.Frame):
                                       width=50, height=8,font=("Calibri", 16*-1))
 
             view_note_text_area.grid(column=0, row=2, pady=190, padx=30)
-            view_note_text_area.insert(INSERT,"Nothing to view")
+            view_note_text_area.insert(INSERT, "(Select date to view)")
             view_note_text_area["state"] ="disabled"
             view_note_window.update()
 
@@ -472,7 +472,7 @@ class UserInterface(tk.Frame):
                 view_note_text_area.insert(INSERT,res_dict[selected_date]['note'])
                 view_note_text_area.configure(state='disabled')
 
-
+            # creating combo box
             combo_dates = ttk.Combobox(view_note_window, state="readonly" , values=res_keys,
                                        background="gray",font=("Calibri", 16 * -1))
             combo_dates.place(x=120,y=35)
@@ -487,7 +487,7 @@ class UserInterface(tk.Frame):
             if ref.get():
                 view_note_popup(req_id)
             else:
-                messagebox.showinfo("View Notes Message","Student has no notes!")
+                messagebox.showinfo("View Notes Message","Student has no notes.")
 
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
