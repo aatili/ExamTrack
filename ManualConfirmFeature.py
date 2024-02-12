@@ -1,12 +1,6 @@
 from tkinter import *
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,scrolledtext
-from PIL import Image, ImageTk
+from tkinter import Button, ttk, messagebox,scrolledtext
 import tkinter as tk
-import numpy as np
-import cv2
-import firebase_admin
-from firebase_admin import credentials, db, storage
-from datetime import date,datetime
 from StudentData import *
 
 
@@ -29,7 +23,6 @@ class ManualConfirm:
         confirm_window_reason =  Label(confirm_window, text="Select Reason:" ,
                                           bg='#917FB3',font=("Calibri", 16 * -1))
         confirm_window_reason.place(x=30,y=70)
-
 
         confirm_window_id = Label(confirm_window, text="Student ID:" ,
                                           bg='#917FB3',font=("Calibri", 16 * -1))

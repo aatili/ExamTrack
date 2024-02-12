@@ -1,11 +1,14 @@
 # Table data
 import pandas as pd
+from datetime import datetime
 
 # Constants
 
 STUDENT_NOT_FOUND = -1
 STUDENT_CONFIRMED = 0
-STUDENT_ALREADY_CONFIRMED = 1
+STUDENT_ALREADY_CONFIRMED = -3
+
+FUNC_SUCCESS = 1
 
 # Attendance and Confirmation
 
@@ -17,6 +20,8 @@ students_auto_confirm = {}  # students auto confirmed
 
 # Breaks
 
+students_breaks = {}  # contains: [number of breaks, list of time and list of reasons for each break]
+current_break = {}  # contains : [timestamp of current break]
 
 # Sample data
 
@@ -122,3 +127,47 @@ def student_check_manual_reason(student_id):
         return students_manual_confirm[student_id]
     else:
         return None
+
+# Break functions
+
+def student_in_break(student_id):  # Student currently on a break
+    if not student_check_attendance(student_id):
+        return False
+    if student_id in current_break.keys():
+        return True
+    return False
+
+
+def student_had_break(student_id):  # Student had a break before
+    if not student_check_attendance(student_id):
+        return False
+    if student_id in students_breaks.keys():
+        return True
+    return False
+
+
+def student_report_break(student_id, reason):
+    if not student_check_attendance(student_id):
+        return STUDENT_NOT_FOUND
+    elif student_in_break(student_id):
+        return STUDENT_ALREADY_CONFIRMED
+    if student_id in students_breaks:
+        students_breaks[student_id][0] += 1
+        students_breaks[student_id][2].append(reason)
+    else:
+        students_breaks[student_id] = [1, [], []]
+        students_breaks[student_id][2].append(reason)
+    current_break[student_id] = datetime.now()
+    return FUNC_SUCCESS
+
+
+def student_back_break(student_id):  # Student back from break
+    if not student_check_attendance(student_id):
+        return STUDENT_NOT_FOUND
+    elif not student_in_break(student_id):
+        return STUDENT_ALREADY_CONFIRMED
+    cur_time = datetime.now()
+    dif = cur_time - current_break[student_id]
+    students_breaks[student_id][1].append(round(dif.total_seconds() / 60,2))
+    del current_break[student_id]
+    return FUNC_SUCCESS

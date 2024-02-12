@@ -9,8 +9,11 @@ from firebase_admin import credentials, db, storage
 from datetime import date,datetime
 
 from StudentData import *
-from ManualConfirmFeature import *
-from NotesFeature import *
+
+import BreaksFeature
+import NotesFeature
+import ManualConfirmFeature
+
 
 
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -27,8 +30,10 @@ class UserInterface(tk.Frame):
         self.controller = controller
         self.parent = parent
         self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
-        self.manual_confirm = ManualConfirm()
-        self.notes_features = NotesFeature()
+        self.manual_confirm = ManualConfirmFeature.ManualConfirm()
+        self.notes_features = NotesFeature.NotesFeature()
+        self.breaks_feature = BreaksFeature.BreaksFeature()
+
         # Creating Cancvas
         canvas = Canvas(
             self,
@@ -311,7 +316,7 @@ class UserInterface(tk.Frame):
         confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14',
                              command= lambda : self.manual_confirm.confirm_popup(self.parent, self.current_id), disabledforeground='gray')
-        confirm_btn.place(x = 650,y = 430)
+        confirm_btn.place(x = 700,y = 430)
 
 
 
@@ -333,9 +338,21 @@ class UserInterface(tk.Frame):
             else:
                 messagebox.showinfo("View Notes Message","Student has no notes.")
 
+        # View notes button
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x = 360,y = 480)
+
+        # Interface add notes button
+        break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                               command=lambda: self.breaks_feature.break_window(self.parent, self.current_id))
+        break_btn.place(x = 535,y = 430)
+
+        back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                               command=lambda: student_back_break(self.current_id))
+        back_btn.place(x = 535,y = 480)
 
 
