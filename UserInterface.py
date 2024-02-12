@@ -9,7 +9,7 @@ from firebase_admin import credentials, db, storage
 from datetime import date,datetime
 
 from StudentData import *
-from OfflineFeatures import *
+from ManualConfirmFeature import *
 from NotesFeature import *
 
 
@@ -27,8 +27,8 @@ class UserInterface(tk.Frame):
         self.controller = controller
         self.parent = parent
         self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
-        self.offline = OfflineFeatures()
-        self.online = NotesFeature()
+        self.manual_confirm = ManualConfirm()
+        self.notes_features = NotesFeature()
         # Creating Cancvas
         canvas = Canvas(
             self,
@@ -308,17 +308,17 @@ class UserInterface(tk.Frame):
 
 
         # confirm manually
-        confirm_btn = Button(self, text='Manual Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                           activebackground='#917FB3',height='1',width='14',
-                             command= lambda : self.offline.confirm_popup(self.parent,self.current_id), disabledforeground='gray')
+        confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+                             activebackground='#917FB3', height='1', width='14',
+                             command= lambda : self.manual_confirm.confirm_popup(self.parent, self.current_id), disabledforeground='gray')
         confirm_btn.place(x = 650,y = 430)
 
 
 
         # Interface add notes button
-        add_notes_btn = Button(self, text='Add Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
-                   activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
-                               command=lambda: self.online.add_note_popup(self.parent,self.current_id))
+        add_notes_btn = Button(self, text='Add Notes', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                               command=lambda: self.notes_features.add_note_popup(self.parent, self.current_id))
         add_notes_btn.place(x = 360,y = 430)
 
         # View Notes
@@ -329,7 +329,7 @@ class UserInterface(tk.Frame):
         def popup_notes_exist(req_id):
             ref = db.reference(f'Notes/{req_id}',app=ui_app)
             if ref.get():
-                self.online.view_note_popup(self.parent,req_id)
+                self.notes_features.view_note_popup(self.parent, req_id)
             else:
                 messagebox.showinfo("View Notes Message","Student has no notes.")
 

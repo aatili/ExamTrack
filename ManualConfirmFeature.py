@@ -9,7 +9,8 @@ from firebase_admin import credentials, db, storage
 from datetime import date,datetime
 from StudentData import *
 
-class OfflineFeatures:
+
+class ManualConfirm:
 
     def __init__(self):
         self.flag_other_reason = None
