@@ -24,7 +24,6 @@ class BreaksFeature:
                                           bg='#917FB3',font=("Calibri", 16 * -1))
         break_window_reason.place(x=30,y=70)
 
-
         break_window_id = Label(break_window, text="Student ID:" ,
                                           bg='#917FB3',font=("Calibri", 16 * -1))
         break_window_id.place(x=30,y=30)

@@ -305,20 +305,22 @@ class UserInterface(tk.Frame):
 
         face_recognition_btn.place(x = 950,y = 90)
 
-
-        #temp button
+        # temp button
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
-
         # confirm manually
+        def manual_confirm_check(student_id):  # check before calling manual confirm
+            if student_check_attendance(student_id):
+                messagebox.showinfo("Manual Confirm Message","Student attendance already confirmed.")
+                return
+            self.manual_confirm.confirm_popup(self.parent, self.current_id)
+
         confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14',
-                             command= lambda : self.manual_confirm.confirm_popup(self.parent, self.current_id), disabledforeground='gray')
+                             command= lambda :manual_confirm_check(self.current_id) , disabledforeground='gray')
         confirm_btn.place(x = 700,y = 430)
-
-
 
         # Interface add notes button
         add_notes_btn = Button(self, text='Add Notes', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
@@ -344,15 +346,41 @@ class UserInterface(tk.Frame):
                                command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x = 360,y = 480)
 
-        # Interface add notes button
+        # Break Function
+        def student_take_break(student_id):
+
+            if not student_check_attendance(student_id):
+                messagebox.showerror("Break Error", "Student attendance was not confirmed.")
+                return
+            if student_in_break(student_id):
+                messagebox.showerror("Break Error", "Student already in break.")
+                return
+
+            self.breaks_feature.break_window(self.parent, self.current_id)
+
+        # Break features buttons
         break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: self.breaks_feature.break_window(self.parent, self.current_id))
+                               command=lambda: student_take_break(self.current_id))
         break_btn.place(x = 535,y = 430)
+
+        # Back from break check function
+        def student_break_over(student_id):
+            if not student_check_attendance(student_id):
+                messagebox.showerror("Break Error", "Student attendance was not confirmed.")
+                return
+            if not student_in_break(student_id):
+                messagebox.showinfo("Break Info", "Student not in break.")
+                return
+            res = student_back_break(self.current_id)
+            if res != STUDENT_NOT_FOUND and res != STUDENT_ALREADY_CONFIRMED:
+                messagebox.showinfo("Break Info", res)
+
+
 
         back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: student_back_break(self.current_id))
+                               command=lambda: student_break_over(self.current_id))
         back_btn.place(x = 535,y = 480)
 
 

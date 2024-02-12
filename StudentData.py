@@ -20,7 +20,7 @@ students_auto_confirm = {}  # students auto confirmed
 
 # Breaks
 
-students_breaks = {}  # contains: [number of breaks, list of time and list of reasons for each break]
+students_breaks = {}  # contains: [number of breaks, list of time(seconds) and list of reasons for each break]
 current_break = {}  # contains : [timestamp of current break]
 
 # Sample data
@@ -168,6 +168,8 @@ def student_back_break(student_id):  # Student back from break
         return STUDENT_ALREADY_CONFIRMED
     cur_time = datetime.now()
     dif = cur_time - current_break[student_id]
-    students_breaks[student_id][1].append(round(dif.total_seconds() / 60,2))
+    students_breaks[student_id][1].append(int(dif.total_seconds()))
+    total_time = divmod(dif.total_seconds(), 60)
+    total_time_string = 'Total Break time: ' + str(int(total_time[0])) + ' minutes ' + str(int(total_time[1])) + ' seconds'
     del current_break[student_id]
-    return FUNC_SUCCESS
+    return total_time_string
