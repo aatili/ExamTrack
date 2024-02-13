@@ -152,6 +152,13 @@ class UserInterface(tk.Frame):
             temp_confirmed = 'Not Confirmed'
             canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
 
+            if student_in_break(self.current_id):
+                break_btn.place_forget()
+                back_btn.place(x = 535,y = 430)
+            else:
+                back_btn.place_forget()
+                break_btn.place(x = 535,y = 430)
+
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
             if blob is None: # no picture retrieved from database
@@ -181,6 +188,7 @@ class UserInterface(tk.Frame):
         search_entry = tk.Entry(self, width=20, bg="#917FB3", font=18 , borderwidth=3)
         search_entry.place(x=900,y=185)
 
+        # Search query and filter table
         def my_search(*args):
             query = search_entry.get().strip() # get entry string
             str1 = table_df.id.str.contains(query, case=False)
@@ -189,34 +197,64 @@ class UserInterface(tk.Frame):
             table.delete(*table.get_children())
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
-                if confirmed_checkbox_var.get() == 1:
-                    if student_check_attendance(v[0]):
-                        table.insert("", "end", iid=v[0], values=v)  # adding row
+                # Handling checkbox statuses
+                s_id = v[0]
+                if confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 0:
+                    if student_check_attendance(s_id):
+                        table.insert("", "end", iid=s_id, values=v)  # adding row
+                elif confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 1:
+                    if student_check_attendance(s_id) and student_get_extra_time(s_id).lower() == 'yes':
+                        table.insert("", "end", iid=s_id, values=v)
+                elif confirmed_checkbox_var.get() == 0 and extra_checkbox_var.get() == 1:
+                    if student_get_extra_time(s_id).lower() == 'yes':
+                        table.insert("", "end", iid=s_id, values=v)
                 else:
-                    table.insert("", "end", iid=v[0], values=v)  # adding row
+                    table.insert("", "end", iid=s_id, values=v)
 
         search_entry.bind("<KeyRelease>", my_search)
 
-        # Filtering the table
-        def table_filter_confirmed():
-            table_np = table_df.to_numpy().tolist()
-            table.delete(*table.get_children())
-            for dt in table_np:
-                v = [r for r in dt]  # creating a list from each row
-                if confirmed_checkbox_var.get() == 1:
-                    if student_check_attendance(v[0]):
-                        table.insert("", "end", iid=v[0], values=v)  # adding row
-                else:
-                    table.insert("", "end", iid=v[0], values=v)  # adding row
 
         # Checkboxes
         confirmed_checkbox_var = IntVar()
         confirmed_checkbox = Checkbutton(self,variable = confirmed_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
-                                     font=("Inter Bold", 14 * -1),text="Confirmed Attendance",bg = "#917FB3",
+                                     font=("Inter Bold", 14 * -1),text="Confirmed",bg = "#917FB3",
                                          command=my_search)
         confirmed_checkbox.place(x=900,y=230)
 
+        extra_checkbox_var = IntVar()
+        extra_checkbox = Checkbutton(self,variable = extra_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
+                                     font=("Inter Bold", 14 * -1),text="Extra time",bg = "#917FB3",
+                                         command=my_search)
+        extra_checkbox.place(x=900,y=260)
 
+        # Break Checkbox filter
+        def filter_on_break():
+            if break_checkbox_var.get() == 1:
+                confirmed_checkbox_var.set(0)
+                extra_checkbox_var.set(0)
+                confirmed_checkbox.configure(state="disabled")
+                extra_checkbox.configure(state="disabled")
+            else:
+                confirmed_checkbox.configure(state="normal")
+                extra_checkbox.configure(state="normal")
+            query = search_entry.get().strip() # get entry string
+            str1 = table_df.id.str.contains(query, case=False)
+            df2 = table_df[str1]
+            r_set = df2.to_numpy().tolist()  # Create list of list using rows
+            table.delete(*table.get_children())
+            for dt in r_set:
+                v = [r for r in dt]  # creating a list from each row
+                if break_checkbox_var.get() == 1:
+                    if student_in_break(v[0]):
+                        table.insert("", "end", iid=v[0], values=v)
+                else:
+                    table.insert("", "end", iid=v[0], values=v)
+
+        break_checkbox_var = IntVar()
+        break_checkbox = Checkbutton(self,variable = break_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
+                                     font=("Inter Bold", 14 * -1),text="On Break",bg = "#917FB3",
+                                         command=filter_on_break)
+        break_checkbox.place(x=900,y=290)
 
         # Timers
 
@@ -405,6 +443,6 @@ class UserInterface(tk.Frame):
         back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: student_break_over(self.current_id))
-        back_btn.place(x = 535,y = 480)
+        #back_btn.place(x = 535,y = 480)
 
 
