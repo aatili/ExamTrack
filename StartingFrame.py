@@ -74,5 +74,6 @@ class StartPage(tk.Frame):
         button2.pack()
 
 
+
 app = ExamApp()
 app.mainloop()

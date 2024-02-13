@@ -189,9 +189,34 @@ class UserInterface(tk.Frame):
             table.delete(*table.get_children())
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
-                table.insert("", "end", iid=v[0], values=v)  # adding row
+                if confirmed_checkbox_var.get() == 1:
+                    if student_check_attendance(v[0]):
+                        table.insert("", "end", iid=v[0], values=v)  # adding row
+                else:
+                    table.insert("", "end", iid=v[0], values=v)  # adding row
 
         search_entry.bind("<KeyRelease>", my_search)
+
+        # Filtering the table
+        def table_filter_confirmed():
+            table_np = table_df.to_numpy().tolist()
+            table.delete(*table.get_children())
+            for dt in table_np:
+                v = [r for r in dt]  # creating a list from each row
+                if confirmed_checkbox_var.get() == 1:
+                    if student_check_attendance(v[0]):
+                        table.insert("", "end", iid=v[0], values=v)  # adding row
+                else:
+                    table.insert("", "end", iid=v[0], values=v)  # adding row
+
+        # Checkboxes
+        confirmed_checkbox_var = IntVar()
+        confirmed_checkbox = Checkbutton(self,variable = confirmed_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
+                                     font=("Inter Bold", 14 * -1),text="Confirmed Attendance",bg = "#917FB3",
+                                         command=my_search)
+        confirmed_checkbox.place(x=900,y=230)
+
+
 
         # Timers
 
@@ -375,7 +400,6 @@ class UserInterface(tk.Frame):
             res = student_back_break(self.current_id)
             if res != STUDENT_NOT_FOUND and res != STUDENT_ALREADY_CONFIRMED:
                 messagebox.showinfo("Break Info", res)
-
 
 
         back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
