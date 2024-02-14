@@ -13,11 +13,16 @@ from firebase_admin import credentials, db, storage
 
 from StudentData import *
 
-# Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
-face_rec_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-    'storageBucket': "examfacerecognition.appspot.com"}, name="FaceRecApp")
+try:
+    # Initialize Firebase
+    face_rec_app = firebase_admin.initialize_app(cred, {
+        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
+        'storageBucket': "examfacerecognition.appspot.com"}, name="FaceRecApp")
+except firebase_admin.exceptions.FirebaseError as e:
+    # Handle Firebase initialization error
+    print("Firebase initialization error:", e)
+
 bucket = storage.bucket(app=face_rec_app)
 
 

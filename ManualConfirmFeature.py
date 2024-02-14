@@ -42,7 +42,7 @@ class ManualConfirm:
 
         def manual_confirm_submit(s_student_id):
             if self.flag_other_reason != 0:
-                self.str_reason = confirm_window_text_area.get("1.0",END)
+                self.str_reason = confirm_window_text_area.get("1.0",END).strip()
             if len(self.str_reason) < 3:
                 messagebox.showerror("Manual Confirm Error","Invalid Reason",parent=confirm_window)
             else:

@@ -160,7 +160,6 @@ def student_report_break(student_id, reason):
     current_break[student_id] = datetime.now()
     return FUNC_SUCCESS
 
-
 def student_back_break(student_id):  # Student back from break
     if not student_check_attendance(student_id):
         return STUDENT_NOT_FOUND
@@ -173,3 +172,15 @@ def student_back_break(student_id):  # Student back from break
     total_time_string = 'Total Break time: ' + str(int(total_time[0])) + ' minutes ' + str(int(total_time[1])) + ' seconds'
     del current_break[student_id]
     return total_time_string
+
+
+def student_total_break_time(student_id):
+    if not student_had_break(student_id):
+        return STUDENT_NOT_FOUND
+    return sum(students_breaks[student_id][1])
+
+
+def student_total_breaks(student_id):
+    if not student_had_break(student_id):
+        return STUDENT_NOT_FOUND
+    return students_breaks[student_id][0]

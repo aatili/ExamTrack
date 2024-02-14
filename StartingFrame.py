@@ -75,5 +75,6 @@ class StartPage(tk.Frame):
 
 
 
+
 app = ExamApp()
 app.mainloop()

@@ -15,11 +15,16 @@ import NotesFeature
 import ManualConfirmFeature
 
 
-
 cred = credentials.Certificate("serviceAccountKey.json")
-ui_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-    'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceApp")
+
+try:
+    ui_app = firebase_admin.initialize_app(cred, {
+        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
+        'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceApp")
+except firebase_admin.exceptions.FirebaseError as e:
+    # Handle Firebase initialization error
+    print("Firebase initialization error:", e)
+
 bucket = storage.bucket(app=ui_app)
 
 
@@ -84,7 +89,6 @@ class UserInterface(tk.Frame):
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
-
 
         student_id_label = canvas.create_text(
             115.0,
@@ -184,9 +188,9 @@ class UserInterface(tk.Frame):
 
             if student_in_break(self.current_id):
                 break_btn.place_forget()
-                back_btn.place(x = 535,y = 430)
+                back_from_break_btn.place(x = 535,y = 430)
             else:
-                back_btn.place_forget()
+                back_from_break_btn.place_forget()
                 break_btn.place(x = 535,y = 430)
 
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
@@ -496,6 +500,10 @@ class UserInterface(tk.Frame):
                                command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x = 360,y = 480)
 
+        def table_selection_refresh():
+            selected_item = table.selection()  # Get the currently selected item
+            table.selection_remove(selected_item)  # Reselect the same item
+
         # Break Function
         def student_take_break(student_id):
 
@@ -505,17 +513,17 @@ class UserInterface(tk.Frame):
             if student_in_break(student_id):
                 messagebox.showerror("Break Error", "Student already in break.")
                 return
-
             self.breaks_feature.break_window(self.parent, self.current_id)
+
 
         # Break features buttons
         break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: [student_take_break(self.current_id)])
+                               command=lambda: [student_take_break(self.current_id),table_selection_refresh()])
         break_btn.place(x = 535,y = 430)
 
         # Back from break check function
-        def student_break_over(student_id):
+        def student_back_from_break(student_id):
             if not student_check_attendance(student_id):
                 messagebox.showerror("Break Error", "Student attendance was not confirmed.")
                 return
@@ -525,11 +533,24 @@ class UserInterface(tk.Frame):
             res = student_back_break(self.current_id)
             if res != STUDENT_NOT_FOUND and res != STUDENT_ALREADY_CONFIRMED:
                 messagebox.showinfo("Break Info", res)
+                if break_checkbox_var.get() == 1:
+                    filter_on_break()
+                else:
+                    my_search()
 
-
-        back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        # back from break button
+        back_from_break_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: student_break_over(self.current_id))
+                               command=lambda: student_back_from_break(self.current_id))
         #back_btn.place(x = 535,y = 480)
+
+        # view breaks btn
+
+        view_breaks_btn = Button(self, text='View Breaks', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                               command=lambda: self.breaks_feature.view_break_window(self.parent, self.current_id))
+        view_breaks_btn.place(x = 535,y = 480)
+
+
 
 

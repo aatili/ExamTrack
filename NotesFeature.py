@@ -11,9 +11,14 @@ from StudentData import *
 
 
 cred = credentials.Certificate("serviceAccountKey.json")
-ui_features_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-    'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceFeaturesApp")
+try:
+    ui_features_app = firebase_admin.initialize_app(cred, {
+        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
+        'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceFeaturesApp")
+except firebase_admin.exceptions.FirebaseError as e:
+    # Handle Firebase initialization error
+    print("Firebase initialization error:", e)
+
 bucket = storage.bucket(app=ui_features_app)
 
 
@@ -70,7 +75,7 @@ class NotesFeature:
                 dt_string:{
                     'subject':note_window_subject_entry.get(),
                     'reporter':note_window_reporter_entry.get(),
-                    'note': note_text_area.get("1.0",END)
+                    'note': note_text_area.get("1.0",END).strip()
                 }
             }}
 
