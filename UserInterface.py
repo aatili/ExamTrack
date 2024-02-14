@@ -49,6 +49,8 @@ class UserInterface(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
+        canvas.create_rectangle(895, 225, 1000, 320, fill='#917FB3', outline='black' )
+
 
         # Creating Profile
 
@@ -205,7 +207,7 @@ class UserInterface(tk.Frame):
         # Searching the table
 
         canvas.create_text(
-            900,
+            895,
             150,
             anchor="nw",
             text="Search ID:",
@@ -214,7 +216,7 @@ class UserInterface(tk.Frame):
         )
 
         search_entry = tk.Entry(self, width=20, bg="#917FB3", font=18 , borderwidth=3)
-        search_entry.place(x=900,y=185)
+        search_entry.place(x=895,y=185)
 
         # Search query and filter table
         def my_search(*args):
@@ -369,6 +371,7 @@ class UserInterface(tk.Frame):
             else:
                 if self.extra_time_flag:
                     messagebox.showinfo("Time Countdown", "Extra time is over.")
+                    add_time_btn.place_forget()
                 else:
                     messagebox.showinfo("Time Countdown", "Original time is over.")
                     canvas.itemconfig(time_note_label, text="Extra Time")
@@ -388,6 +391,7 @@ class UserInterface(tk.Frame):
 
         def start_countdown():
             start_btn["state"] = "disabled"
+            add_time_btn.place(x = 590,y = 80)
             countdown()
             if self.waiver_available:
                 waiver_countdown()
@@ -426,12 +430,12 @@ class UserInterface(tk.Frame):
                 add_time_window.destroy()
 
             # Buttons
-            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='##812e91',
                                       font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                       disabledforeground='gray',command=add_total_seconds)
             add_time_confirm_btn.place(x = 30, y= 200)
 
-            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='##812e91',
                                      font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                      disabledforeground='gray',command= add_time_window.destroy)
             add_time_cancel_btn.place(x = 145, y= 200)
@@ -442,7 +446,7 @@ class UserInterface(tk.Frame):
         add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 18 * -1),
                            activebackground='#917FB3',height='1',width='2',command = add_time,
                            disabledforeground='gray')
-        add_time_btn.place(x = 590,y = 80)
+        #add_time_btn.place(x = 590,y = 80)
 
         # open face recognition frame
         face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#812e91',
@@ -523,7 +527,7 @@ class UserInterface(tk.Frame):
                 messagebox.showinfo("Break Info", res)
 
 
-        back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+        back_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: student_break_over(self.current_id))
         #back_btn.place(x = 535,y = 480)

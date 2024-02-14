@@ -54,12 +54,12 @@ class BreaksFeature:
                 break_window.destroy()
 
         # Buttons
-        break_confirm_btn = Button(break_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        break_confirm_btn = Button(break_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                   font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                   disabledforeground='gray',command=lambda: break_submit(student_id))
         break_confirm_btn.place(x = 30, y= 250)
 
-        break_cancel_btn = Button(break_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        break_cancel_btn = Button(break_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                  font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                  disabledforeground='gray',command=break_window.destroy)
         break_cancel_btn.place(x = 145, y= 250)

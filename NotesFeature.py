@@ -83,7 +83,7 @@ class NotesFeature:
             note_window.destroy()
 
         # note confirm button
-        note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        note_confirm_btn = Button(note_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                   font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
                                   disabledforeground='gray',command=note_window_confirm)
         note_confirm_btn.place(x = 30, y= 400)
@@ -94,7 +94,7 @@ class NotesFeature:
             if res == 'yes':
                 note_window.destroy()
 
-        note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        note_cancel_btn = Button(note_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                  font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',width='14',
                                  disabledforeground='gray',command=note_window_cancel)
         note_cancel_btn.place(x = 180, y= 400)
@@ -150,7 +150,7 @@ class NotesFeature:
         view_note_window.update()
 
 
-        view_note_done_btn = Button(view_note_window, text='Done', bd='5',fg="#FFFFFF" ,bg='#910ac2'
+        view_note_done_btn = Button(view_note_window, text='Done', bd='5',fg="#FFFFFF" ,bg='#812e91'
                                     ,font=("Calibri", 16 * -1),activebackground='#917FB3',height='1',
                                     width='14', disabledforeground='gray',command = view_note_window.destroy)
         view_note_done_btn.place(x = 350, y= 400)

@@ -53,12 +53,12 @@ class ManualConfirm:
 
 
         # Buttons
-        w_confirm_btn = Button(confirm_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        w_confirm_btn = Button(confirm_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                   font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                   disabledforeground='gray',command=lambda: manual_confirm_submit(student_id))
         w_confirm_btn.place(x = 30, y= 250)
 
-        w_cancel_btn = Button(confirm_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+        w_cancel_btn = Button(confirm_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                  font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                  disabledforeground='gray',command=confirm_window.destroy)
         w_cancel_btn.place(x = 145, y= 250)
