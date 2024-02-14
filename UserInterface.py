@@ -61,8 +61,19 @@ class UserInterface(tk.Frame):
         self.profile_pic_tk = tk.PhotoImage(file = "Resources/no_pic.png")
         profile_pic = canvas.create_image(60,60,anchor=NW,image=self.profile_pic_tk)
 
+        # Style for buttons
+        button_style = ttk.Style()
+        button_style.configure("Custom.TButton",
+                               bd=5,
+                               foreground="#FFFFFF",
+                               background='#812e91',
+                               font=("Calibri", 16),
+                               activebackground='#917FB3',
+                               height=1,
+                               width=14,
+                               disabledforeground='gray')
 
-        #adding labels
+        # adding labels
         student_name_label = canvas.create_text(
             115.0,
             295.0,
@@ -103,7 +114,7 @@ class UserInterface(tk.Frame):
         )
 
         student_confirmed_label = canvas.create_text(
-            244.0,
+            250.0,
             430.0,
             justify=CENTER,
             anchor="nw",
@@ -116,6 +127,9 @@ class UserInterface(tk.Frame):
 
         table = ttk.Treeview(master=self, columns=table_columns, show="headings")
 
+        table.tag_configure('oddrow', background='#917FB3')
+        table.tag_configure('evenrow', background='#BAA4CA')
+
         for column in table_columns:
             table.heading(column=column, text=column)
             if column == "major":
@@ -123,16 +137,30 @@ class UserInterface(tk.Frame):
             else:
                 table.column(column=column, width=70)
 
+        color_j = 0
         for row_data in table_data:
-            table.insert(parent="", index="end", values=row_data)
+            color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
+            table.insert(parent="", index="end", values=row_data, tags=color_tags)
+            color_j += 1
 
         style = ttk.Style()
         style.theme_use("default")
-        style.configure("Treeview", background="#917FB3", fieldbackground="#917FB3", foreground="white")
-        style.configure("Treeview.Heading", background="#917FB3", fieldbackground="#917FB3", foreground="white")
-        style.map("Treeview", background=[("selected", "#E5BEEC")])
+        style.configure("Treeview", rowheight=30, background="#917FB3", fieldbackground="#917FB3", foreground="white",
+                        font=("Calibri", 14 * -1))
+        style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
+                        foreground="white", font=("Calibri", 14 * -1))
+        style.map("Treeview", background=[("selected", "#000080")])
+
 
         table.place(x=360, y=150, height=260)
+
+        '''# Create a vertical scrollbar
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=table.yview)
+        scrollbar.place(x=850, y=140, height=250)
+
+        # Configure the table to use the scrollbar
+        table.configure(yscrollcommand=scrollbar.set)'''
+
 
         #Selecting row in table
 
@@ -195,21 +223,27 @@ class UserInterface(tk.Frame):
             df2 = table_df[str1]
             r_set = df2.to_numpy().tolist()  # Create list of list using rows
             table.delete(*table.get_children())
+            j = 0  # similar to color j , counter for colouring purpose
             for dt in r_set:
+                tags = ('evenrow',) if j % 2 == 0 else ('oddrow',)  # for colouring purpose
                 v = [r for r in dt]  # creating a list from each row
                 # Handling checkbox statuses
                 s_id = v[0]
                 if confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 0:
                     if student_check_attendance(s_id):
-                        table.insert("", "end", iid=s_id, values=v)  # adding row
+                        table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 1:
                     if student_check_attendance(s_id) and student_get_extra_time(s_id).lower() == 'yes':
-                        table.insert("", "end", iid=s_id, values=v)
+                        table.insert("", "end", iid=s_id, values=v, tags=tags)
+                        j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 0 and extra_checkbox_var.get() == 1:
                     if student_get_extra_time(s_id).lower() == 'yes':
-                        table.insert("", "end", iid=s_id, values=v)
+                        table.insert("", "end", iid=s_id, values=v, tags=tags)
+                        j += 1  # colouring
                 else:
-                    table.insert("", "end", iid=s_id, values=v)
+                    table.insert("", "end", iid=s_id, values=v, tags=tags)
+                    j += 1  # colouring
 
         search_entry.bind("<KeyRelease>", my_search)
 
@@ -242,13 +276,17 @@ class UserInterface(tk.Frame):
             df2 = table_df[str1]
             r_set = df2.to_numpy().tolist()  # Create list of list using rows
             table.delete(*table.get_children())
+            color_i = 0
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
+                j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
                 if break_checkbox_var.get() == 1:
                     if student_in_break(v[0]):
-                        table.insert("", "end", iid=v[0], values=v)
+                        table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        color_i += 1
                 else:
-                    table.insert("", "end", iid=v[0], values=v)
+                    table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                    color_i += 1
 
         break_checkbox_var = IntVar()
         break_checkbox = Checkbutton(self,variable = break_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
@@ -354,19 +392,64 @@ class UserInterface(tk.Frame):
             if self.waiver_available:
                 waiver_countdown()
 
-
         # start exams/timers button
-        start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+        start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                            activebackground='#917FB3',height='1',width='14',command= start_countdown,
                            disabledforeground='gray')
-        start_btn.place(x = 650,y = 90)
+        start_btn.place(x = 700,y = 80)
+
+        # Add Time for exam
+
+        def add_time():
+            add_time_window = Toplevel(self)
+            add_time_window.geometry("300x270+350+200")
+            add_time_window.resizable(False,False)
+            add_time_window.title("Add Time")
+            add_time_window.configure(bg='#917FB3')
+            add_time_window_reason =  Label(add_time_window, text="Specify Reason:" ,
+                                          bg='#917FB3',font=("Calibri", 16 * -1))
+            add_time_window_reason.place(x=20,y=70)
+
+            add_time_label =  Label(add_time_window, text="Add minutes:" ,
+                                          bg='#917FB3',font=("Calibri", 16 * -1))
+            add_time_label.place(x=20,y=30)
+
+            add_time_box = Spinbox(add_time_window, from_= 0, to = 100,increment=5,font=("Calibri", 16 * -1),width=3)
+            add_time_box.place(x=120,y=30)
+
+            add_reason_entry = scrolledtext.ScrolledText(add_time_window, wrap=tk.WORD,bd=3,bg='#E5BEEC',width=30,
+                                                   height=3,font=("Calibri", 16*-1))
+            add_reason_entry.place(x=20,y=95)
+            # add minute to time variable
+            def add_total_seconds():
+                self.total_seconds += int(add_time_box.get()) * 60
+                add_time_window.destroy()
+
+            # Buttons
+            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                                      font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
+                                      disabledforeground='gray',command=add_total_seconds)
+            add_time_confirm_btn.place(x = 30, y= 200)
+
+            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+                                     font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
+                                     disabledforeground='gray',command= add_time_window.destroy)
+            add_time_cancel_btn.place(x = 145, y= 200)
 
 
-        face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#910ac2',
+
+        # add time button
+        add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 18 * -1),
+                           activebackground='#917FB3',height='1',width='2',command = add_time,
+                           disabledforeground='gray')
+        add_time_btn.place(x = 590,y = 80)
+
+        # open face recognition frame
+        face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                       activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
                                       ,command=lambda: controller.show_frame("FaceRec"))
 
-        face_recognition_btn.place(x = 950,y = 90)
+        face_recognition_btn.place(x = 950,y = 80)
 
         # temp button
         button1 = tk.Button(self, text="Back to Home",
@@ -380,13 +463,13 @@ class UserInterface(tk.Frame):
                 return
             self.manual_confirm.confirm_popup(self.parent, self.current_id)
 
-        confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
-                             activebackground='#917FB3', height='1', width='14',
-                             command= lambda :manual_confirm_check(self.current_id) , disabledforeground='gray')
+        confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                             activebackground='#917FB3', height='1', width='14' , disabledforeground='gray',
+                             command= lambda :manual_confirm_check(self.current_id))
         confirm_btn.place(x = 700,y = 430)
 
         # Interface add notes button
-        add_notes_btn = Button(self, text='Add Notes', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+        add_notes_btn = Button(self, text='Add Notes', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: self.notes_features.add_note_popup(self.parent, self.current_id))
         add_notes_btn.place(x = 360,y = 430)
@@ -404,7 +487,7 @@ class UserInterface(tk.Frame):
                 messagebox.showinfo("View Notes Message","Student has no notes.")
 
         # View notes button
-        view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#910ac2',font=("Calibri", 16 * -1),
+        view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x = 360,y = 480)
@@ -422,9 +505,9 @@ class UserInterface(tk.Frame):
             self.breaks_feature.break_window(self.parent, self.current_id)
 
         # Break features buttons
-        break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#910ac2', font=("Calibri", 16 * -1),
+        break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: student_take_break(self.current_id))
+                               command=lambda: [student_take_break(self.current_id)])
         break_btn.place(x = 535,y = 430)
 
         # Back from break check function
