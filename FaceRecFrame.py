@@ -176,39 +176,31 @@ class FaceRec(tk.Frame):
                     face_encodings = face_recognition.face_encodings(self.img_small, face_locations)
 
                     #converting to img and displaying
-                    self.img = Image.fromarray(self.img_arr)
+                    '''self.img = Image.fromarray(self.img_arr)
                     self.tkimg = ImageTk.PhotoImage(self.img)
                     panel.config(image=self.tkimg)
-                    panel.tkimg = self.tkimg # save a reference to the image to avoid garbage collection
+                    panel.tkimg = self.tkimg # save a reference to the image to avoid garbage collection'''
 
                     #face detected
-                    if face_locations and self.current_id != -1:
+                    if face_locations:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
-                            #adding red rectangle over face
+                            # adding red rectangle over face
                             y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                             self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
-                            #converting to img
-                            self.img = Image.fromarray(self.img_arr)
-                            self.tkimg = ImageTk.PhotoImage(self.img)
-                            panel.config(image=self.tkimg)
-                            panel.tkimg = self.tkimg
+
                             matches = face_recognition.compare_faces(encode_list_known, encode_face)
                             face_distances = face_recognition.face_distance(encode_list_known, encode_face)
+
                             match_index = np.argmin(face_distances)
-                            if matches[match_index] : #face recognized
+
+                            if matches[match_index]:  # face recognized
                                 self.current_id = student_ids[match_index]
 
-                                #adding green rectangle over face
+                                # adding green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
-
-                                #converting to img
                                 self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0)
-                                self.img = Image.fromarray(self.img_arr)
-                                self.tkimg = ImageTk.PhotoImage(self.img)
-                                panel.config(image=self.tkimg)
-                                panel.tkimg = self.tkimg
 
                                 if self.loaded_flag==0:
                                     self.loaded_flag = 1
@@ -218,6 +210,12 @@ class FaceRec(tk.Frame):
                                     # enabling confirm/cancel buttons
                                     confirm_btn["state"] = "normal"
                                     cancel_btn["state"] = "normal"
+
+                    #converting to img
+                    self.img = Image.fromarray(self.img_arr)
+                    self.tkimg = ImageTk.PhotoImage(self.img)
+                    panel.config(image=self.tkimg)
+                    panel.tkimg = self.tkimg
 
 
                 panel.after(25, scan) # change value to adjust FPS
