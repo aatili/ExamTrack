@@ -26,9 +26,6 @@ except firebase_admin.exceptions.FirebaseError as e:
 bucket = storage.bucket(app=face_rec_app)
 
 
-
-LARGE_FONT = ("Verdana", 12)
-
 class FaceRec(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -72,6 +69,40 @@ class FaceRec(tk.Frame):
         canvas.create_image(158,58,anchor=NW,image=self.profile_pic_frame_tk)
 
         profile_pic = canvas.create_image(160,60,anchor=NW,image=self.imgholder)
+
+        import threading
+        # Get the picture from the database and display it
+        def fetch_and_display_picture():
+            blob = bucket.get_blob(f'Images/{self.current_id}.png')
+
+            # Display the picture
+            if blob is None:  # no picture found
+                self.img_holder = tk.PhotoImage(file="Resources/no_pic.png")
+                canvas.itemconfig(profile_pic, image=self.img_holder)
+            else:  # convert and display picture
+                img_data = np.frombuffer(blob.download_as_string(), np.uint8)
+                img_cvt = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+                img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
+                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
+                canvas.itemconfig(profile_pic, image=self.img_holder)
+
+        # update ui when face is detected
+        def ui_update_labels():
+            canvas.itemconfig(student_id_label,text=self.current_id)
+            canvas.itemconfig(student_name_label,
+                              text=student_get_name(self.current_id))
+            canvas.itemconfig(student_major_label,
+                              text=student_get_major(self.current_id))
+
+            canvas.itemconfig(student_extra_time_label,
+                              text=' Extra Time: '+student_get_extra_time(self.current_id))
+            '''canvas.itemconfig(student_tuition_label,
+                              text='Paid Tuition: '+data.student_get_tuition(self.current_id))
+            '''
+            # Start a new thread to fetch the picture
+            fetch_thread = threading.Thread(target=fetch_and_display_picture)
+            fetch_thread.start()
+
 
         #adding labels
         student_name_label = canvas.create_text(
@@ -151,7 +182,7 @@ class FaceRec(tk.Frame):
                     panel.tkimg = self.tkimg # save a reference to the image to avoid garbage collection
 
                     #face detected
-                    if face_locations:
+                    if face_locations and self.current_id != -1:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
                             #adding red rectangle over face
                             y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
@@ -166,10 +197,12 @@ class FaceRec(tk.Frame):
                             face_distances = face_recognition.face_distance(encode_list_known, encode_face)
                             match_index = np.argmin(face_distances)
                             if matches[match_index] : #face recognized
+                                self.current_id = student_ids[match_index]
+
                                 #adding green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
-                                self.current_id = student_ids[match_index]
+
                                 #converting to img
                                 self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0)
                                 self.img = Image.fromarray(self.img_arr)
@@ -180,30 +213,7 @@ class FaceRec(tk.Frame):
                                 if self.loaded_flag==0:
                                     self.loaded_flag = 1
                                     # displaying student info
-                                    canvas.itemconfig(student_id_label,text=self.current_id)
-                                    canvas.itemconfig(student_name_label,
-                                                      text=student_get_name(self.current_id))
-                                    canvas.itemconfig(student_major_label,
-                                                      text=student_get_major(self.current_id))
-
-                                    canvas.itemconfig(student_extra_time_label,
-                                                      text=' Extra Time: '+student_get_extra_time(self.current_id))
-                                    '''canvas.itemconfig(student_tuition_label,
-                                                      text='Paid Tuition: '+data.student_get_tuition(self.current_id))
-                                    '''
-                                    #getting picture from database
-                                    blob = bucket.get_blob(f'Images/{self.current_id}.png')
-
-                                    if blob == None: #no picture found
-                                        self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
-                                        canvas.itemconfig(profile_pic,image=self.img_holder)
-                                    else: #convert and display picture
-                                        img_data = np.frombuffer(blob.download_as_string(), np.uint8)
-                                        img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
-                                        img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                                        self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                                        canvas.itemconfig(profile_pic,image=self.img_holder)
-
+                                    ui_update_labels()
 
                                     # enabling confirm/cancel buttons
                                     confirm_btn["state"] = "normal"
@@ -239,7 +249,6 @@ class FaceRec(tk.Frame):
                              command=lambda: [pause_rec(),controller.show_frame("UserInterface")])
         back_btn.place(x = 20,y = 10)
 
-
         magic_btn = Button(self, text='Start', bd='5',fg="#FFFFFF" ,bg='#812e91',
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=start_rec)
         magic_btn.place(x = 750,y = 520)
@@ -256,7 +265,6 @@ class FaceRec(tk.Frame):
                 messagebox.showinfo("Confirm Message", "Student has been confirmed already.", parent=self)
             else:
                 student_auto_confirm_attendance(student_id)
-            print(student_check_attendance(student_id))
             self.current_id = -1
             reset_profile_labels()
 
@@ -265,6 +273,8 @@ class FaceRec(tk.Frame):
             canvas.itemconfig(profile_pic,image=self.imgholder)
             self.loaded_flag = 0
             self.current_id = -1
+            confirm_btn["state"] = "disabled"
+            cancel_btn["state"] = "disabled"
             reset_profile_labels()
 
         def reset_profile_labels():

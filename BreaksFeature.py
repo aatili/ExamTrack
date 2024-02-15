@@ -47,9 +47,10 @@ class BreaksFeature:
                 res = student_report_break(s_student_id,self.str_reason)
                 if res == STUDENT_NOT_FOUND:
                     messagebox.showerror("Break Error", "Student not found.", parent=break_window)
-                elif res == STUDENT_ALREADY_CONFIRMED:
+                elif res == STUDENT_ALREADY_ON_BREAK:
                     messagebox.showerror("Break Error", "Student already on break.", parent=break_window)
                 break_window.destroy()
+            return FUNC_SUCCESS
 
         # Buttons
         break_confirm_btn = Button(break_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#812e91',
@@ -89,14 +90,13 @@ class BreaksFeature:
     def view_break_window(self, parent, student_id):
         if len(student_id) == 0:
             return
-
         if not student_had_break(student_id):
             return
 
         view_break_window = Toplevel(parent)
         view_break_window.geometry("500x370+350+100")
         view_break_window.resizable(False,False)
-        view_break_window.title("Student Break")
+        view_break_window.title("Student Breaks")
         view_break_window.configure(bg='#917FB3')
 
         view_break_window_id = Label(view_break_window, text="Student ID:" ,bg='#917FB3',font=("Calibri", 16 * -1))

@@ -167,15 +167,30 @@ class UserInterface(tk.Frame):
         # Configure the table to use the scrollbar
         table.configure(yscrollcommand=scrollbar.set)'''
 
-
         #Selecting row in table
 
         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
         self.current_id = ""
 
+        import threading
+
+        def fetch_blob():
+            blob = bucket.get_blob(f'Images/{self.current_id}.png')
+            if blob is None:  # no picture retrieved from database
+                self.img_holder = tk.PhotoImage(file="Resources/no_pic.png")
+                canvas.itemconfig(profile_pic, image=self.img_holder)
+            else:
+                img_data = np.frombuffer(blob.download_as_string(), np.uint8)
+                img_cvt = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+                img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
+                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
+                canvas.itemconfig(profile_pic, image=self.img_holder)
+
         def table_select_row(a):#view selected row items
             cur_item = table.focus()
             cur_values = table.item(cur_item,option='values') # this option keeps ID as string
+            if not cur_values:
+                return
             # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
             canvas.itemconfig(student_id_label,text=str(self.current_id))
@@ -183,7 +198,7 @@ class UserInterface(tk.Frame):
             temp_extra_time = 'Extra Time: ' + student_get_extra_time(self.current_id)
             canvas.itemconfig(student_extra_time_label , text=temp_extra_time)
             canvas.itemconfig(student_major_label , text=student_get_major(self.current_id))
-            temp_confirmed = 'Not Confirmed'
+            temp_confirmed = "X"
             canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
 
             if student_in_break(self.current_id):
@@ -193,7 +208,18 @@ class UserInterface(tk.Frame):
                 back_from_break_btn.place_forget()
                 break_btn.place(x = 535,y = 430)
 
-            blob = bucket.get_blob(f'Images/{self.current_id}.png')
+            if student_check_waiver(self.current_id):
+                confirm_btn["state"] = "disabled"
+                break_btn["state"] = "disabled"
+            else:
+                confirm_btn["state"] = "normal"
+                break_btn["state"] = "normal"
+
+            # Fetch blob using threading
+            fetch_thread = threading.Thread(target=fetch_blob)
+            fetch_thread.start()
+
+            '''blob = bucket.get_blob(f'Images/{self.current_id}.png')
 
             if blob is None: # no picture retrieved from database
                 self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
@@ -203,7 +229,7 @@ class UserInterface(tk.Frame):
                 img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
                 img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
                 self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                canvas.itemconfig(profile_pic,image=self.img_holder)
+                canvas.itemconfig(profile_pic,image=self.img_holder)'''
 
         table.bind("<<TreeviewSelect>>", table_select_row)
 
@@ -257,7 +283,7 @@ class UserInterface(tk.Frame):
         # Checkboxes
         confirmed_checkbox_var = IntVar()
         confirmed_checkbox = Checkbutton(self,variable = confirmed_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
-                                     font=("Inter Bold", 14 * -1),text="Confirmed",bg = "#917FB3",
+                                     font=("Inter Bold", 14 * -1),text="Attending",bg = "#917FB3",
                                          command=my_search)
         confirmed_checkbox.place(x=900,y=230)
 
@@ -428,6 +454,7 @@ class UserInterface(tk.Frame):
             add_reason_entry = scrolledtext.ScrolledText(add_time_window, wrap=tk.WORD,bd=3,bg='#E5BEEC',width=30,
                                                    height=3,font=("Calibri", 16*-1))
             add_reason_entry.place(x=20,y=95)
+
             # add minute to time variable
             def add_total_seconds():
                 self.total_seconds += int(add_time_box.get()) * 60
@@ -464,6 +491,10 @@ class UserInterface(tk.Frame):
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
+        button2 = tk.Button(self, text="try",
+                            command=lambda: table_selection_refresh())
+        button2.pack()
+
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm
             if student_check_attendance(student_id):
@@ -498,28 +529,34 @@ class UserInterface(tk.Frame):
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: popup_notes_exist(self.current_id))
-        view_notes_btn.place(x = 360,y = 480)
+        view_notes_btn.place(x=360, y=480)
 
-        def table_selection_refresh():
-            selected_item = table.selection()  # Get the currently selected item
-            table.selection_remove(selected_item)  # Reselect the same item
+        self.last_hover_time = datetime.now()
+
+        # refresh to display updated info on ui
+        def table_selection_refresh(a):
+            current_time = datetime.now()
+            if (current_time - self.last_hover_time).total_seconds() >= 5:
+                selected_item = table.selection()  # Get the currently selected item
+                table.selection_set(selected_item)# Reselect the same item
+                self.last_hover_time = current_time
+
+        self.bind("<Enter>", table_selection_refresh)
 
         # Break Function
         def student_take_break(student_id):
-
             if not student_check_attendance(student_id):
-                messagebox.showerror("Break Error", "Student attendance was not confirmed.")
+                messagebox.showerror("Break Error", "Student not in attendance.")
                 return
             if student_in_break(student_id):
                 messagebox.showerror("Break Error", "Student already in break.")
                 return
             self.breaks_feature.break_window(self.parent, self.current_id)
 
-
         # Break features buttons
         break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: [student_take_break(self.current_id),table_selection_refresh()])
+                               command=lambda: student_take_break(self.current_id))
         break_btn.place(x = 535,y = 430)
 
         # Back from break check function
@@ -531,7 +568,7 @@ class UserInterface(tk.Frame):
                 messagebox.showinfo("Break Info", "Student not in break.")
                 return
             res = student_back_break(self.current_id)
-            if res != STUDENT_NOT_FOUND and res != STUDENT_ALREADY_CONFIRMED:
+            if res != STUDENT_NOT_FOUND:
                 messagebox.showinfo("Break Info", res)
                 if break_checkbox_var.get() == 1:
                     filter_on_break()
@@ -551,6 +588,21 @@ class UserInterface(tk.Frame):
                                command=lambda: self.breaks_feature.view_break_window(self.parent, self.current_id))
         view_breaks_btn.place(x = 535,y = 480)
 
+        # waiver
+        def student_waiver_popup(student_id):
+            if not student_check_attendance(student_id):
+                messagebox.showinfo("Waiver Message", "Student not in attendance.")
+                return
+            res = messagebox.askquestion('Student Waiver', 'This is irreversible, continue?', parent=self)
+            if res == 'yes':
+                student_report_waiver(student_id)
 
+
+        # waiver button
+        waiver_btn = Button(self, text='Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                               command=lambda: student_waiver_popup(self.current_id))
+        if self.waiver_available:  # do not show waiver button if not available
+            waiver_btn.place(x=700, y=480)
 
 
