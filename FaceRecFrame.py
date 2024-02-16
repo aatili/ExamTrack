@@ -32,7 +32,7 @@ class FaceRec(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         self.controller = controller
-        self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
+        self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
         self.camera_waiting = tk.PhotoImage(file = "Resources/camera_waiting.png")
 
         # Creating Cancvas

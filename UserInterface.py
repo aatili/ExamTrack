@@ -35,7 +35,7 @@ class UserInterface(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.parent = parent
-        self.bgimg = tk.PhotoImage(file = "Resources/new_background.png")
+        self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
         self.manual_confirm = ManualConfirmFeature.ManualConfirm()
         self.notes_features = NotesFeature.NotesFeature()
         self.breaks_feature = BreaksFeature.BreaksFeature()
@@ -466,7 +466,7 @@ class UserInterface(tk.Frame):
 
         def start_countdown():
             start_btn["state"] = "disabled"
-            add_time_btn.place(x = 590,y = 80)
+            add_time_btn.place(x = 590,y = 83)
             countdown()
             if self.waiver_available:
                 waiver_countdown()
@@ -519,9 +519,8 @@ class UserInterface(tk.Frame):
 
 
         # add time button
-        add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 18 * -1),
-                           activebackground='#917FB3',height='1',width='2',command = add_time,
-                           disabledforeground='gray')
+        add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 16 * -1),
+                           activebackground='#917FB3',height='1',width='2',command = add_time)
         #add_time_btn.place(x = 590,y = 80)
 
         # open face recognition frame
