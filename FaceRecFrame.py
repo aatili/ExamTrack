@@ -153,15 +153,15 @@ class FaceRec(tk.Frame):
             font=("Inter Bold", 13 * -1)
         )'''
 
-
         # Define a practical font for putText
         font = cv2.FONT_HERSHEY_TRIPLEX
 
         self.cap = None
+        self.capture_running = False
         self.loaded_flag = 0
         self.current_id = "-1"
 
-        #Function to start capture loop
+        # Function to start capture loop
         def start_rec():
             def scan():
                 success, self.img = self.cap.read()
@@ -174,13 +174,7 @@ class FaceRec(tk.Frame):
                     face_locations = face_recognition.face_locations(self.img_small)
                     face_encodings = face_recognition.face_encodings(self.img_small, face_locations)
 
-                    #converting to img and displaying
-                    '''self.img = Image.fromarray(self.img_arr)
-                    self.tkimg = ImageTk.PhotoImage(self.img)
-                    panel.config(image=self.tkimg)
-                    panel.tkimg = self.tkimg # save a reference to the image to avoid garbage collection'''
-
-                    #face detected
+                    # face detected
                     if face_locations:
                         for encode_face, face_loc in zip(face_encodings, face_locations):
                             # adding red rectangle over face
@@ -210,20 +204,20 @@ class FaceRec(tk.Frame):
                                     confirm_btn["state"] = "normal"
                                     cancel_btn["state"] = "normal"
 
-                    #converting to img
+                    # converting to img
                     self.img = Image.fromarray(self.img_arr)
                     self.tkimg = ImageTk.PhotoImage(self.img)
                     panel.config(image=self.tkimg)
                     panel.tkimg = self.tkimg
+                if self.capture_running:
+                    panel.after(25, scan)  # change value to adjust FPS
 
-
-                panel.after(25, scan) # change value to adjust FPS
-
-            if self.cap is None:
+            if not self.capture_running:
                 self.cap = cv2.VideoCapture(0)
                 self.cap.set(3, 640)
                 self.cap.set(4, 480)
-                scan() # start the capture loop
+                self.capture_running = True
+                scan()  # start the capture loop
             else:
                 print('capture already started')
 
@@ -236,9 +230,9 @@ class FaceRec(tk.Frame):
             self.cap.release()
 
         def pause_rec():
-            if self.cap:
+            self.capture_running = False
+            if self.cap is not None:
                 self.cap.release()
-            self.cap=None
             panel.configure(image=self.camera_waiting)
 
         back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#812e91',

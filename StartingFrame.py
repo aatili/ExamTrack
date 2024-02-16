@@ -65,6 +65,86 @@ class StartPage(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
+        # Trying something
+        self.cap = None
+        self.selected_device = 0
+        self.capture_running = False
+        self.camera_waiting_small = tk.PhotoImage(file = "Resources/camera_waiting_small.png")
+
+        # Function to start capture loop
+        def start_rec():
+            def scan():
+                success, self.img = self.cap.read()
+                if success:
+                    # convert to RGB
+                    self.img_arr = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+                    # converting to img
+                    self.img = Image.fromarray(self.img_arr)
+                    self.tkimg = ImageTk.PhotoImage(self.img)
+                    panel.config(image=self.tkimg)
+                    panel.tkimg = self.tkimg
+                if self.capture_running:
+                    panel.after(25, scan)  # change value to adjust FPS
+
+            if not self.capture_running:
+                self.cap = cv2.VideoCapture(0)
+                self.cap.set(3, 240*0.75)
+                self.cap.set(4, 180*0.75)
+                self.capture_running = True
+                scan()  # start the capture loop
+            else:
+                print('capture already started')
+
+        # Create the label with the image
+        panel = tk.Label(self)
+        panel.place(x=900, y=200)
+        panel.configure(image=self.camera_waiting_small)
+        panel.tkraise()
+
+        if self.cap:
+            self.cap.release()
+
+        def pause_rec():
+            self.capture_running = False
+            if self.cap is not None:
+                self.cap.release()
+            panel.configure(image=self.camera_waiting_small)
+
+        # Get available camera devices
+        available_devices = []
+        for i in range(3):
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                available_devices.append('Camera ' + str(i))
+            cap.release()
+
+        def combo_cameras_changed(a):
+            pause_rec()
+            self.selected_device = combo_cameras.get()
+
+        canvas.create_text(
+            795.0,
+            165.0,
+            anchor="nw",
+            text="Select Camera:",
+            fill="white",
+            font=("Inter Bold", 15 * -1)
+        )
+
+        # Create ComboBox to select camera device
+        combo_cameras = ttk.Combobox(self, values=available_devices)
+        combo_cameras.place(x=900,y=165)
+        self.selected_device = combo_cameras.get()
+
+        combo_cameras.bind("<<ComboboxSelected>>", combo_cameras_changed)
+
+        # continue btn
+        test_btn = Button(self, text='Test', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
+                              activebackground='#917FB3',height='1',width='10', command=start_rec)
+        test_btn.place(x=950, y=360)
+
+        # End
+
         button = tk.Button(self, text="Face Recognition",
                             command=lambda: controller.show_frame("FaceRec"))
         button.pack(side='bottom')
@@ -175,12 +255,7 @@ class StartPage(tk.Frame):
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                               activebackground='#917FB3',height='1',width='14')
-        continue_btn.place(x=900, y=480)
-
-
-
-
-
+        continue_btn.place(x=800, y=480)
 
 
 app = ExamApp()
