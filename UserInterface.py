@@ -7,6 +7,7 @@ import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
 from datetime import date,datetime
+import threading
 
 from StudentData import *
 
@@ -68,6 +69,19 @@ class UserInterface(tk.Frame):
         self.profile_pic_tk = tk.PhotoImage(file = "Resources/no_pic.png")
         profile_pic = canvas.create_image(60,60,anchor=NW,image=self.profile_pic_tk)
 
+        self.confirmed_img = tk.PhotoImage(file = "Resources/confirmed.png")
+        confirmed_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
+        # confirmed_img_panel.place(x=250,y=422)
+
+        self.not_confirmed_img = tk.PhotoImage(file = "Resources/not_confirmed.png")
+        not_confirmed_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
+        # not_confirmed_img_panel.place(x=250,y=422)
+
+        extra_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
+        # extra_img_panel.place(x=90,y=422)
+        no_extra_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
+
+
         # Style for buttons
         button_style = ttk.Style()
         button_style.configure("Custom.TButton",
@@ -109,24 +123,34 @@ class UserInterface(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-        student_extra_time_label = canvas.create_text(
-            90.0,
-            430.0,
+        student_confirmed_label = canvas.create_text(
+            253.0,
+            427.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="",
             fill="#FFFFFF",
-            font=("Inter Bold", 13 * -1)
+            font=("Calibri Bold", 20 * -1)
         )
 
-        student_confirmed_label = canvas.create_text(
-            250.0,
-            430.0,
+        canvas.create_text(
+            42.0,
+            458.0,
             justify=CENTER,
             anchor="nw",
-            text="?",
+            text="Extra Time",
             fill="#FFFFFF",
-            font=("Inter Bold", 13 * -1)
+            font=("Calibri", 12 * -1)
+        )
+
+        canvas.create_text(
+            197.0,
+            458.0,
+            justify=CENTER,
+            anchor="nw",
+            text="Attendance",
+            fill="#FFFFFF",
+            font=("Calibri", 12 * -1)
         )
 
         # Creating Table
@@ -172,7 +196,26 @@ class UserInterface(tk.Frame):
         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
         self.current_id = ""
 
-        import threading
+        # enabled/disabled relevant button depending on the students attendance
+        def set_button_state(str_state):
+            if str_state == "waiver":
+                confirm_btn["state"] = "disabled"
+                break_btn["state"] = "disabled"
+                waiver_btn["state"] = "disabled"
+                view_breaks_btn["state"] = "disabled"
+            elif str_state == "confirmed":
+                confirm_btn["state"] = "disabled"
+                break_btn["state"] = "normal"
+                waiver_btn["state"] = "normal"
+                view_breaks_btn["state"] = "normal"
+            elif str_state == "not_confirmed":
+                confirm_btn["state"] = "normal"
+                break_btn["state"] = "disabled"
+                waiver_btn["state"] = "disabled"
+                view_breaks_btn["state"] = "disabled"
+
+
+
 
         def fetch_blob():
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
@@ -195,11 +238,32 @@ class UserInterface(tk.Frame):
             self.current_id = str(cur_values[0])
             canvas.itemconfig(student_id_label,text=str(self.current_id))
             canvas.itemconfig(student_name_label,text=student_get_name(self.current_id))
-            temp_extra_time = 'Extra Time: ' + student_get_extra_time(self.current_id)
-            canvas.itemconfig(student_extra_time_label , text=temp_extra_time)
+
+            temp_extra_time = student_get_extra_time(self.current_id)
+            if temp_extra_time.lower() == "no":
+                no_extra_img_panel.place(x=90,y=422)
+                extra_img_panel.place_forget()
+            else:
+                no_extra_img_panel.place_forget()
+                extra_img_panel.place(x=90,y=422)
+
             canvas.itemconfig(student_major_label , text=student_get_major(self.current_id))
-            temp_confirmed = "X"
-            canvas.itemconfig(student_confirmed_label , text=temp_confirmed)
+
+            if student_check_waiver(self.current_id):
+                set_button_state("waiver")
+                canvas.itemconfig(student_confirmed_label , text="Waiver", fill='#b83e4f')
+                confirmed_img_panel.place_forget()
+                not_confirmed_img_panel.place_forget()
+            elif student_check_attendance(self.current_id):
+                set_button_state("confirmed")
+                canvas.itemconfig(student_confirmed_label , text="")
+                confirmed_img_panel.place(x=250,y=422)
+                not_confirmed_img_panel.place_forget()
+            else:
+                set_button_state("not_confirmed")
+                canvas.itemconfig(student_confirmed_label , text="")
+                confirmed_img_panel.place_forget()
+                not_confirmed_img_panel.place(x=250,y=422)
 
             if student_in_break(self.current_id):
                 break_btn.place_forget()
@@ -208,28 +272,9 @@ class UserInterface(tk.Frame):
                 back_from_break_btn.place_forget()
                 break_btn.place(x = 535,y = 430)
 
-            if student_check_waiver(self.current_id):
-                confirm_btn["state"] = "disabled"
-                break_btn["state"] = "disabled"
-            else:
-                confirm_btn["state"] = "normal"
-                break_btn["state"] = "normal"
-
             # Fetch blob using threading
             fetch_thread = threading.Thread(target=fetch_blob)
             fetch_thread.start()
-
-            '''blob = bucket.get_blob(f'Images/{self.current_id}.png')
-
-            if blob is None: # no picture retrieved from database
-                self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
-                canvas.itemconfig(profile_pic,image=self.img_holder)
-            else:
-                img_data = np.frombuffer(blob.download_as_string(), np.uint8)
-                img_cvt = cv2.imdecode(img_data,cv2.IMREAD_COLOR)
-                img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                canvas.itemconfig(profile_pic,image=self.img_holder)'''
 
         table.bind("<<TreeviewSelect>>", table_select_row)
 
@@ -490,10 +535,6 @@ class UserInterface(tk.Frame):
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
-
-        button2 = tk.Button(self, text="try",
-                            command=lambda: table_selection_refresh())
-        button2.pack()
 
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm

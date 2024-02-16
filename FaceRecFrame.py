@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 import face_recognition
 import cvzone
+import threading
 
 import firebase_admin
 from firebase_admin import credentials, db, storage
@@ -59,18 +60,17 @@ class FaceRec(tk.Frame):
 
         # Creating Profile
 
-        self.profile_gui = tk.PhotoImage(file = "Resources/profile_ui2.png")
-        canvas.create_image(120,20,anchor=NW,image=self.profile_gui)
+        self.profile_gui = tk.PhotoImage(file="Resources/profile_ui_rec.png")
+        canvas.create_image(120,20, anchor=NW, image=self.profile_gui)
 
-        #adding profile pic
-        self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
+        # adding profile pic
+        self.imgholder = tk.PhotoImage(file="Resources/not_rec.png")
 
-        self.profile_pic_frame_tk = tk.PhotoImage(file = "Resources/pic_frame.png")
-        canvas.create_image(158,58,anchor=NW,image=self.profile_pic_frame_tk)
+        self.profile_pic_frame_tk = tk.PhotoImage(file="Resources/pic_frame.png")
+        canvas.create_image(158, 58, anchor=NW, image=self.profile_pic_frame_tk)
 
-        profile_pic = canvas.create_image(160,60,anchor=NW,image=self.imgholder)
+        profile_pic = canvas.create_image(160, 60, anchor=NW, image=self.imgholder)
 
-        import threading
         # Get the picture from the database and display it
         def fetch_and_display_picture():
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
@@ -94,9 +94,9 @@ class FaceRec(tk.Frame):
             canvas.itemconfig(student_major_label,
                               text=student_get_major(self.current_id))
 
-            canvas.itemconfig(student_extra_time_label,
+            '''canvas.itemconfig(student_extra_time_label,
                               text=' Extra Time: '+student_get_extra_time(self.current_id))
-            '''canvas.itemconfig(student_tuition_label,
+            canvas.itemconfig(student_tuition_label,
                               text='Paid Tuition: '+data.student_get_tuition(self.current_id))
             '''
             # Start a new thread to fetch the picture
@@ -113,7 +113,6 @@ class FaceRec(tk.Frame):
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
-
 
         student_id_label = canvas.create_text(
             215.0,
@@ -134,7 +133,7 @@ class FaceRec(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-        student_extra_time_label = canvas.create_text(
+        '''student_extra_time_label = canvas.create_text(
             190.0,
             430.0,
             justify=CENTER,
@@ -152,7 +151,7 @@ class FaceRec(tk.Frame):
             text="?",
             fill="#FFFFFF",
             font=("Inter Bold", 13 * -1)
-        )
+        )'''
 
 
         # Define a practical font for putText
@@ -279,7 +278,7 @@ class FaceRec(tk.Frame):
             canvas.itemconfig(student_id_label,text="(ID)")
             canvas.itemconfig(student_name_label,text="(Name)")
             canvas.itemconfig(student_major_label,text="(Major)")
-            canvas.itemconfig(student_extra_time_label,text="?")
+            #canvas.itemconfig(student_extra_time_label,text="?")
             #canvas.itemconfig(student_tuition_label,text="?")
 
 
