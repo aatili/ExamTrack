@@ -154,35 +154,13 @@ class UserInterface(tk.Frame):
         )
 
         # Creating Table
+        #table_columns = student_table_columns()
+        self.table = ttk.Treeview(master=self)
+        #table.place(x=360, y=150, height=260)
 
-        table = ttk.Treeview(master=self, columns=table_columns, show="headings")
+        self.table.tag_configure('oddrow', background='#917FB3')
+        self.table.tag_configure('evenrow', background='#BAA4CA')
 
-        table.tag_configure('oddrow', background='#917FB3')
-        table.tag_configure('evenrow', background='#BAA4CA')
-
-        for column in table_columns:
-            table.heading(column=column, text=column)
-            if column == "major":
-                table.column(column=column, width=140)
-            else:
-                table.column(column=column, width=70)
-
-        color_j = 0
-        for row_data in table_data:
-            color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
-            table.insert(parent="", index="end", values=row_data, tags=color_tags)
-            color_j += 1
-
-        style = ttk.Style()
-        style.theme_use("default")
-        style.configure("Treeview", rowheight=30, background="#917FB3", fieldbackground="#917FB3", foreground="white",
-                        font=("Calibri", 14 * -1))
-        style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
-                        foreground="white", font=("Calibri", 14 * -1))
-        style.map("Treeview", background=[("selected", "#000080")])
-
-
-        table.place(x=360, y=150, height=260)
 
         '''# Create a vertical scrollbar
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=table.yview)
@@ -230,8 +208,8 @@ class UserInterface(tk.Frame):
                 canvas.itemconfig(profile_pic, image=self.img_holder)
 
         def table_select_row(a):#view selected row items
-            cur_item = table.focus()
-            cur_values = table.item(cur_item,option='values') # this option keeps ID as string
+            cur_item = self.table.focus()
+            cur_values = self.table.item(cur_item,option='values') # this option keeps ID as string
             if not cur_values:
                 return
             # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
@@ -276,7 +254,7 @@ class UserInterface(tk.Frame):
             fetch_thread = threading.Thread(target=fetch_blob)
             fetch_thread.start()
 
-        table.bind("<<TreeviewSelect>>", table_select_row)
+        self.table.bind("<<TreeviewSelect>>", table_select_row)
 
 
         # Searching the table
@@ -300,7 +278,7 @@ class UserInterface(tk.Frame):
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
             r_set = df2.to_numpy().tolist()  # Create list of list using rows
-            table.delete(*table.get_children())
+            self.table.delete(*self.table.get_children())
             j = 0  # similar to color j , counter for colouring purpose
             for dt in r_set:
                 tags = ('evenrow',) if j % 2 == 0 else ('oddrow',)  # for colouring purpose
@@ -309,18 +287,18 @@ class UserInterface(tk.Frame):
                 s_id = v[0]
                 if confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 0:
                     if student_check_attendance(s_id):
-                        table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        self.table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
                         j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 1:
                     if student_check_attendance(s_id) and student_get_extra_time(s_id).lower() == 'yes':
-                        table.insert("", "end", iid=s_id, values=v, tags=tags)
+                        self.table.insert("", "end", iid=s_id, values=v, tags=tags)
                         j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 0 and extra_checkbox_var.get() == 1:
                     if student_get_extra_time(s_id).lower() == 'yes':
-                        table.insert("", "end", iid=s_id, values=v, tags=tags)
+                        self.table.insert("", "end", iid=s_id, values=v, tags=tags)
                         j += 1  # colouring
                 else:
-                    table.insert("", "end", iid=s_id, values=v, tags=tags)
+                    self.table.insert("", "end", iid=s_id, values=v, tags=tags)
                     j += 1  # colouring
 
         search_entry.bind("<KeyRelease>", my_search)
@@ -354,17 +332,17 @@ class UserInterface(tk.Frame):
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
             r_set = df2.to_numpy().tolist()  # Create list of list using rows
-            table.delete(*table.get_children())
+            self.table.delete(*self.table.get_children())
             color_i = 0
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
                 j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
                 if break_checkbox_var.get() == 1:
                     if student_in_break(v[0]):
-                        table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
                         color_i += 1
                 else:
-                    table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                    self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
                     color_i += 1
 
         break_checkbox_var = IntVar()
@@ -579,8 +557,8 @@ class UserInterface(tk.Frame):
         def table_selection_refresh(a):
             current_time = datetime.now()
             if (current_time - self.last_hover_time).total_seconds() >= 5:
-                selected_item = table.selection()  # Get the currently selected item
-                table.selection_set(selected_item)# Reselect the same item
+                selected_item = self.table.selection()  # Get the currently selected item
+                self.table.selection_set(selected_item)# Reselect the same item
                 self.last_hover_time = current_time
 
         self.bind("<Enter>", table_selection_refresh)
@@ -647,6 +625,32 @@ class UserInterface(tk.Frame):
         if self.waiver_available:  # do not show waiver button if not available
             waiver_btn.place(x=700, y=480)
 
+    def initiate_table(self):
+        student_data_initiate()
+        table_columns = student_table_columns()
+        self.table.configure(columns=table_columns, show="headings")
+        for column in table_columns:
+            self.table.heading(column=column, text=column)
+            if column == "major":
+                self.table.column(column=column, width=140)
+            else:
+                self.table.column(column=column, width=70)
+
+        color_j = 0
+        table_data = student_table_values()
+        for row_data in table_data:
+            color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
+            self.table.insert(parent="", index="end", values=row_data, tags=color_tags)
+            color_j += 1
+
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", rowheight=30, background="#917FB3", fieldbackground="#917FB3", foreground="white",
+                        font=("Calibri", 14 * -1))
+        style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
+                        foreground="white", font=("Calibri", 14 * -1))
+        style.map("Treeview", background=[("selected", "#000080")])
+        self.table.place(x=360, y=150, height=260)
 
 
 

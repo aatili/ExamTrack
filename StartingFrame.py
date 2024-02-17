@@ -1,10 +1,10 @@
 from tkinter import *
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,filedialog
-import time
+from tkinter import  Canvas, Button, PhotoImage, ttk, messagebox,filedialog
 from PIL import Image, ImageTk
 import tkinter as tk
-import numpy as np
 import cv2
+import re
+
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
@@ -79,6 +79,9 @@ class StartPage(tk.Frame):
         canvas.create_image(0,0,anchor=NW,image=self.bgimg)
 
         canvas.place(x = 0, y = 0)
+
+        self.upload_pic = tk.PhotoImage(file = "Resources/upload_file.png")
+        canvas.create_image(700,480,anchor=NW,image=self.upload_pic)
 
         # Trying something
         self.cap = None
@@ -164,7 +167,8 @@ class StartPage(tk.Frame):
         button.pack(side='bottom')
 
         button2 = tk.Button(self, text="User Interface",
-                            command=lambda: controller.show_frame("UserInterface"))
+                            command=lambda: [app.frames["UserInterface"].initiate_table()
+                                ,controller.show_frame("UserInterface")])
         button2.pack(side='bottom')
 
         # Adding labels and entries
@@ -266,9 +270,15 @@ class StartPage(tk.Frame):
                                 activebackground='#917FB3',height='1',width='2')
         remove_sup_btn.place(x=770,y=395)'''
 
-
         def get_csv_file():
-            blob = bucket.blob("Exams/112233_MoedB.csv")
+            exam_no = exam_entry.get()
+            exam_term = combo_terms.get()
+            blob = bucket.get_blob(f'Exams/{exam_no}_{exam_term}.csv')
+            print(blob)
+            if blob is None:
+                messagebox.showerror("Exam Error", "Exam was not found in database"
+                                                   ". make sure data is correct or upload file.")
+                return
             csv_data = blob.download_as_string()
             read_students_blob(csv_data)
 
@@ -280,10 +290,57 @@ class StartPage(tk.Frame):
                 read_students_csv(filepath)
                 print(get_student_df_ref())
 
+        def check_supervisor_name(str_name):
+            # Use regular expression to check if the entry consists only of letters and whitespace
+            if re.match(r'^[a-zA-Z\s]+$', str_name):
+                # Split the entry into words
+                words = str_name.split()
+                # Check if the number of words is at least two
+                if len(words) >= 2:
+                    return True
+            return False
+
+        # Handling input correctness check
+        def check_entry_correctness():
+            error_list = []
+            error_flag, sup_error_flag = 0, 0
+
+            if not exam_entry.get().isdigit():
+                error_flag += 1
+                error_list.append('Invalid exam number.')
+
+            if len(combo_terms.get()) < 3:
+                error_flag += 1
+                error_list.append('Please select term.')
+
+            exam_dur = duration_entry.get()
+            if not exam_dur.isdigit() or int(exam_dur) < 30:
+                error_flag += 1
+                error_list.append('Invalid duration.')
+
+            sup_num = self.supervisor_num % 4
+            if not check_supervisor_name(supervisor_entry.get()):
+                sup_error_flag = 1
+            elif sup_num == 2 and not check_supervisor_name(supervisor_entry2.get()):
+                sup_error_flag = 1
+            elif sup_num == 3 and not check_supervisor_name(supervisor_entry3.get()):
+                sup_error_flag = 1
+            elif sup_num == 0 and not check_supervisor_name(supervisor_entry4.get()):
+                sup_error_flag = 1
+
+            if sup_error_flag:
+                error_flag += 1
+                error_list.append('Invalid supervisor name')
+
+            if error_flag > 0:
+                error_message = "Invalid Input:\n"
+                for error in error_list:
+                    error_message += f"- {error}\n"
+                messagebox.showerror("Input Error", error_message)
 
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
-                              activebackground='#917FB3',height='1',width='14', command=upload_csv_file)
+                              activebackground='#917FB3',height='1',width='14', command=lambda: check_entry_correctness())
         continue_btn.place(x=800, y=480)
 
 

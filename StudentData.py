@@ -1,8 +1,7 @@
-# Table data
 import pandas as pd
 from datetime import datetime
-
 import io
+
 # Constants
 
 STUDENT_NOT_FOUND = -1
@@ -30,33 +29,23 @@ students_waiver = []
 students_breaks = {}  # contains: [number of breaks, list of time(seconds) and list of reasons for each break]
 current_break = {}  # contains : [timestamp of current break]
 
-# Sample data
-
-table_columns = ["id", "first_name", "last_name", "extra_time", "tuition", "major"]
-table_data = [
-    ["243731", "Adnan", "Atili", "No", "Yes", "Information Systems"],
-    ["777777", "John", "Doe", "Yes", "No", "Art"],
-    ["002", "Jane", "Smith", "No", "Yes", "Biology"],
-    ["963852", "Michael", "Johnson", "Yes", "Yes", "Computer Science"],
-    ["112233", "Haya", "Shalash", "No", "No", "Information Systems"],
-    ["005", "David", "Brown", "Yes", "Yes", "Computer Science"]
-]
-table_df2 = pd.DataFrame(table_data, columns=table_columns)
 
 df_list = []
 
 # print(table_df.loc[table_df['ID']=='002', 'First Name'].values[0])
 
-# print(table_df.columns.tolist())
 
-# print(table_df.values.tolist())
 
 '''def get_csv():
     table_df.to_csv('output.csv', index=False)'''
 
+
 # initiate attendance
-for i in table_data:
-    students_attendance[i[0]] = False
+def student_data_initiate():
+    list_id = df_list[0]['id'].tolist()
+    for i in list_id:
+        students_attendance[i] = False
+
 
 dtype_dict = {
     "id": str,  # Specify 'id' column as string to preserve leading zeros
@@ -68,6 +57,18 @@ dtype_dict = {
 }
 
 
+def student_table_values():
+    if len(df_list) == 0:
+        return None
+    return df_list[0].values.tolist()
+
+
+def student_table_columns():
+    if len(df_list) == 0:
+        return None
+    return df_list[0].columns.tolist()
+
+
 def read_students_blob(csv_data):
     df_list.append(pd.read_csv(io.BytesIO(csv_data), dtype=dtype_dict))
 
@@ -77,6 +78,8 @@ def read_students_csv(filepath):
 
 
 def get_student_df_ref():
+    if len(df_list) == 0:
+        return None
     return df_list[0]
 
 # GET Functions
