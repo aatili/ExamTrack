@@ -295,6 +295,7 @@ class UserInterface(tk.Frame):
 
         # Search query and filter table
         def my_search(*args):
+            table_df = get_student_df_ref()
             query = search_entry.get().strip() # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -340,6 +341,7 @@ class UserInterface(tk.Frame):
 
         # Break Checkbox filter
         def filter_on_break():
+            table_df = df_list[0]
             if break_checkbox_var.get() == 1:
                 confirmed_checkbox_var.set(0)
                 extra_checkbox_var.set(0)
@@ -644,5 +646,7 @@ class UserInterface(tk.Frame):
                                command=lambda: student_waiver_popup(self.current_id))
         if self.waiver_available:  # do not show waiver button if not available
             waiver_btn.place(x=700, y=480)
+
+
 
 

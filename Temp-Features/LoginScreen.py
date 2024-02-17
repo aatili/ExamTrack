@@ -103,7 +103,6 @@ class MainWindow(QMainWindow):
 		self.camera_selector.setStyleSheet("background : rgb(130, 145, 230);")
 		self.camera_selector.resize(150,30)
 
-
 		# setting window title
 		self.setWindowTitle("Exam Attendance Login")
 

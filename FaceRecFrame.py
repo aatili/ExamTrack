@@ -235,8 +235,8 @@ class FaceRec(tk.Frame):
                 self.cap.release()
             panel.configure(image=self.camera_waiting)
 
-        back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#812e91',
-                            activebackground='#917FB3',font=("Calibri", 14 * -1),height='1',width='14',
+        back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+                             font=("Calibri", 14 * -1),height='1',width='14',
                              command=lambda: [pause_rec(),controller.show_frame("UserInterface")])
         back_btn.place(x = 20,y = 10)
 

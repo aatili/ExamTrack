@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,filedialog
 import time
 from PIL import Image, ImageTk
 import tkinter as tk
@@ -8,9 +8,24 @@ import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
 
+import io
+
 import UserInterface
 import FaceRecFrame
 
+from StudentData import *
+
+cred = credentials.Certificate("serviceAccountKey.json")
+
+try:
+    starting_frame_app = firebase_admin.initialize_app(cred, {
+        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
+        'storageBucket': "examfacerecognition.appspot.com"} , name="StartingFrameApp")
+except firebase_admin.exceptions.FirebaseError as e:
+    # Handle Firebase initialization error
+    print("Firebase initialization error:", e)
+
+bucket = storage.bucket(app=starting_frame_app)
 
 # Class used to transition between tkinter pages
 class ExamApp(tk.Tk):
@@ -140,13 +155,12 @@ class StartPage(tk.Frame):
 
         # continue btn
         test_btn = Button(self, text='Test', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
-                              activebackground='#917FB3',height='1',width='10', command=start_rec)
+                          activebackground='#917FB3',height='1',width='10', command=start_rec)
         test_btn.place(x=950, y=360)
 
         # End
 
-        button = tk.Button(self, text="Face Recognition",
-                            command=lambda: controller.show_frame("FaceRec"))
+        button = tk.Button(self, text="Face Recognition",command=lambda: controller.show_frame("FaceRec"))
         button.pack(side='bottom')
 
         button2 = tk.Button(self, text="User Interface",
@@ -252,9 +266,24 @@ class StartPage(tk.Frame):
                                 activebackground='#917FB3',height='1',width='2')
         remove_sup_btn.place(x=770,y=395)'''
 
+
+        def get_csv_file():
+            blob = bucket.blob("Exams/112233_MoedB.csv")
+            csv_data = blob.download_as_string()
+            read_students_blob(csv_data)
+
+        def upload_csv_file():
+            # Open file dialog to select CSV file
+            filepath = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+            if filepath:
+                # Read the selected CSV file
+                read_students_csv(filepath)
+                print(get_student_df_ref())
+
+
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
-                              activebackground='#917FB3',height='1',width='14')
+                              activebackground='#917FB3',height='1',width='14', command=upload_csv_file)
         continue_btn.place(x=800, y=480)
 
 

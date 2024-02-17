@@ -2,6 +2,7 @@
 import pandas as pd
 from datetime import datetime
 
+import io
 # Constants
 
 STUDENT_NOT_FOUND = -1
@@ -40,7 +41,9 @@ table_data = [
     ["112233", "Haya", "Shalash", "No", "No", "Information Systems"],
     ["005", "David", "Brown", "Yes", "Yes", "Computer Science"]
 ]
-table_df = pd.DataFrame(table_data, columns=table_columns)
+table_df2 = pd.DataFrame(table_data, columns=table_columns)
+
+df_list = []
 
 # print(table_df.loc[table_df['ID']=='002', 'First Name'].values[0])
 
@@ -48,12 +51,38 @@ table_df = pd.DataFrame(table_data, columns=table_columns)
 
 # print(table_df.values.tolist())
 
+'''def get_csv():
+    table_df.to_csv('output.csv', index=False)'''
+
 # initiate attendance
 for i in table_data:
     students_attendance[i[0]] = False
 
+dtype_dict = {
+    "id": str,  # Specify 'id' column as string to preserve leading zeros
+    "first_name": str,
+    "last_name": str,
+    "extra_time": str,
+    "tuition": str,
+    "major": str
+}
+
+
+def read_students_blob(csv_data):
+    df_list.append(pd.read_csv(io.BytesIO(csv_data), dtype=dtype_dict))
+
+
+def read_students_csv(filepath):
+    df_list.append(pd.read_csv(filepath, dtype=dtype_dict))
+
+
+def get_student_df_ref():
+    return df_list[0]
+
+# GET Functions
 
 def student_get_name(student_id):
+    table_df = df_list[0]
     temp_first = "No"
     temp_last = "Name"
     if student_id in table_df['id'].values:
@@ -62,9 +91,8 @@ def student_get_name(student_id):
     return temp_first + ' ' + temp_last
 
 
-# GET Functions
-
 def student_get_extra_time(student_id):
+    table_df = df_list[0]
     temp_first = "No"
     if student_id in table_df['id'].values:
         temp_first = table_df.loc[table_df['id'] == student_id, 'extra_time'].values[0]
@@ -72,6 +100,7 @@ def student_get_extra_time(student_id):
 
 
 def student_get_tuition(student_id):
+    table_df = df_list[0]
     temp_first = "No"
     if student_id in table_df['id'].values:
         temp_first = table_df.loc[table_df['id'] == student_id, 'tuition'].values[0]
@@ -79,6 +108,7 @@ def student_get_tuition(student_id):
 
 
 def student_get_major(student_id):
+    table_df = df_list[0]
     temp_first = "No Major"
     if student_id in table_df['id'].values:
         temp_first = table_df.loc[table_df['id'] == student_id, 'major'].values[0]
