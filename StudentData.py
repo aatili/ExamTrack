@@ -9,7 +9,7 @@ STUDENT_CONFIRMED = -2
 STUDENT_ALREADY_CONFIRMED = -3
 STUDENT_ALREADY_ON_BREAK = -4
 
-FUNC_SUCCESS = 1
+FUNC_SUCCESS = 0
 
 
 # Attendance and Confirmation
@@ -71,18 +71,20 @@ def student_table_columns():
 
 def read_students_blob(csv_data):
     try:
-        df_list[0] = pd.read_csv(io.BytesIO(csv_data), dtype=dtype_dict)
+        df_list.insert(0, pd.read_csv(io.BytesIO(csv_data), dtype=dtype_dict))
     except Exception as e:
         print(f"Error reading CSV file: {e}")
-        return None
+        return False
+    return True
 
 
 def read_students_csv(filepath):
     try:
-        df_list[0] = pd.read_csv(filepath, dtype=dtype_dict)
+        df_list.insert(0, pd.read_csv(filepath, dtype=dtype_dict))
     except Exception as e:
         print(f"Error reading CSV file: {e}")
-        return None
+        return False
+    return True
 
 
 def get_student_df_ref():

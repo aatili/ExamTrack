@@ -90,13 +90,24 @@ class StartPage(tk.Frame):
 
         self.confirmed_img = tk.PhotoImage(file = "Resources/confirmed.png")
         confirmed_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
-        #confirmed_img_panel.place(x=910,y=480)
+        # confirmed_img_panel.place(x=910,y=480)
+
+        self.file_uploaded = False
+
+        def remove_uploaded_file():
+            self.file_uploaded=0
+            confirmed_img_panel.place_forget()
+            remove_btn.place_forget()
+
+        remove_btn = Button(self, text='Remove', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
+                          activebackground='#917FB3',height='1',width='10',command=remove_uploaded_file)
+        # remove_btn.place(x=1025, y=500)
 
         '''self.not_confirmed_img = tk.PhotoImage(file = "Resources/not_confirmed.png")
         not_confirmed_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
         '''
 
-        #canvas.create_image(950,480,anchor=NW,image=self.upload_pic)
+        # canvas.create_image(950,480,anchor=NW,image=self.upload_pic)
 
         canvas.create_text(
             935.0,
@@ -181,7 +192,7 @@ class StartPage(tk.Frame):
         combo_cameras.bind("<<ComboboxSelected>>", combo_cameras_changed)
 
         # test camera btn
-        test_btn = Button(self, text='Test', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
+        test_btn = Button(self, text='Test', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
                           activebackground='#917FB3',height='1',width='10', command=start_rec)
         test_btn.place(x=950, y=360)
 
@@ -298,13 +309,15 @@ class StartPage(tk.Frame):
             exam_no = exam_entry.get()
             exam_term = combo_terms.get()
             blob = bucket.get_blob(f'Exams/{exam_no}_{exam_term}.csv')
-            print(blob)
             if blob is None:
                 messagebox.showerror("Exam Error", "Exam was not found in database"
-                                                   ". make sure input is correct or upload file.")
-                return
+                                                   ". make sure input is correct or upload a file.")
+                return False
             csv_data = blob.download_as_string()
-            read_students_blob(csv_data)
+            res = read_students_blob(csv_data)
+            if not res:
+                messagebox.showerror("Exam Error", "Failed to read file.")
+            return res
 
         def upload_csv_file(a):
             # Open file dialog to select CSV file
@@ -312,10 +325,12 @@ class StartPage(tk.Frame):
             if filepath:
                 # Read the selected CSV file
                 res = read_students_csv(filepath)
-                if res is None:
+                if not res:
                     messagebox.showerror("Exam Error", "Failed to upload file.")
-                    return None
+                    return False
+                self.file_uploaded = True
                 confirmed_img_panel.place(x=910,y=480)
+                remove_btn.place(x=1025, y=500)
 
         def check_supervisor_name(str_name):
             # Use regular expression to check if the entry consists only of letters and whitespace
@@ -365,18 +380,28 @@ class StartPage(tk.Frame):
                     error_message += f"- {error}\n"
                 messagebox.showerror("Input Error", error_message)
 
+            return error_flag
+
+        # continue functionality
+
+        def starting_frame_continue():
+            if check_entry_correctness() != 0:
+                return
+            if not self.file_uploaded:
+                res = get_csv_file()
+                if not res:
+                    return
+            app.frames["UserInterface"].initiate_table()
+            controller.show_frame("UserInterface")
+
+
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
-                              activebackground='#917FB3',height='1',width='14', command=lambda: check_entry_correctness())
+                              activebackground='#917FB3',height='1',width='14', command=starting_frame_continue)
         continue_btn.place(x=500, y=515)
-
-
-        # Online file or upload
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)
-
-
 
 
 app = ExamApp()
