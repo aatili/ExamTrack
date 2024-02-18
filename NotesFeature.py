@@ -7,6 +7,8 @@ import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
 from datetime import date,datetime
+
+import ExamConfig
 from StudentData import *
 
 
@@ -43,8 +45,10 @@ class NotesFeature:
 
         note_window_reporter_label = Label(note_window, text="Reporter:" , bg='#917FB3',font=("Calibri", 16 * -1))
         note_window_reporter_label.place(x=30,y=70)
-        note_window_reporter_entry = Entry(note_window, bd =3,bg='#E5BEEC',font=("Calibri", 16 * -1))
-        note_window_reporter_entry.place(x=120,y=70)
+
+        combo_reporter = ttk.Combobox(note_window, state="readonly", background="gray", font=("Calibri", 16 * -1),
+                                      values=ExamConfig.cur_exam.get_exam_supervisors())
+        combo_reporter.place(x=120,y=70)
 
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
@@ -66,7 +70,7 @@ class NotesFeature:
 
         note_text_area.grid(column=0, row=2, pady=190, padx=30)
 
-        #note confirm button
+        # note confirm button
         def note_window_confirm():
             ref = db.reference('Notes',app=ui_features_app)
             now = datetime.now()
@@ -74,7 +78,7 @@ class NotesFeature:
             temp_data = {noted_id:{
                 dt_string:{
                     'subject':note_window_subject_entry.get(),
-                    'reporter':note_window_reporter_entry.get(),
+                    'reporter':combo_reporter.get(),
                     'note': note_text_area.get("1.0",END).strip()
                 }
             }}
@@ -117,7 +121,6 @@ class NotesFeature:
         view_note_window_label =  Label(view_note_window, text="Select Date:" ,
                                           bg='#917FB3',font=("Calibri", 16 * -1))
         view_note_window_label.place(x=30,y=30)
-
 
         view_note_window_id = Label(view_note_window, text="Student ID:" ,
                                           bg='#917FB3',font=("Calibri", 16 * -1))

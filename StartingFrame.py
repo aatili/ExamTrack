@@ -183,7 +183,7 @@ class StartPage(tk.Frame):
         )
 
         # Create ComboBox to select camera device
-        combo_cameras = ttk.Combobox(self, values=available_devices)
+        combo_cameras = ttk.Combobox(self, values=available_devices,state='readonly')
         combo_cameras.place(x=900,y=165)
         self.selected_device = 0
 
@@ -285,12 +285,15 @@ class StartPage(tk.Frame):
                 supervisor_entry4.place(x=525, y=445)
 
         def get_supervisor_list():
-            sup_list = [supervisor_entry]
-            if self.supervisor_num % 4 == 2:
+            sup_list = [supervisor_entry.get()]
+            sup_len = self.supervisor_num % 4
+            if sup_len == 0:
+                sup_len = 4
+            if sup_len >= 2:
                 sup_list.append(supervisor_entry2.get())
-            elif self.supervisor_num % 4 == 3:
+            if sup_len >= 3:
                 sup_list.append(supervisor_entry3.get())
-            elif self.supervisor_num % 4 == 0:
+            if sup_len == 4:
                 sup_list.append(supervisor_entry4.get())
             return sup_list
 
@@ -404,7 +407,7 @@ class StartPage(tk.Frame):
             ExamConfig.cur_exam.set_all(exam_entry.get(), int(duration_entry.get()), combo_terms.get(),
                                         get_supervisor_list(), self.selected_device)
             controller.show_frame("UserInterface")
-            print(ExamConfig.cur_exam.__dict__)
+            # print(ExamConfig.cur_exam.__dict__)
 
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
