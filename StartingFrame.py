@@ -4,16 +4,14 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
 import re
-
 import firebase_admin
 from firebase_admin import credentials, db, storage
-
 import io
-
 import UserInterface
 import FaceRecFrame
 
 from StudentData import *
+import ExamConfig
 
 cred = credentials.Certificate("serviceAccountKey.json")
 
@@ -140,7 +138,7 @@ class StartPage(tk.Frame):
                     panel.after(25, scan)  # change value to adjust FPS
 
             if not self.capture_running:
-                self.cap = cv2.VideoCapture(0)
+                self.cap = cv2.VideoCapture(self.selected_device)
                 self.cap.set(3, 240*0.75)
                 self.cap.set(4, 180*0.75)
                 self.capture_running = True
@@ -173,7 +171,7 @@ class StartPage(tk.Frame):
 
         def combo_cameras_changed(a):
             pause_rec()
-            self.selected_device = combo_cameras.get()
+            self.selected_device = int(combo_cameras.get().split()[1])
 
         canvas.create_text(
             795.0,
@@ -187,7 +185,7 @@ class StartPage(tk.Frame):
         # Create ComboBox to select camera device
         combo_cameras = ttk.Combobox(self, values=available_devices)
         combo_cameras.place(x=900,y=165)
-        self.selected_device = combo_cameras.get()
+        self.selected_device = 0
 
         combo_cameras.bind("<<ComboboxSelected>>", combo_cameras_changed)
 
@@ -264,6 +262,7 @@ class StartPage(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
+
         self.supervisor_num = 2
 
         def exam_add_supervisor():
@@ -284,6 +283,16 @@ class StartPage(tk.Frame):
                 supervisor_entry2.place(x=525, y=345)
                 supervisor_entry3.place(x=525, y=395)
                 supervisor_entry4.place(x=525, y=445)
+
+        def get_supervisor_list():
+            sup_list = [supervisor_entry]
+            if self.supervisor_num % 4 == 2:
+                sup_list.append(supervisor_entry2.get())
+            elif self.supervisor_num % 4 == 3:
+                sup_list.append(supervisor_entry3.get())
+            elif self.supervisor_num % 4 == 0:
+                sup_list.append(supervisor_entry4.get())
+            return sup_list
 
         supervisor_entry = tk.Entry(self, width=20, bg="#917FB3", font=18, borderwidth=3)
         supervisor_entry.place(x=525, y=295)
@@ -392,8 +401,10 @@ class StartPage(tk.Frame):
                 if not res:
                     return
             app.frames["UserInterface"].initiate_table()
+            ExamConfig.cur_exam.set_all(exam_entry.get(), int(duration_entry.get()), combo_terms.get(),
+                                        get_supervisor_list(), self.selected_device)
             controller.show_frame("UserInterface")
-
+            print(ExamConfig.cur_exam.__dict__)
 
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
