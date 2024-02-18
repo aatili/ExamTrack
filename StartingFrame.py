@@ -27,9 +27,9 @@ except firebase_admin.exceptions.FirebaseError as e:
 
 bucket = storage.bucket(app=starting_frame_app)
 
+
 # Class used to transition between tkinter pages
 class ExamApp(tk.Tk):
-
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
@@ -80,10 +80,34 @@ class StartPage(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-        self.upload_pic = tk.PhotoImage(file = "Resources/upload_file.png")
-        canvas.create_image(700,480,anchor=NW,image=self.upload_pic)
+        # Upload label and picture
 
-        # Trying something
+        self.upload_pic = tk.PhotoImage(file = "Resources/upload_file.png")
+        panel_upload = tk.Label(self,bd=0,cursor="hand2")
+        panel_upload.place(x=950, y=480)
+        panel_upload.configure(image=self.upload_pic)
+        panel_upload.tkraise()
+
+        self.confirmed_img = tk.PhotoImage(file = "Resources/confirmed.png")
+        confirmed_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
+        #confirmed_img_panel.place(x=910,y=480)
+
+        '''self.not_confirmed_img = tk.PhotoImage(file = "Resources/not_confirmed.png")
+        not_confirmed_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
+        '''
+
+        #canvas.create_image(950,480,anchor=NW,image=self.upload_pic)
+
+        canvas.create_text(
+            935.0,
+            545.0,
+            anchor="nw",
+            text="Upload .csv file",
+            fill="white",
+            font=("Inter Bold", 15 * -1)
+        )
+
+        # Select camera
         self.cap = None
         self.selected_device = 0
         self.capture_running = False
@@ -156,20 +180,20 @@ class StartPage(tk.Frame):
 
         combo_cameras.bind("<<ComboboxSelected>>", combo_cameras_changed)
 
-        # continue btn
+        # test camera btn
         test_btn = Button(self, text='Test', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
                           activebackground='#917FB3',height='1',width='10', command=start_rec)
         test_btn.place(x=950, y=360)
 
-        # End
+        # Select camera  END
 
         button = tk.Button(self, text="Face Recognition",command=lambda: controller.show_frame("FaceRec"))
-        button.pack(side='bottom')
+        button.pack(side='left')
 
         button2 = tk.Button(self, text="User Interface",
                             command=lambda: [app.frames["UserInterface"].initiate_table()
                                 ,controller.show_frame("UserInterface")])
-        button2.pack(side='bottom')
+        button2.pack(side='left')
 
         # Adding labels and entries
 
@@ -277,18 +301,21 @@ class StartPage(tk.Frame):
             print(blob)
             if blob is None:
                 messagebox.showerror("Exam Error", "Exam was not found in database"
-                                                   ". make sure data is correct or upload file.")
+                                                   ". make sure input is correct or upload file.")
                 return
             csv_data = blob.download_as_string()
             read_students_blob(csv_data)
 
-        def upload_csv_file():
+        def upload_csv_file(a):
             # Open file dialog to select CSV file
             filepath = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
             if filepath:
                 # Read the selected CSV file
-                read_students_csv(filepath)
-                print(get_student_df_ref())
+                res = read_students_csv(filepath)
+                if res is None:
+                    messagebox.showerror("Exam Error", "Failed to upload file.")
+                    return None
+                confirmed_img_panel.place(x=910,y=480)
 
         def check_supervisor_name(str_name):
             # Use regular expression to check if the entry consists only of letters and whitespace
@@ -341,7 +368,15 @@ class StartPage(tk.Frame):
         # continue btn
         continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                               activebackground='#917FB3',height='1',width='14', command=lambda: check_entry_correctness())
-        continue_btn.place(x=800, y=480)
+        continue_btn.place(x=500, y=515)
+
+
+        # Online file or upload
+
+        # Bind the label to the label_clicked function when clicked
+        panel_upload.bind("<Button-1>", upload_csv_file)
+
+
 
 
 app = ExamApp()
