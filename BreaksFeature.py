@@ -44,7 +44,7 @@ class BreaksFeature:
             if len(self.str_reason) < 3:
                 messagebox.showerror("Break Error", "Invalid Reason.",parent=break_window)
             else:
-                res = student_report_break(s_student_id,self.str_reason)
+                res = students.student_report_break(s_student_id,self.str_reason)
                 if res == STUDENT_NOT_FOUND:
                     messagebox.showerror("Break Error", "Student not found.", parent=break_window)
                 elif res == STUDENT_ALREADY_ON_BREAK:
@@ -90,7 +90,7 @@ class BreaksFeature:
     def view_break_window(self, parent, student_id):
         if len(student_id) == 0:
             return
-        if not student_had_break(student_id):
+        if not students.student_had_break(student_id):
             return
 
         view_break_window = Toplevel(parent)
@@ -105,12 +105,12 @@ class BreaksFeature:
                                            borderwidth=1, relief="groove")
         view_break_window_id2.place(x=120,y=30)
 
-        view_total_breaks = Label(view_break_window, text="Total Breaks: " + str(student_total_breaks(student_id)),
+        view_total_breaks = Label(view_break_window, text="Total Breaks: " + str(students.student_total_breaks(student_id)),
                                   bg='#917FB3',font=("Calibri", 16 * -1))
 
         view_total_breaks.place(x=30,y=60)
 
-        total_time = divmod(student_total_break_time(student_id), 60)
+        total_time = divmod(students.student_total_break_time(student_id), 60)
         total_time_string = 'Total Break time:  ' + str(int(total_time[0])) + ' minutes ' + str(int(total_time[1])) + ' seconds'
 
         view_total_time = Label(view_break_window, text=total_time_string,
@@ -133,15 +133,15 @@ class BreaksFeature:
                 table.column(column=column, width=155)
 
         color_j = 0
-        for i in range(0,students_breaks[student_id][0]):
+        for i in range(0,students.students_breaks[student_id][0]):
 
-            if i == (students_breaks[student_id][0]-1) \
-                    and len(students_breaks[student_id][1]) < students_breaks[student_id][0]:
-                row_data = [students_breaks[student_id][2][i], 'Ongoing']
+            if i == (students.students_breaks[student_id][0]-1) \
+                    and len(students.students_breaks[student_id][1]) < students.students_breaks[student_id][0]:
+                row_data = [students.students_breaks[student_id][2][i], 'Ongoing']
             else:
-                break_time_i = students_breaks[student_id][1][i]
+                break_time_i = students.students_breaks[student_id][1][i]
                 total_time_i = divmod(break_time_i, 60)
-                row_data = [students_breaks[student_id][2][i],
+                row_data = [students.students_breaks[student_id][2][i],
                             str(int(total_time_i[0])) + ' minutes ' + str(int(total_time_i[1])) + ' seconds']
             color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
             table.insert(parent="", index="end", values=row_data, tags=color_tags)

@@ -46,7 +46,7 @@ class ManualConfirm:
             if len(self.str_reason) < 3:
                 messagebox.showerror("Manual Confirm Error","Invalid Reason",parent=confirm_window)
             else:
-                res = student_manual_confirm_attendance(s_student_id, self.str_reason)
+                res = students.student_manual_confirm_attendance(s_student_id, self.str_reason)
                 if res == STUDENT_ALREADY_CONFIRMED:
                     messagebox.showerror("Manual Confirm Error","Student Already Confirmed",parent=confirm_window)
                 confirm_window.destroy()

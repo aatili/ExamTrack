@@ -11,6 +11,8 @@ import threading
 
 from StudentData import *
 
+import ExamConfig
+
 import BreaksFeature
 import NotesFeature
 import ManualConfirmFeature
@@ -40,34 +42,27 @@ class UserInterface(tk.Frame):
         self.notes_features = NotesFeature.NotesFeature()
         self.breaks_feature = BreaksFeature.BreaksFeature()
 
+        self.exam = ExamConfig.cur_exam
+
         # Creating Cancvas
-        canvas = Canvas(
-            self,
-            bg = "#2A2F4F",
-            height = 600,
-            width = 1200,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
-        )
+        self.canvas = Canvas(self, bg="#2A2F4F", height=600, width=1200, bd=0, highlightthickness=0, relief="ridge")
+        self.canvas.create_image(0, 0, anchor=NW, image=self.bgimg)
 
-        canvas.create_image(0,0,anchor=NW,image=self.bgimg)
+        self.canvas.place(x = 0, y = 0)
 
-        canvas.place(x = 0, y = 0)
-
-        canvas.create_rectangle(895, 225, 1000, 320, fill='#917FB3', outline='black' )
+        self.canvas.create_rectangle(895, 225, 1000, 320, fill='#917FB3', outline='black')
 
 
         # Creating Profile
 
         self.profile_gui = tk.PhotoImage(file = "Resources/profile_ui2.png")
-        canvas.create_image(20,20,anchor=NW,image=self.profile_gui)
+        self.canvas.create_image(20, 20, anchor=NW, image=self.profile_gui)
 
         self.profile_pic_frame_tk = tk.PhotoImage(file = "Resources/pic_frame.png")
-        canvas.create_image(58,58,anchor=NW,image=self.profile_pic_frame_tk)
+        self.canvas.create_image(58, 58, anchor=NW, image=self.profile_pic_frame_tk)
 
         self.profile_pic_tk = tk.PhotoImage(file = "Resources/no_pic.png")
-        profile_pic = canvas.create_image(60,60,anchor=NW,image=self.profile_pic_tk)
+        profile_pic = self.canvas.create_image(60, 60, anchor=NW, image=self.profile_pic_tk)
 
         self.confirmed_img = tk.PhotoImage(file = "Resources/confirmed.png")
         confirmed_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
@@ -95,7 +90,7 @@ class UserInterface(tk.Frame):
                                disabledforeground='gray')
 
         # adding labels
-        student_name_label = canvas.create_text(
+        student_name_label = self.canvas.create_text(
             115.0,
             295.0,
             anchor="nw",
@@ -104,7 +99,7 @@ class UserInterface(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-        student_id_label = canvas.create_text(
+        student_id_label = self.canvas.create_text(
             115.0,
             335.0,
             anchor="nw",
@@ -113,7 +108,7 @@ class UserInterface(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-        student_major_label = canvas.create_text(
+        student_major_label = self.canvas.create_text(
             115.0,
             373.0,
             justify=CENTER,
@@ -123,7 +118,7 @@ class UserInterface(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-        student_confirmed_label = canvas.create_text(
+        student_confirmed_label = self.canvas.create_text(
             253.0,
             427.0,
             justify=CENTER,
@@ -133,7 +128,7 @@ class UserInterface(tk.Frame):
             font=("Calibri Bold", 20 * -1)
         )
 
-        canvas.create_text(
+        self.canvas.create_text(
             42.0,
             458.0,
             justify=CENTER,
@@ -143,7 +138,7 @@ class UserInterface(tk.Frame):
             font=("Calibri", 12 * -1)
         )
 
-        canvas.create_text(
+        self.canvas.create_text(
             197.0,
             458.0,
             justify=CENTER,
@@ -179,45 +174,42 @@ class UserInterface(tk.Frame):
             if str_state == "waiver":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "disabled"
-                waiver_btn["state"] = "disabled"
+                self.waiver_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
             elif str_state == "confirmed":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "normal"
-                waiver_btn["state"] = "normal"
+                self.waiver_btn["state"] = "normal"
                 view_breaks_btn["state"] = "normal"
             elif str_state == "not_confirmed":
                 confirm_btn["state"] = "normal"
                 break_btn["state"] = "disabled"
-                waiver_btn["state"] = "disabled"
+                self.waiver_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
-
-
-
 
         def fetch_blob():
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
             if blob is None:  # no picture retrieved from database
                 self.img_holder = tk.PhotoImage(file="Resources/no_pic.png")
-                canvas.itemconfig(profile_pic, image=self.img_holder)
+                self.canvas.itemconfig(profile_pic, image=self.img_holder)
             else:
                 img_data = np.frombuffer(blob.download_as_string(), np.uint8)
                 img_cvt = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
                 img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
                 self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                canvas.itemconfig(profile_pic, image=self.img_holder)
+                self.canvas.itemconfig(profile_pic, image=self.img_holder)
 
-        def table_select_row(a):#view selected row items
+        def table_select_row(a):  # view selected row items
             cur_item = self.table.focus()
             cur_values = self.table.item(cur_item,option='values') # this option keeps ID as string
             if not cur_values:
                 return
             # cur_values = table.item(cur_item)['values'] # this option converts ID into integer
             self.current_id = str(cur_values[0])
-            canvas.itemconfig(student_id_label,text=str(self.current_id))
-            canvas.itemconfig(student_name_label,text=student_get_name(self.current_id))
+            self.canvas.itemconfig(student_id_label, text=str(self.current_id))
+            self.canvas.itemconfig(student_name_label, text=students.student_get_name(self.current_id))
 
-            temp_extra_time = student_get_extra_time(self.current_id)
+            temp_extra_time = students.student_get_extra_time(self.current_id)
             if temp_extra_time.lower() == "no":
                 no_extra_img_panel.place(x=90,y=422)
                 extra_img_panel.place_forget()
@@ -225,25 +217,25 @@ class UserInterface(tk.Frame):
                 no_extra_img_panel.place_forget()
                 extra_img_panel.place(x=90,y=422)
 
-            canvas.itemconfig(student_major_label , text=student_get_major(self.current_id))
+            self.canvas.itemconfig(student_major_label, text=students.student_get_major(self.current_id))
 
-            if student_check_waiver(self.current_id):
+            if students.student_check_waiver(self.current_id):
                 set_button_state("waiver")
-                canvas.itemconfig(student_confirmed_label , text="Waiver", fill='#b83e4f')
+                self.canvas.itemconfig(student_confirmed_label, text="Waiver", fill='#b83e4f')
                 confirmed_img_panel.place_forget()
                 not_confirmed_img_panel.place_forget()
-            elif student_check_attendance(self.current_id):
+            elif students.student_check_attendance(self.current_id):
                 set_button_state("confirmed")
-                canvas.itemconfig(student_confirmed_label , text="")
+                self.canvas.itemconfig(student_confirmed_label, text="")
                 confirmed_img_panel.place(x=250,y=422)
                 not_confirmed_img_panel.place_forget()
             else:
                 set_button_state("not_confirmed")
-                canvas.itemconfig(student_confirmed_label , text="")
+                self.canvas.itemconfig(student_confirmed_label, text="")
                 confirmed_img_panel.place_forget()
                 not_confirmed_img_panel.place(x=250,y=422)
 
-            if student_in_break(self.current_id):
+            if students.student_in_break(self.current_id):
                 break_btn.place_forget()
                 back_from_break_btn.place(x = 535,y = 430)
             else:
@@ -256,10 +248,9 @@ class UserInterface(tk.Frame):
 
         self.table.bind("<<TreeviewSelect>>", table_select_row)
 
-
         # Searching the table
 
-        canvas.create_text(
+        self.canvas.create_text(
             895,
             150,
             anchor="nw",
@@ -273,7 +264,7 @@ class UserInterface(tk.Frame):
 
         # Search query and filter table
         def my_search(*args):
-            table_df = get_student_df_ref()
+            table_df = students.get_student_df_ref()
             query = search_entry.get().strip() # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -286,15 +277,15 @@ class UserInterface(tk.Frame):
                 # Handling checkbox statuses
                 s_id = v[0]
                 if confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 0:
-                    if student_check_attendance(s_id):
+                    if students.student_check_attendance(s_id):
                         self.table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
                         j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 1 and extra_checkbox_var.get() == 1:
-                    if student_check_attendance(s_id) and student_get_extra_time(s_id).lower() == 'yes':
+                    if students.student_check_attendance(s_id) and students.student_get_extra_time(s_id).lower() == 'yes':
                         self.table.insert("", "end", iid=s_id, values=v, tags=tags)
                         j += 1  # colouring
                 elif confirmed_checkbox_var.get() == 0 and extra_checkbox_var.get() == 1:
-                    if student_get_extra_time(s_id).lower() == 'yes':
+                    if students.student_get_extra_time(s_id).lower() == 'yes':
                         self.table.insert("", "end", iid=s_id, values=v, tags=tags)
                         j += 1  # colouring
                 else:
@@ -302,7 +293,6 @@ class UserInterface(tk.Frame):
                     j += 1  # colouring
 
         search_entry.bind("<KeyRelease>", my_search)
-
 
         # Checkboxes
         confirmed_checkbox_var = IntVar()
@@ -319,7 +309,7 @@ class UserInterface(tk.Frame):
 
         # Break Checkbox filter
         def filter_on_break():
-            table_df = df_list[0]
+            table_df = students.get_student_df_ref()
             if break_checkbox_var.get() == 1:
                 confirmed_checkbox_var.set(0)
                 extra_checkbox_var.set(0)
@@ -338,7 +328,7 @@ class UserInterface(tk.Frame):
                 v = [r for r in dt]  # creating a list from each row
                 j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
                 if break_checkbox_var.get() == 1:
-                    if student_in_break(v[0]):
+                    if students.student_in_break(v[0]):
                         self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
                         color_i += 1
                 else:
@@ -359,10 +349,10 @@ class UserInterface(tk.Frame):
         self.waiver_total_seconds = 15
         self.total_seconds = 30
 
-        time_secs_extra = 5
+        self.time_secs_extra = 5
 
         # Creating original timer labels
-        time_note_label = canvas.create_text(
+        time_note_label = self.canvas.create_text(
             525.0,
             75.0,
             anchor="nw",
@@ -370,7 +360,7 @@ class UserInterface(tk.Frame):
             fill="#FFFFFF",
             font=("Inter Bold", 12 * -1)
         )
-        time_label = canvas.create_text(
+        time_label = self.canvas.create_text(
             525.0,
             93.0,
             anchor="nw",
@@ -379,12 +369,12 @@ class UserInterface(tk.Frame):
             font=("Arial", 15, "", )
         )
 
-        bbox = canvas.bbox(time_label)
-        rect_item = canvas.create_rectangle(bbox, outline="purple")
-        canvas.tag_raise(time_label,rect_item)
+        '''bbox = self.canvas.bbox(time_label)
+        rect_item = self.canvas.create_rectangle(bbox, outline="purple")
+        self.canvas.tag_raise(time_label, rect_item)'''
 
         # Creating Waiver labels
-        waiver_label = canvas.create_text(
+        self.waiver_label = self.canvas.create_text(
                 425.0,
                 75.0,
                 anchor="nw",
@@ -392,7 +382,7 @@ class UserInterface(tk.Frame):
                 fill="#FFFFFF",
                 font=("Inter Bold", 12 * -1)
         )
-        waiver_time_label = canvas.create_text(
+        self.waiver_time_label = self.canvas.create_text(
                 430.0,
                 93.0,
                 anchor="nw",
@@ -400,27 +390,15 @@ class UserInterface(tk.Frame):
                 fill="#FFFFFF",
                 font=("Arial",15,"" , )
         )
-        bbox2 = canvas.bbox(waiver_time_label)
-        rect_item2 = canvas.create_rectangle(bbox2, outline="purple")
-        canvas.tag_raise(waiver_time_label,rect_item2)
-
-        if not self.waiver_available:
-            canvas.itemconfig(waiver_label,text="")
-            canvas.itemconfig(waiver_time_label,text="")
-            canvas.create_text(
-                370.0,
-                95.0,
-                anchor="nw",
-                text="No Waiver Option",
-                fill="#FFFFFF",
-                font=("Inter Bold", 14 * -1)
-            )
+        '''bbox2 = self.canvas.bbox(self.waiver_time_label)
+        rect_item2 = self.canvas.create_rectangle(bbox2, outline="purple")
+        self.canvas.tag_raise(self.waiver_time_label, rect_item2)'''
 
         def countdown():
             minutes = self.total_seconds // 60
             seconds = self.total_seconds % 60
             if self.total_seconds >= 0:
-                canvas.itemconfig(time_label, text="{:02d}:{:02d}".format(minutes, seconds))
+                self.canvas.itemconfig(time_label, text="{:02d}:{:02d}".format(minutes, seconds))
                 self.after(1000, countdown)
                 self.total_seconds -= 1
             else:
@@ -429,16 +407,16 @@ class UserInterface(tk.Frame):
                     add_time_btn.place_forget()
                 else:
                     messagebox.showinfo("Time Countdown", "Original time is over.")
-                    canvas.itemconfig(time_note_label, text="Extra Time")
+                    self.canvas.itemconfig(time_note_label, text="Extra Time")
                     self.extra_time_flag = 1
-                    self.total_seconds = time_secs_extra
+                    self.total_seconds = self.time_secs_extra
                     countdown()
 
         def waiver_countdown():
             waiver_minutes = self.waiver_total_seconds // 60
             waiver_seconds = self.waiver_total_seconds % 60
             if self.waiver_total_seconds >= 0:
-                canvas.itemconfig(waiver_time_label, text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
+                self.canvas.itemconfig(self.waiver_time_label, text="{:02d}:{:02d}".format(waiver_minutes, waiver_seconds))
                 self.after(1000, waiver_countdown)
                 self.waiver_total_seconds -= 1
             else:
@@ -446,7 +424,7 @@ class UserInterface(tk.Frame):
 
         def start_countdown():
             start_btn["state"] = "disabled"
-            add_time_btn.place(x = 590,y = 83)
+            add_time_btn.place(x = 595,y = 87)
             countdown()
             if self.waiver_available:
                 waiver_countdown()
@@ -499,7 +477,7 @@ class UserInterface(tk.Frame):
 
 
         # add time button
-        add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 16 * -1),
+        add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 13 * -1),
                            activebackground='#917FB3',height='1',width='2',command = add_time)
         #add_time_btn.place(x = 590,y = 80)
 
@@ -517,7 +495,7 @@ class UserInterface(tk.Frame):
 
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm
-            if student_check_attendance(student_id):
+            if students.student_check_attendance(student_id):
                 messagebox.showinfo("Manual Confirm Message","Student attendance already confirmed.")
                 return
             self.manual_confirm.confirm_popup(self.parent, self.current_id)
@@ -565,10 +543,10 @@ class UserInterface(tk.Frame):
 
         # Break Function
         def student_take_break(student_id):
-            if not student_check_attendance(student_id):
+            if not students.student_check_attendance(student_id):
                 messagebox.showerror("Break Error", "Student not in attendance.")
                 return
-            if student_in_break(student_id):
+            if students.student_in_break(student_id):
                 messagebox.showerror("Break Error", "Student already in break.")
                 return
             self.breaks_feature.break_window(self.parent, self.current_id)
@@ -581,13 +559,13 @@ class UserInterface(tk.Frame):
 
         # Back from break check function
         def student_back_from_break(student_id):
-            if not student_check_attendance(student_id):
+            if not students.student_check_attendance(student_id):
                 messagebox.showerror("Break Error", "Student attendance was not confirmed.")
                 return
-            if not student_in_break(student_id):
+            if not students.student_in_break(student_id):
                 messagebox.showinfo("Break Info", "Student not in break.")
                 return
-            res = student_back_break(self.current_id)
+            res = students.student_back_break(self.current_id)
             if res != STUDENT_NOT_FOUND:
                 messagebox.showinfo("Break Info", res)
                 if break_checkbox_var.get() == 1:
@@ -610,24 +588,42 @@ class UserInterface(tk.Frame):
 
         # waiver
         def student_waiver_popup(student_id):
-            if not student_check_attendance(student_id):
+            if not students.student_check_attendance(student_id):
                 messagebox.showinfo("Waiver Message", "Student not in attendance.")
                 return
             res = messagebox.askquestion('Student Waiver', 'This is irreversible, continue?', parent=self)
             if res == 'yes':
-                student_report_waiver(student_id)
-
+                students.student_report_waiver(student_id)
 
         # waiver button
-        waiver_btn = Button(self, text='Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        self.waiver_btn = Button(self, text='Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: student_waiver_popup(self.current_id))
-        if self.waiver_available:  # do not show waiver button if not available
-            waiver_btn.place(x=700, y=480)
+        self.waiver_btn.place(x=700, y=480)
+
+    def initiate_time(self):
+        self.waiver_available = self.exam.is_waiver_available()
+        self.extra_time_flag = 0
+        self.waiver_total_seconds = ExamConfig.WAIVER_TIME * 60
+        self.total_seconds = self.exam.get_exam_duration() * 60
+        self.time_secs_extra = int(ExamConfig.EXTRA_TIME_PERCENTAGE * self.total_seconds)
+
+        if not self.waiver_available:  # do not show waiver button if not available
+            self.canvas.itemconfig(self.waiver_label, text="")
+            self.canvas.itemconfig(self.waiver_time_label, text="")
+            self.canvas.create_text(
+                370.0,
+                95.0,
+                anchor="nw",
+                text="No Waiver Option",
+                fill="#FFFFFF",
+                font=("Inter Bold", 14 * -1)
+            )
+            self.waiver_btn.place_forget()
 
     def initiate_table(self):
-        student_data_initiate()
-        table_columns = student_table_columns()
+        students.student_data_initiate()
+        table_columns = students.student_table_columns()
         self.table.configure(columns=table_columns, show="headings")
         for column in table_columns:
             self.table.heading(column=column, text=column)
@@ -637,7 +633,7 @@ class UserInterface(tk.Frame):
                 self.table.column(column=column, width=70)
 
         color_j = 0
-        table_data = student_table_values()
+        table_data = students.student_table_values()
         for row_data in table_data:
             color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
             self.table.insert(parent="", index="end", values=row_data, tags=color_tags)

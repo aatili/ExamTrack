@@ -90,9 +90,9 @@ class FaceRec(tk.Frame):
         def ui_update_labels():
             canvas.itemconfig(student_id_label,text=self.current_id)
             canvas.itemconfig(student_name_label,
-                              text=student_get_name(self.current_id))
+                              text=students.student_get_name(self.current_id))
             canvas.itemconfig(student_major_label,
-                              text=student_get_major(self.current_id))
+                              text=students.student_get_major(self.current_id))
 
             '''canvas.itemconfig(student_extra_time_label,
                               text=' Extra Time: '+student_get_extra_time(self.current_id))
@@ -252,10 +252,10 @@ class FaceRec(tk.Frame):
             self.loaded_flag = 0
             confirm_btn["state"] = "disabled"
             cancel_btn["state"] = "disabled"
-            if student_check_attendance(student_id):
+            if students.student_check_attendance(student_id):
                 messagebox.showinfo("Confirm Message", "Student has been confirmed already.", parent=self)
             else:
-                student_auto_confirm_attendance(student_id)
+                students.student_auto_confirm_attendance(student_id)
             self.current_id = -1
             reset_profile_labels()
 

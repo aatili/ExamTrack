@@ -262,7 +262,6 @@ class StartPage(tk.Frame):
             font=("Inter Bold", 18 * -1)
         )
 
-
         self.supervisor_num = 2
 
         def exam_add_supervisor():
@@ -326,7 +325,7 @@ class StartPage(tk.Frame):
                                                    ". make sure input is correct or upload a file.")
                 return False
             csv_data = blob.download_as_string()
-            res = read_students_blob(csv_data)
+            res = students.read_students_blob(csv_data)
             if not res:
                 messagebox.showerror("Exam Error", "Failed to read file.")
             return res
@@ -336,7 +335,7 @@ class StartPage(tk.Frame):
             filepath = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
             if filepath:
                 # Read the selected CSV file
-                res = read_students_csv(filepath)
+                res = students.read_students_csv(filepath)
                 if not res:
                     messagebox.showerror("Exam Error", "Failed to upload file.")
                     return False
@@ -403,9 +402,11 @@ class StartPage(tk.Frame):
                 res = get_csv_file()
                 if not res:
                     return
-            app.frames["UserInterface"].initiate_table()
+
             ExamConfig.cur_exam.set_all(exam_entry.get(), int(duration_entry.get()), combo_terms.get(),
                                         get_supervisor_list(), self.selected_device)
+            app.frames["UserInterface"].initiate_table()
+            app.frames["UserInterface"].initiate_time()
             controller.show_frame("UserInterface")
             # print(ExamConfig.cur_exam.__dict__)
 

@@ -1,3 +1,8 @@
+
+WAIVER_TIME = 30
+EXTRA_TIME_PERCENTAGE = 0.25
+
+
 class ExamConfig:
 
     def __init__(self, number=None, duration=None, term=None, supervisors=[], camera_no=None):
