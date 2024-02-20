@@ -174,18 +174,29 @@ class UserInterface(tk.Frame):
             if str_state == "waiver":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "disabled"
-                self.waiver_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
+
+                self.undo_waiver_btn.place(x=700, y=480)
+                self.waiver_btn.place_forget()
+                self.waiver_btn["state"] = "normal"
+
             elif str_state == "confirmed":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "normal"
-                self.waiver_btn["state"] = "normal"
                 view_breaks_btn["state"] = "normal"
+
+                self.undo_waiver_btn.place_forget()
+                self.waiver_btn.place(x=700, y=480)
+                self.waiver_btn["state"] = "normal"
+
             elif str_state == "not_confirmed":
                 confirm_btn["state"] = "normal"
                 break_btn["state"] = "disabled"
-                self.waiver_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
+
+                self.undo_waiver_btn.place_forget()
+                self.waiver_btn.place(x=700, y=480)
+                self.waiver_btn["state"] = "disabled"
 
         def fetch_blob():
             blob = bucket.get_blob(f'Images/{self.current_id}.png')
@@ -390,9 +401,9 @@ class UserInterface(tk.Frame):
                 fill="#FFFFFF",
                 font=("Arial",15,"" , )
         )
-        '''bbox2 = self.canvas.bbox(self.waiver_time_label)
-        rect_item2 = self.canvas.create_rectangle(bbox2, outline="purple")
-        self.canvas.tag_raise(self.waiver_time_label, rect_item2)'''
+        bbox2 = self.canvas.bbox(self.waiver_time_label)
+        self.rect_item2 = self.canvas.create_rectangle(bbox2, outline="purple")
+        self.canvas.tag_raise(self.waiver_time_label, self.rect_item2)
 
         def countdown():
             minutes = self.total_seconds // 60
@@ -496,7 +507,7 @@ class UserInterface(tk.Frame):
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm
             if students.student_check_attendance(student_id):
-                messagebox.showinfo("Manual Confirm Message","Student attendance already confirmed.")
+                messagebox.showwarning("Manual Confirm Message", "Student attendance already confirmed.")
                 return
             self.manual_confirm.confirm_popup(self.parent, self.current_id)
 
@@ -536,7 +547,7 @@ class UserInterface(tk.Frame):
             current_time = datetime.now()
             if (current_time - self.last_hover_time).total_seconds() >= 5:
                 selected_item = self.table.selection()  # Get the currently selected item
-                self.table.selection_set(selected_item)# Reselect the same item
+                self.table.selection_set(selected_item) # Reselect the same item
                 self.last_hover_time = current_time
 
         self.bind("<Enter>", table_selection_refresh)
@@ -588,18 +599,36 @@ class UserInterface(tk.Frame):
 
         # waiver
         def student_waiver_popup(student_id):
-            if not students.student_check_attendance(student_id):
-                messagebox.showinfo("Waiver Message", "Student not in attendance.")
+            if students.student_report_waiver(student_id) != FUNC_SUCCESS:
+                messagebox.showerror("Waiver Error", "Student not found.")
                 return
-            res = messagebox.askquestion('Student Waiver', 'This is irreversible, continue?', parent=self)
-            if res == 'yes':
-                students.student_report_waiver(student_id)
+            self.waiver_btn.place_forget()
+            self.undo_waiver_btn.place(x=700, y=480)
+            messagebox.showinfo("Waiver Message", "Student waiver successful.")
+
+        def student_undo_waiver(student_id):
+            res = students.student_undo_waiver(student_id)
+            if res == STUDENT_NOT_FOUND:
+                messagebox.showerror("Undo Waiver Error", "Student not found.")
+                return
+            if res == STUDENT_ALREADY_CONFIRMED:
+                messagebox.showerror("Undo Waiver Error", "Student is already attending.")
+                return
+            messagebox.showinfo("Waiver Message", "Undo waiver successful.")
+            self.waiver_btn.place(x=700, y=480)
+            self.undo_waiver_btn.place_forget()
 
         # waiver button
         self.waiver_btn = Button(self, text='Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
-                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                               command=lambda: student_waiver_popup(self.current_id))
+                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                                 command=lambda: student_waiver_popup(self.current_id))
         self.waiver_btn.place(x=700, y=480)
+
+        # undo waiver button
+        self.undo_waiver_btn = Button(self, text='Undo Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                                      activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                                      command=lambda: student_undo_waiver(self.current_id))
+        #self.undo_waiver_btn.place(x=700, y=480)
 
     def initiate_time(self):
         self.waiver_available = self.exam.is_waiver_available()
@@ -620,6 +649,7 @@ class UserInterface(tk.Frame):
                 font=("Inter Bold", 14 * -1)
             )
             self.waiver_btn.place_forget()
+            self.canvas.itemconfig(self.rect_item2, state="hidden")
 
     def initiate_table(self):
         students.student_data_initiate()

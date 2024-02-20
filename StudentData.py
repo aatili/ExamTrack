@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import io
+import re
 
 # Constants
 
@@ -53,11 +54,20 @@ class StudentManager:
         for i in list_id:
             self.students_attendance[i] = False
 
-    def student_table_values(self):
-        return self.table_df.values.tolist()
+    # CHECKING CSV FILE STRUCTURE - case-insensitive, ignoring _ and .
 
-    def student_table_columns(self):
-        return self.table_df.columns.tolist()
+    def check_csv_struct(self):
+        # Get the columns from the DataFrame
+        df_columns = self.table_df.columns
+        # Get the keys from the dtype dictionary
+        dtype_keys = self.dtype_dict.keys()
+        # Check if the columns match the keys in the dtype dictionary
+        if set(df_columns) == set(dtype_keys):
+            return True
+        else:
+            return False
+
+    # READING CSV FILE
 
     def read_students_blob(self, csv_data):
         try:
@@ -75,8 +85,16 @@ class StudentManager:
             return False
         return True
 
+    # DATAFRAME GET
+
     def get_student_df_ref(self):
         return self.table_df
+
+    def student_table_values(self):
+        return self.table_df.values.tolist()
+
+    def student_table_columns(self):
+        return self.table_df.columns.tolist()
 
     # GET Functions
     def student_get_name(self, student_id):
@@ -212,6 +230,15 @@ class StudentManager:
             return STUDENT_NOT_FOUND
         self.student_cancel_attendance(student_id)
         self.students_waiver.append(student_id)
+        return FUNC_SUCCESS
+
+    def student_undo_waiver(self, student_id):
+        if self.student_check_attendance(student_id):
+            return STUDENT_ALREADY_CONFIRMED
+        if self.student_confirm_attendance(student_id) != STUDENT_CONFIRMED:
+            return STUDENT_NOT_FOUND
+        self.students_waiver.remove(student_id)
+        return FUNC_SUCCESS
 
     def student_check_waiver(self, student_id):
         if student_id in self.students_waiver:

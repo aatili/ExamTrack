@@ -196,14 +196,6 @@ class StartPage(tk.Frame):
 
         # Select camera  END
 
-        button = tk.Button(self, text="Face Recognition",command=lambda: controller.show_frame("FaceRec"))
-        button.pack(side='left')
-
-        button2 = tk.Button(self, text="User Interface",
-                            command=lambda: [app.frames["UserInterface"].initiate_table()
-                                ,controller.show_frame("UserInterface")])
-        button2.pack(side='left')
-
         # Adding labels and entries
 
         canvas.create_text(
@@ -325,10 +317,13 @@ class StartPage(tk.Frame):
                                                    ". make sure input is correct or upload a file.")
                 return False
             csv_data = blob.download_as_string()
-            res = students.read_students_blob(csv_data)
-            if not res:
+            if not students.read_students_blob(csv_data):
                 messagebox.showerror("Exam Error", "Failed to read file.")
-            return res
+                return False
+            if not students.check_csv_struct():
+                messagebox.showerror("Exam Error", "File structure does not match.")
+                return False
+            return True
 
         def upload_csv_file(a):
             # Open file dialog to select CSV file
@@ -338,6 +333,9 @@ class StartPage(tk.Frame):
                 res = students.read_students_csv(filepath)
                 if not res:
                     messagebox.showerror("Exam Error", "Failed to upload file.")
+                    return False
+                if not students.check_csv_struct():
+                    messagebox.showerror("Exam Error", "Uploaded file structure does not match.")
                     return False
                 self.file_uploaded = True
                 confirmed_img_panel.place(x=910,y=480)

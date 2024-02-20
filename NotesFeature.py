@@ -99,7 +99,7 @@ class NotesFeature:
 
         # note cancel button
         def note_window_cancel():
-            res=messagebox.askquestion('Cancel Note', 'Are you sure?',parent=note_window)
+            res=messagebox.askquestion('Cancel Note', 'Input will be lost, continue?',parent=note_window)
             if res == 'yes':
                 note_window.destroy()
 
