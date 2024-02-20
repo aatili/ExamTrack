@@ -50,7 +50,7 @@ class UserInterface(tk.Frame):
 
         self.canvas.place(x = 0, y = 0)
 
-        self.canvas.create_rectangle(895, 225, 1000, 320, fill='#917FB3', outline='black')
+        self.canvas.create_rectangle(895, 225, 1000, 350, fill='#917FB3', outline='black')
 
 
         # Creating Profile
@@ -149,9 +149,9 @@ class UserInterface(tk.Frame):
         )
 
         # Creating Table
-        #table_columns = student_table_columns()
+        # table_columns = student_table_columns()
         self.table = ttk.Treeview(master=self)
-        #table.place(x=360, y=150, height=260)
+        # table.place(x=360, y=150, height=260)
 
         self.table.tag_configure('oddrow', background='#917FB3')
         self.table.tag_configure('evenrow', background='#BAA4CA')
@@ -164,7 +164,7 @@ class UserInterface(tk.Frame):
         # Configure the table to use the scrollbar
         table.configure(yscrollcommand=scrollbar.set)'''
 
-        #Selecting row in table
+        # Selecting row in table
 
         self.img_holder = tk.PhotoImage(file = "Resources/no_pic.png")
         self.current_id = ""
@@ -324,11 +324,14 @@ class UserInterface(tk.Frame):
             if break_checkbox_var.get() == 1:
                 confirmed_checkbox_var.set(0)
                 extra_checkbox_var.set(0)
+                waiver_checkbox_var.set(0)
                 confirmed_checkbox.configure(state="disabled")
                 extra_checkbox.configure(state="disabled")
+                waiver_checkbox.configure(state="disabled")
             else:
                 confirmed_checkbox.configure(state="normal")
                 extra_checkbox.configure(state="normal")
+                waiver_checkbox.configure(state="normal")
             query = search_entry.get().strip() # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -348,9 +351,44 @@ class UserInterface(tk.Frame):
 
         break_checkbox_var = IntVar()
         break_checkbox = Checkbutton(self,variable = break_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
-                                     font=("Inter Bold", 14 * -1),text="On Break",bg = "#917FB3",
-                                         command=filter_on_break)
+                                     font=("Inter Bold", 14 * -1),text="On Break",bg = "#917FB3",command=filter_on_break)
         break_checkbox.place(x=900,y=290)
+
+        # Waiver Checkbox filter
+        def filter_on_waiver():
+            table_df = students.get_student_df_ref()
+            if waiver_checkbox_var.get() == 1:
+                confirmed_checkbox_var.set(0)
+                extra_checkbox_var.set(0)
+                break_checkbox_var.set(0)
+                confirmed_checkbox.configure(state="disabled")
+                extra_checkbox.configure(state="disabled")
+                break_checkbox.configure(state="disabled")
+            else:
+                confirmed_checkbox.configure(state="normal")
+                extra_checkbox.configure(state="normal")
+                break_checkbox.configure(state="normal")
+            query = search_entry.get().strip() # get entry string
+            str1 = table_df.id.str.contains(query, case=False)
+            df2 = table_df[str1]
+            r_set = df2.to_numpy().tolist()  # Create list of list using rows
+            self.table.delete(*self.table.get_children())
+            color_i = 0
+            for dt in r_set:
+                v = [r for r in dt]  # creating a list from each row
+                j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
+                if waiver_checkbox_var.get() == 1:
+                    if students.student_check_waiver(v[0]):
+                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        color_i += 1
+                else:
+                    self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                    color_i += 1
+
+        waiver_checkbox_var = IntVar()
+        waiver_checkbox = Checkbutton(self,variable = waiver_checkbox_var,onvalue = 1,offvalue = 0,height = 1,
+                                      font=("Inter Bold", 14 * -1),text="Waiver",bg = "#917FB3",command=filter_on_waiver)
+        waiver_checkbox.place(x=900, y=320)
 
         # Timers
 
