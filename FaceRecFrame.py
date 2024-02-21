@@ -9,22 +9,10 @@ import face_recognition
 import cvzone
 import threading
 
-import firebase_admin
-from firebase_admin import credentials, db, storage
 
+import FirebaseManager
+import ExamConfig
 from StudentData import *
-
-cred = credentials.Certificate("serviceAccountKey.json")
-try:
-    # Initialize Firebase
-    face_rec_app = firebase_admin.initialize_app(cred, {
-        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-        'storageBucket': "examfacerecognition.appspot.com"}, name="FaceRecApp")
-except firebase_admin.exceptions.FirebaseError as e:
-    # Handle Firebase initialization error
-    print("Firebase initialization error:", e)
-
-bucket = storage.bucket(app=face_rec_app)
 
 
 class FaceRec(tk.Frame):
@@ -34,6 +22,7 @@ class FaceRec(tk.Frame):
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
         self.camera_waiting = tk.PhotoImage(file = "Resources/camera_waiting.png")
+        self.firebase_manager = FirebaseManager.firebase_manager
 
         # Creating Cancvas
         canvas = Canvas(
@@ -49,7 +38,6 @@ class FaceRec(tk.Frame):
         canvas.create_image(0,0,anchor=NW,image=self.bgimg)
 
         canvas.place(x = 0, y = 0)
-
 
         # Load encode file
         print("Loading encode file...")
@@ -71,21 +59,6 @@ class FaceRec(tk.Frame):
 
         profile_pic = canvas.create_image(160, 60, anchor=NW, image=self.imgholder)
 
-        # Get the picture from the database and display it
-        def fetch_and_display_picture():
-            blob = bucket.get_blob(f'Images/{self.current_id}.png')
-
-            # Display the picture
-            if blob is None:  # no picture found
-                self.img_holder = tk.PhotoImage(file="Resources/no_pic.png")
-                canvas.itemconfig(profile_pic, image=self.img_holder)
-            else:  # convert and display picture
-                img_data = np.frombuffer(blob.download_as_string(), np.uint8)
-                img_cvt = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-                img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                canvas.itemconfig(profile_pic, image=self.img_holder)
-
         # update ui when face is detected
         def ui_update_labels():
             canvas.itemconfig(student_id_label,text=self.current_id)
@@ -94,14 +67,11 @@ class FaceRec(tk.Frame):
             canvas.itemconfig(student_major_label,
                               text=students.student_get_major(self.current_id))
 
-            '''canvas.itemconfig(student_extra_time_label,
-                              text=' Extra Time: '+student_get_extra_time(self.current_id))
-            canvas.itemconfig(student_tuition_label,
-                              text='Paid Tuition: '+data.student_get_tuition(self.current_id))
-            '''
+            self.imgholder = tk.PhotoImage(file=self.firebase_manager.get_image_path(self.current_id))
+            canvas.itemconfig(profile_pic, image=self.imgholder)
             # Start a new thread to fetch the picture
-            fetch_thread = threading.Thread(target=fetch_and_display_picture)
-            fetch_thread.start()
+            '''fetch_thread = threading.Thread(target=fetch_and_display_picture)
+            fetch_thread.start()'''
 
 
         #adding labels
@@ -132,26 +102,6 @@ class FaceRec(tk.Frame):
             fill="#d6b0e8",
             font=("Inter Bold", 18 * -1)
         )
-
-        '''student_extra_time_label = canvas.create_text(
-            190.0,
-            430.0,
-            justify=CENTER,
-            anchor="nw",
-            text="?",
-            fill="#FFFFFF",
-            font=("Inter Bold", 13 * -1)
-        )
-
-        student_confirmed_label = canvas.create_text(
-            350.0,
-            430.0,
-            justify=CENTER,
-            anchor="nw",
-            text="?",
-            fill="#FFFFFF",
-            font=("Inter Bold", 13 * -1)
-        )'''
 
         # Define a practical font for putText
         font = cv2.FONT_HERSHEY_TRIPLEX
@@ -213,7 +163,7 @@ class FaceRec(tk.Frame):
                     panel.after(25, scan)  # change value to adjust FPS
 
             if not self.capture_running:
-                self.cap = cv2.VideoCapture(0)
+                self.cap = cv2.VideoCapture(ExamConfig.cur_exam.get_exam_camera())
                 self.cap.set(3, 640)
                 self.cap.set(4, 480)
                 self.capture_running = True

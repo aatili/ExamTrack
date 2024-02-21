@@ -1,29 +1,17 @@
 from tkinter import *
-from tkinter import  Canvas, Button, PhotoImage, ttk, messagebox,filedialog
+from tkinter import Canvas, Button, PhotoImage, ttk, messagebox,filedialog
 from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
 import re
-import firebase_admin
-from firebase_admin import credentials, db, storage
-import io
+import threading
+
 import UserInterface
 import FaceRecFrame
 
 from StudentData import *
 import ExamConfig
-
-cred = credentials.Certificate("serviceAccountKey.json")
-
-try:
-    starting_frame_app = firebase_admin.initialize_app(cred, {
-        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-        'storageBucket': "examfacerecognition.appspot.com"} , name="StartingFrameApp")
-except firebase_admin.exceptions.FirebaseError as e:
-    # Handle Firebase initialization error
-    print("Firebase initialization error:", e)
-
-bucket = storage.bucket(app=starting_frame_app)
+import FirebaseManager
 
 
 # Class used to transition between tkinter pages
@@ -51,6 +39,13 @@ class ExamApp(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame("StartPage")
 
+        def on_closing():
+            if messagebox.askokcancel("Quit", "Data will be lost, quit?"):
+
+                self.destroy()
+
+        self.protocol("WM_DELETE_WINDOW", on_closing)
+
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
@@ -62,6 +57,8 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/start_background.png")
+
+        self.firebase_manager = FirebaseManager.firebase_manager
 
         # Creating Canvas
         canvas = Canvas(
@@ -308,23 +305,6 @@ class StartPage(tk.Frame):
                                 activebackground='#917FB3',height='1',width='2')
         remove_sup_btn.place(x=770,y=395)'''
 
-        def get_csv_file():
-            exam_no = exam_entry.get()
-            exam_term = combo_terms.get()
-            blob = bucket.get_blob(f'Exams/{exam_no}_{exam_term}.csv')
-            if blob is None:
-                messagebox.showerror("Exam Error", "Exam was not found in database"
-                                                   ". make sure input is correct or upload a file.")
-                return False
-            csv_data = blob.download_as_string()
-            if not students.read_students_blob(csv_data):
-                messagebox.showerror("Exam Error", "Failed to read file.")
-                return False
-            if not students.check_csv_struct():
-                messagebox.showerror("Exam Error", "File structure does not match.")
-                return False
-            return True
-
         def upload_csv_file(a):
             # Open file dialog to select CSV file
             filepath = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -397,14 +377,20 @@ class StartPage(tk.Frame):
             if check_entry_correctness() != 0:
                 return
             if not self.file_uploaded:
-                res = get_csv_file()
-                if not res:
+                res = self.firebase_manager.get_csv_file(exam_entry.get(), combo_terms.get())
+                if res != True:
+                    messagebox.showerror(res[0], res[1])
                     return
 
             ExamConfig.cur_exam.set_all(exam_entry.get(), int(duration_entry.get()), combo_terms.get(),
                                         get_supervisor_list(), self.selected_device)
             app.frames["UserInterface"].initiate_table()
             app.frames["UserInterface"].initiate_time()
+            self.firebase_manager.update_images_list()
+            # Cache images using thread
+            fetch_thread = threading.Thread(target=lambda: self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD))
+            fetch_thread.start()
+
             controller.show_frame("UserInterface")
             # print(ExamConfig.cur_exam.__dict__)
 

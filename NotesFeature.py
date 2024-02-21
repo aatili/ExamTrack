@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import firebase_admin
 from firebase_admin import credentials, db, storage
-from datetime import date,datetime
+from datetime import date, datetime
 
 import ExamConfig
 from StudentData import *
@@ -26,7 +26,7 @@ bucket = storage.bucket(app=ui_features_app)
 
 class NotesFeature:
 
-    #def __init__(self):
+    # def __init__(self):
 
     # Add Notes Window
     def add_note_popup(self,parent,noted_id):

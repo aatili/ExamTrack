@@ -54,7 +54,7 @@ class StudentManager:
         for i in list_id:
             self.students_attendance[i] = False
 
-    # CHECKING CSV FILE STRUCTURE - case-insensitive, ignoring _ and .
+    # CHECKING CSV FILE STRUCTURE
 
     def check_csv_struct(self):
         # Get the columns from the DataFrame
@@ -95,6 +95,9 @@ class StudentManager:
 
     def student_table_columns(self):
         return self.table_df.columns.tolist()
+
+    def student_table_ids(self):
+        return self.table_df['id'].tolist()
 
     # GET Functions
     def student_get_name(self, student_id):
@@ -247,3 +250,5 @@ class StudentManager:
 
 
 students = StudentManager()
+
+
