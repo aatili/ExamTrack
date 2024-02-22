@@ -36,7 +36,7 @@ class LoadingLabel:
             self.text = "Encoding"
         if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
             self.canvas.itemconfig(self.label_ref, text="")
-
+            return
         self.rotation_index = (self.rotation_index + 1) % len(self.rotation_chars)
         self.canvas.after(350, self.update_text)  # Update every given milliseconds
 
