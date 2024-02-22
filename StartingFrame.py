@@ -8,10 +8,11 @@ import threading
 
 import UserInterface
 import FaceRecFrame
-
-from StudentData import *
 import ExamConfig
 import FirebaseManager
+import EncodePhotos
+
+from StudentData import *
 
 
 # Class used to transition between tkinter pages
@@ -30,6 +31,8 @@ class ExamApp(tk.Tk):
 
         self.frames = {}
 
+        self.firebase_manager = FirebaseManager.firebase_manager
+
         for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface):
 
             page_name = F.__name__
@@ -41,12 +44,16 @@ class ExamApp(tk.Tk):
 
         def on_closing():
             if messagebox.askokcancel("Quit", "Data will be lost, quit?"):
-
+                FirebaseManager.delete_cache_dir()
                 self.destroy()
 
         self.protocol("WM_DELETE_WINDOW", on_closing)
 
     def show_frame(self, page_name):
+        if page_name == "FaceRec" and self.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
+            app.frames["FaceRec"].load_encode_file()
+            self.firebase_manager.set_loaded()
+
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -59,6 +66,7 @@ class StartPage(tk.Frame):
         self.bgimg = tk.PhotoImage(file = "Resources/start_background.png")
 
         self.firebase_manager = FirebaseManager.firebase_manager
+        self.encode_photos = EncodePhotos.encode_photos
 
         # Creating Canvas
         canvas = Canvas(
@@ -97,12 +105,6 @@ class StartPage(tk.Frame):
         remove_btn = Button(self, text='Remove', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
                           activebackground='#917FB3',height='1',width='10',command=remove_uploaded_file)
         # remove_btn.place(x=1025, y=500)
-
-        '''self.not_confirmed_img = tk.PhotoImage(file = "Resources/not_confirmed.png")
-        not_confirmed_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
-        '''
-
-        # canvas.create_image(950,480,anchor=NW,image=self.upload_pic)
 
         canvas.create_text(
             935.0,
@@ -301,10 +303,6 @@ class StartPage(tk.Frame):
                              activebackground='#917FB3', height='1', width='2', command=exam_add_supervisor)
         add_sup_btn.place(x=770, y=295)
 
-        '''remove_sup_btn = Button(self, text='-', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 16 * -1),
-                                activebackground='#917FB3',height='1',width='2')
-        remove_sup_btn.place(x=770,y=395)'''
-
         def upload_csv_file(a):
             # Open file dialog to select CSV file
             filepath = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -374,21 +372,33 @@ class StartPage(tk.Frame):
         # continue functionality
 
         def starting_frame_continue():
-            if check_entry_correctness() != 0:
+            if check_entry_correctness() != 0:  # Check input
                 return
-            if not self.file_uploaded:
+            if not self.file_uploaded:  # CSV file was not manually upload
                 res = self.firebase_manager.get_csv_file(exam_entry.get(), combo_terms.get())
                 if res != True:
                     messagebox.showerror(res[0], res[1])
                     return
-
+            # Set Exam Config
             ExamConfig.cur_exam.set_all(exam_entry.get(), int(duration_entry.get()), combo_terms.get(),
                                         get_supervisor_list(), self.selected_device)
+
             app.frames["UserInterface"].initiate_table()
             app.frames["UserInterface"].initiate_time()
+
             self.firebase_manager.update_images_list()
+            FirebaseManager.delete_cache_dir()  # Delete existing Cache folder if existing
+
             # Cache images using thread
-            fetch_thread = threading.Thread(target=lambda: self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD))
+            def download_and_encode():
+                self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD)
+                self.firebase_manager.set_encoding()
+                self.encode_photos.create_img_list()
+                self.encode_photos.find_encodings()
+                self.encode_photos.encode_images()
+                self.firebase_manager.set_done()
+
+            fetch_thread = threading.Thread(target=lambda: download_and_encode())
             fetch_thread.start()
 
             controller.show_frame("UserInterface")

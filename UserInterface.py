@@ -4,31 +4,41 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
 import cv2
-import firebase_admin
-from firebase_admin import credentials, db, storage
 from datetime import date,datetime
 import threading
 
 from StudentData import *
 
 import ExamConfig
+import FirebaseManager
 
 import BreaksFeature
 import NotesFeature
 import ManualConfirmFeature
 
+import FaceRecFrame
 
-cred = credentials.Certificate("serviceAccountKey.json")
 
-try:
-    ui_app = firebase_admin.initialize_app(cred, {
-        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-        'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceApp")
-except firebase_admin.exceptions.FirebaseError as e:
-    # Handle Firebase initialization error
-    print("Firebase initialization error:", e)
+class LoadingLabel:
+    def __init__(self, canvas, label_ref, text):
+        self.label_ref = label_ref
+        self.canvas = canvas
+        self.text = text
+        self.rotation_chars = ["|", "/", "-", "\\"]
+        self.rotation_index = 0
+        self.update_text()
 
-bucket = storage.bucket(app=ui_app)
+    def update_text(self):
+        rot = self.rotation_chars[self.rotation_index]
+        loading_text = self.text + " " + rot + " " + rot + " " + rot
+        self.canvas.itemconfig(self.label_ref, text=loading_text)
+        if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.ENCODING:
+            self.text = "Encoding"
+        if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
+            self.canvas.itemconfig(self.label_ref, text="")
+
+        self.rotation_index = (self.rotation_index + 1) % len(self.rotation_chars)
+        self.canvas.after(350, self.update_text)  # Update every given milliseconds
 
 
 class UserInterface(tk.Frame):
@@ -42,6 +52,7 @@ class UserInterface(tk.Frame):
         self.notes_features = NotesFeature.NotesFeature()
         self.breaks_feature = BreaksFeature.BreaksFeature()
 
+        self.firebase_manager = FirebaseManager.firebase_manager
         self.exam = ExamConfig.cur_exam
 
         # Creating Cancvas
@@ -51,6 +62,19 @@ class UserInterface(tk.Frame):
         self.canvas.place(x = 0, y = 0)
 
         self.canvas.create_rectangle(895, 225, 1000, 350, fill='#917FB3', outline='black')
+
+        # Loading Label
+
+        self.loading_label = self.canvas.create_text(
+            960.0,
+            40.0,
+            anchor="nw",
+            text="00:00",
+            fill="#FFFFFF",
+            font=("Inter Bold", 16 * -1)
+        )
+
+        LoadingLabel(self.canvas, self.loading_label, 'Downloading')
 
 
         # Creating Profile
@@ -198,17 +222,6 @@ class UserInterface(tk.Frame):
                 self.waiver_btn.place(x=700, y=480)
                 self.waiver_btn["state"] = "disabled"
 
-        def fetch_blob():
-            blob = bucket.get_blob(f'Images/{self.current_id}.png')
-            if blob is None:  # no picture retrieved from database
-                self.img_holder = tk.PhotoImage(file="Resources/no_pic.png")
-                self.canvas.itemconfig(profile_pic, image=self.img_holder)
-            else:
-                img_data = np.frombuffer(blob.download_as_string(), np.uint8)
-                img_cvt = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-                img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
-                self.img_holder = ImageTk.PhotoImage(image=Image.fromarray(img_cvt))
-                self.canvas.itemconfig(profile_pic, image=self.img_holder)
 
         def table_select_row(a):  # view selected row items
             cur_item = self.table.focus()
@@ -253,9 +266,11 @@ class UserInterface(tk.Frame):
                 back_from_break_btn.place_forget()
                 break_btn.place(x = 535,y = 430)
 
+            self.img_holder = tk.PhotoImage(file=FirebaseManager.get_image_path(self.current_id))
+            self.canvas.itemconfig(profile_pic, image=self.img_holder)
             # Fetch blob using threading
-            fetch_thread = threading.Thread(target=fetch_blob)
-            fetch_thread.start()
+            '''fetch_thread = threading.Thread(target=fetch_blob)
+            fetch_thread.start()'''
 
         self.table.bind("<<TreeviewSelect>>", table_select_row)
 
@@ -533,7 +548,7 @@ class UserInterface(tk.Frame):
         # open face recognition frame
         face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#812e91',
                                       activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                                      ,command=lambda: controller.show_frame("FaceRec"))
+                                      ,command=lambda: [controller.show_frame("FaceRec")])
 
         face_recognition_btn.place(x = 950,y = 80)
 
@@ -566,11 +581,11 @@ class UserInterface(tk.Frame):
 
         # open view notes window only if student has notes
         def popup_notes_exist(req_id):
-            ref = db.reference(f'Notes/{req_id}',app=ui_app)
+            ref = self.firebase_manager.get_student_notes(req_id)
             if ref.get():
                 self.notes_features.view_note_popup(self.parent, req_id)
             else:
-                messagebox.showinfo("View Notes Message","Student has no notes.")
+                messagebox.showinfo("View Notes Message", "Student has no notes.")
 
         # View notes button
         view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),

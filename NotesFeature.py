@@ -4,30 +4,17 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
 import cv2
-import firebase_admin
-from firebase_admin import credentials, db, storage
 from datetime import date, datetime
 
+import FirebaseManager
 import ExamConfig
 from StudentData import *
 
 
-cred = credentials.Certificate("serviceAccountKey.json")
-try:
-    ui_features_app = firebase_admin.initialize_app(cred, {
-        'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-        'storageBucket': "examfacerecognition.appspot.com"} , name="UserInterfaceFeaturesApp")
-except firebase_admin.exceptions.FirebaseError as e:
-    # Handle Firebase initialization error
-    print("Firebase initialization error:", e)
-
-bucket = storage.bucket(app=ui_features_app)
-
-
 class NotesFeature:
 
-    # def __init__(self):
-
+    def __init__(self):
+        self.firebase_manager = FirebaseManager.firebase_manager
     # Add Notes Window
     def add_note_popup(self,parent,noted_id):
         if len(noted_id) == 0:
@@ -72,7 +59,7 @@ class NotesFeature:
 
         # note confirm button
         def note_window_confirm():
-            ref = db.reference('Notes',app=ui_features_app)
+            ref = self.firebase_manager.get_notes_reference()
             now = datetime.now()
             dt_string = now.strftime("%d-%m-%Y %H:%M")
             temp_data = {noted_id:{
@@ -163,9 +150,10 @@ class NotesFeature:
                                     width='14', disabledforeground='gray',command = view_note_window.destroy)
         view_note_done_btn.place(x = 350, y= 400)
 
-        ref = db.reference(f'Notes/{noted_id}',app=ui_features_app)
+        ref = self.firebase_manager.get_student_notes(noted_id)
         res_dict = ref.order_by_key().get()
-        res_keys = list(res_dict.keys())
+        if res_dict:
+            res_keys = list(res_dict.keys())
 
         #Combobox functionality
 

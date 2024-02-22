@@ -24,6 +24,9 @@ class FaceRec(tk.Frame):
         self.camera_waiting = tk.PhotoImage(file = "Resources/camera_waiting.png")
         self.firebase_manager = FirebaseManager.firebase_manager
 
+        self.encode_list_known = []
+        self.student_ids = []
+
         # Creating Cancvas
         canvas = Canvas(
             self,
@@ -39,12 +42,6 @@ class FaceRec(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-        # Load encode file
-        print("Loading encode file...")
-        with open('EncodeFile.p', 'rb') as encode_file:
-            encode_list_with_ids = pickle.load(encode_file)
-        encode_list_known, student_ids = encode_list_with_ids
-        print("Encode file loaded.")
 
         # Creating Profile
 
@@ -66,8 +63,7 @@ class FaceRec(tk.Frame):
                               text=students.student_get_name(self.current_id))
             canvas.itemconfig(student_major_label,
                               text=students.student_get_major(self.current_id))
-
-            self.imgholder = tk.PhotoImage(file=self.firebase_manager.get_image_path(self.current_id))
+            self.imgholder = tk.PhotoImage(file=FirebaseManager.get_image_path(self.current_id))
             canvas.itemconfig(profile_pic, image=self.imgholder)
             # Start a new thread to fetch the picture
             '''fetch_thread = threading.Thread(target=fetch_and_display_picture)
@@ -132,13 +128,13 @@ class FaceRec(tk.Frame):
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                             self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
 
-                            matches = face_recognition.compare_faces(encode_list_known, encode_face)
-                            face_distances = face_recognition.face_distance(encode_list_known, encode_face)
+                            matches = face_recognition.compare_faces(self.encode_list_known, encode_face)
+                            face_distances = face_recognition.face_distance(self.encode_list_known, encode_face)
 
                             match_index = np.argmin(face_distances)
 
                             if matches[match_index]:  # face recognized
-                                self.current_id = student_ids[match_index]
+                                self.current_id = self.student_ids[match_index]
 
                                 # adding green rectangle over face
                                 y1, x2, y2, x1 = [coord * 4 for coord in face_loc]
@@ -236,3 +232,10 @@ class FaceRec(tk.Frame):
                             ,command=rec_dismiss_function)
         cancel_btn.place(x = 270,y = 520)
 
+    def load_encode_file(self):
+        # Load encode file
+        print("Loading encode file...")
+        with open('EncodeFile.p', 'rb') as encode_file:
+            encode_list_with_ids = pickle.load(encode_file)
+        self.encode_list_known, self.student_ids = encode_list_with_ids
+        print("Encode file loaded.")

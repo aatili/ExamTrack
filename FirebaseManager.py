@@ -1,5 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, db, storage
+from enum import Enum
+
 
 import os
 import shutil
@@ -9,11 +11,35 @@ from StudentData import *
 # Constants
 CACHE_FOLDER_DOWNLOAD = '\\cachedPictures'
 IMG_NOT_FOUND = "Resources/no_pic.png"
-CACHE_FOLDER_LOCAL = 'cachedPictures/'
+CACHE_FOLDER_LOCAL = 'cachedPictures'
 
 FIREBASE_IMAGES_PATH = 'Images'
 FIREBASE_EXAMS_PATH = 'Exams'
-FIREBASE_NOTES_PATH = 'Exams/Notes'
+FIREBASE_NOTES_PATH = 'Notes'
+
+
+class AppState(Enum):
+    IDLE = "Idle"
+    DOWNLOADING = "Downloading"
+    ENCODING = "Encoding"
+    DONE = "Done"
+    LOADED = "Loaded"
+
+
+def delete_cache_dir():
+    current_directory = os.getcwd()
+    cache_dir = current_directory + CACHE_FOLDER_DOWNLOAD
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir)
+
+
+def get_image_path(student_id):
+    current_directory = os.getcwd()
+    cache_dir = current_directory + CACHE_FOLDER_DOWNLOAD
+    file_path = os.path.join(cache_dir, f'{student_id}.png')
+    if os.path.exists(file_path):
+        return file_path
+    return IMG_NOT_FOUND
 
 
 class FirebaseManager:
@@ -30,18 +56,18 @@ class FirebaseManager:
 
         self.bucket = storage.bucket(app=self.exam_app)
         self.images_list = self.get_image_list()
+        self.state = AppState.IDLE
 
     # cache images
     def cache_files_from_firebase(self, c_dir):
         current_directory = os.getcwd()
         cache_dir = current_directory + c_dir
 
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
 
         students_id_list = students.student_table_ids()
+        self.set_downloading()
         for s_id in students_id_list:
             blob = self.bucket.get_blob(f'{FIREBASE_IMAGES_PATH}/{s_id}.png')
             if blob is None:  # no picture retrieved from database
@@ -64,13 +90,6 @@ class FirebaseManager:
         return True
 
     # Get student image path
-    def get_image_path(self, student_id):
-        current_directory = os.getcwd()
-        cache_dir = current_directory + CACHE_FOLDER_DOWNLOAD
-        file_path = os.path.join(cache_dir, f'{student_id}.png')
-        if os.path.exists(file_path):
-            return file_path
-        return IMG_NOT_FOUND
 
     def get_image_list(self):
         b_list = self.bucket.list_blobs(prefix=FIREBASE_IMAGES_PATH)
@@ -87,6 +106,29 @@ class FirebaseManager:
             if temp_id not in students_id_list:
                 self.images_list.remove(temp_id + '.png')
 
+    def get_notes_reference(self):
+        return db.reference(FIREBASE_NOTES_PATH,app=self.exam_app)
+
+    def get_student_notes(self,student_id):
+        return db.reference(f'{FIREBASE_NOTES_PATH}/{student_id}', app=self.exam_app)
+
+    def set_idle(self):
+        self.state = AppState.IDLE
+
+    def set_downloading(self):
+        self.state = AppState.DOWNLOADING
+
+    def set_encoding(self):
+        self.state = AppState.ENCODING
+
+    def set_done(self):
+        self.state = AppState.DONE
+
+    def set_loaded(self):
+        self.state = AppState.LOADED
+
+    def get_state(self):
+        return self.state
 
     # GETS PICTURE FROM FIREBASE
     '''def get_student_image(self, student_id):
