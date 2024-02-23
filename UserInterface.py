@@ -529,7 +529,7 @@ class UserInterface(tk.Frame):
                 add_time_window.destroy()
 
             # Buttons
-            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='4',fg="#FFFFFF" ,bg='##812e91',
+            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='4',fg="#FFFFFF" ,bg='#812e91',
                                       font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                       disabledforeground='gray',command=add_total_seconds)
             add_time_confirm_btn.place(x = 30, y= 200)
