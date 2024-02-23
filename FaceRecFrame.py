@@ -181,12 +181,12 @@ class FaceRec(tk.Frame):
                 self.cap.release()
             panel.configure(image=self.camera_waiting)
 
-        back_btn = tk.Button(self, text="Back", bd='5',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+        back_btn = tk.Button(self, text="Back", bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
                              font=("Calibri", 14 * -1),height='1',width='14',
                              command=lambda: [pause_rec(),controller.show_frame("UserInterface")])
         back_btn.place(x = 20,y = 10)
 
-        magic_btn = Button(self, text='Start', bd='5',fg="#FFFFFF" ,bg='#812e91',
+        magic_btn = Button(self, text='Start', bd='4',fg="#FFFFFF" ,bg='#812e91',
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14',command=start_rec)
         magic_btn.place(x = 750,y = 520)
 
@@ -222,12 +222,12 @@ class FaceRec(tk.Frame):
             #canvas.itemconfig(student_tuition_label,text="?")
 
 
-        confirm_btn = Button(self, text='Confirm', bd='5',fg="#FFFFFF" ,bg='#812e91',state="disabled",
+        confirm_btn = Button(self, text='Confirm', bd='4',fg="#FFFFFF" ,bg='#812e91',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
                              ,command=lambda: rec_confirm_func(self.current_id))
         confirm_btn.place(x = 270,y = 475)
 
-        cancel_btn = Button(self, text='Dismiss', bd='5',fg="#FFFFFF" ,bg='#812e91',state="disabled",
+        cancel_btn = Button(self, text='Dismiss', bd='4',fg="#FFFFFF" ,bg='#812e91',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
                             ,command=rec_dismiss_function)
         cancel_btn.place(x = 270,y = 520)

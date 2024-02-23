@@ -16,11 +16,11 @@ import BreaksFeature
 import NotesFeature
 import ManualConfirmFeature
 
-import FaceRecFrame
 
-
+# Loading label, changes according to the state of the app - enables face recognition button when done
 class LoadingLabel:
-    def __init__(self, canvas, label_ref, text):
+    def __init__(self, frame, canvas, label_ref, text):
+        self.frame = frame
         self.label_ref = label_ref
         self.canvas = canvas
         self.text = text
@@ -36,6 +36,7 @@ class LoadingLabel:
             self.text = "Encoding"
         if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
             self.canvas.itemconfig(self.label_ref, text="")
+            self.frame.enable_face_recognition()
             return
         self.rotation_index = (self.rotation_index + 1) % len(self.rotation_chars)
         self.canvas.after(350, self.update_text)  # Update every given milliseconds
@@ -74,7 +75,7 @@ class UserInterface(tk.Frame):
             font=("Inter Bold", 16 * -1)
         )
 
-        LoadingLabel(self.canvas, self.loading_label, 'Downloading')
+        LoadingLabel(self, self.canvas, self.loading_label, 'Downloading')
 
 
         # Creating Profile
@@ -494,7 +495,7 @@ class UserInterface(tk.Frame):
                 waiver_countdown()
 
         # start exams/timers button
-        start_btn = Button(self, text='Start Exam', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
+        start_btn = Button(self, text='Start Exam', bd='4',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                            activebackground='#917FB3',height='1',width='14',command= start_countdown,
                            disabledforeground='gray')
         start_btn.place(x = 700,y = 80)
@@ -528,12 +529,12 @@ class UserInterface(tk.Frame):
                 add_time_window.destroy()
 
             # Buttons
-            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='5',fg="#FFFFFF" ,bg='##812e91',
+            add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='4',fg="#FFFFFF" ,bg='##812e91',
                                       font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                       disabledforeground='gray',command=add_total_seconds)
             add_time_confirm_btn.place(x = 30, y= 200)
 
-            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='5',fg="#FFFFFF" ,bg='##812e91',
+            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='4',fg="#FFFFFF" ,bg='##812e91',
                                      font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                      disabledforeground='gray',command= add_time_window.destroy)
             add_time_cancel_btn.place(x = 145, y= 200)
@@ -546,11 +547,11 @@ class UserInterface(tk.Frame):
         #add_time_btn.place(x = 590,y = 80)
 
         # open face recognition frame
-        face_recognition_btn = Button(self, text='Face Recognition', bd='5',fg="#FFFFFF" ,bg='#812e91',
+        self.face_recognition_btn = Button(self, text='Face Recognition', bd='4',fg="#FFFFFF" ,bg='#812e91',
                                       activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
-                                      ,command=lambda: [controller.show_frame("FaceRec")])
+                                      ,command=lambda: [controller.show_frame("FaceRec")],state="disabled")
 
-        face_recognition_btn.place(x = 950,y = 80)
+        self.face_recognition_btn.place(x = 950,y = 80)
 
         # temp button
         button1 = tk.Button(self, text="Back to Home",
@@ -564,13 +565,13 @@ class UserInterface(tk.Frame):
                 return
             self.manual_confirm.confirm_popup(self.parent, self.current_id)
 
-        confirm_btn = Button(self, text='Manual Confirm', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        confirm_btn = Button(self, text='Manual Confirm', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14' , disabledforeground='gray',
                              command= lambda :manual_confirm_check(self.current_id))
         confirm_btn.place(x = 700,y = 430)
 
         # Interface add notes button
-        add_notes_btn = Button(self, text='Add Notes', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        add_notes_btn = Button(self, text='Add Notes', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: self.notes_features.add_note_popup(self.parent, self.current_id))
         add_notes_btn.place(x = 360,y = 430)
@@ -588,7 +589,7 @@ class UserInterface(tk.Frame):
                 messagebox.showinfo("View Notes Message", "Student has no notes.")
 
         # View notes button
-        view_notes_btn = Button(self, text='View Notes', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
+        view_notes_btn = Button(self, text='View Notes', bd='4',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
                    activebackground='#917FB3',height='1',width='14', disabledforeground='gray',
                                command=lambda: popup_notes_exist(self.current_id))
         view_notes_btn.place(x=360, y=480)
@@ -616,7 +617,7 @@ class UserInterface(tk.Frame):
             self.breaks_feature.break_window(self.parent, self.current_id)
 
         # Break features buttons
-        break_btn = Button(self, text='Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        break_btn = Button(self, text='Break', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: student_take_break(self.current_id))
         break_btn.place(x = 535,y = 430)
@@ -638,14 +639,14 @@ class UserInterface(tk.Frame):
                     my_search()
 
         # back from break button
-        back_from_break_btn = Button(self, text='Back from Break', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        back_from_break_btn = Button(self, text='Back from Break', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: student_back_from_break(self.current_id))
         #back_btn.place(x = 535,y = 480)
 
         # view breaks btn
 
-        view_breaks_btn = Button(self, text='View Breaks', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        view_breaks_btn = Button(self, text='View Breaks', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: self.breaks_feature.view_break_window(self.parent, self.current_id))
         view_breaks_btn.place(x = 535,y = 480)
@@ -672,13 +673,13 @@ class UserInterface(tk.Frame):
             self.undo_waiver_btn.place_forget()
 
         # waiver button
-        self.waiver_btn = Button(self, text='Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        self.waiver_btn = Button(self, text='Waiver', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                  activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                  command=lambda: student_waiver_popup(self.current_id))
         self.waiver_btn.place(x=700, y=480)
 
         # undo waiver button
-        self.undo_waiver_btn = Button(self, text='Undo Waiver', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        self.undo_waiver_btn = Button(self, text='Undo Waiver', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                       activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                       command=lambda: student_undo_waiver(self.current_id))
         #self.undo_waiver_btn.place(x=700, y=480)
@@ -730,6 +731,9 @@ class UserInterface(tk.Frame):
                         foreground="white", font=("Calibri", 14 * -1))
         style.map("Treeview", background=[("selected", "#000080")])
         self.table.place(x=360, y=150, height=260)
+
+    def enable_face_recognition(self):
+        self.face_recognition_btn["state"] = 'normal'
 
 
 
