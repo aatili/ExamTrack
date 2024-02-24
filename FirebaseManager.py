@@ -57,6 +57,7 @@ class FirebaseManager:
         self.bucket = storage.bucket(app=self.exam_app)
         self.images_list = self.get_image_list()
         self.state = AppState.IDLE
+        self.images_state_dict = {}
 
     # cache images
     def cache_files_from_firebase(self, c_dir):
@@ -72,11 +73,18 @@ class FirebaseManager:
             blob = self.bucket.get_blob(f'{FIREBASE_IMAGES_PATH}/{s_id}.png')
             if blob is None:  # no picture retrieved from database
                 continue
+            if f'{s_id}.png' in self.images_state_dict.keys():
+                if self.images_state_dict[f'{s_id}.png']:  # picture was downloaded already
+                    continue
             # Construct local file path
             local_file_path = os.path.join(cache_dir, f'{s_id}.png')
-            print(local_file_path)
             # Download file from Firebase Storage to local cache
-            blob.download_to_filename(local_file_path)
+            try:
+                blob.download_to_filename(local_file_path)
+                print(local_file_path, "downloaded successfully.")
+                self.images_state_dict[f'{s_id}.png'] = True
+            except Exception as e:
+                print(local_file_path, f"Download error: {str(e)}")
 
     def get_csv_file(self, exam_no, exam_term):
         blob = self.bucket.get_blob(f'{FIREBASE_EXAMS_PATH}/{exam_no}_{exam_term}.csv')
@@ -105,6 +113,8 @@ class FirebaseManager:
             temp_id = img.split(".")[0]
             if temp_id not in students_id_list:
                 self.images_list.remove(temp_id + '.png')
+
+        self.images_state_dict = {key: False for key in self.images_list}
 
     def get_notes_reference(self):
         return db.reference(FIREBASE_NOTES_PATH,app=self.exam_app)
@@ -141,6 +151,7 @@ class FirebaseManager:
             img_cvt = cv2.cvtColor(img_cvt, cv2.COLOR_BGR2RGB)
             return Image.fromarray(img_cvt)
     '''
+
 
 firebase_manager = FirebaseManager()
 

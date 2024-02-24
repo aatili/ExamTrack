@@ -392,12 +392,14 @@ class StartPage(tk.Frame):
             # Cache images using thread
             def download_and_encode():
                 self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD)
+                print(self.firebase_manager.images_state_dict)
                 self.firebase_manager.set_encoding()
                 self.encode_photos.create_img_list()
                 self.encode_photos.find_encodings()
                 self.encode_photos.encode_images()
                 self.firebase_manager.set_done()
 
+            # Thread to allow the app to run while downloading images
             fetch_thread = threading.Thread(target=lambda: download_and_encode())
             fetch_thread.start()
 
