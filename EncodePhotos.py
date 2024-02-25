@@ -28,15 +28,19 @@ class EncodePhotos:
             self.encode_list.append(encode)
 
     def encode_images(self):
-        print("Encoding images....")
-        self.find_encodings()
-        encode_and_ids_list = [self.encode_list, self.student_ids]
-        print("Encoding done.")
+        try:
+            print("Encoding images....")
+            self.find_encodings()
+            encode_and_ids_list = [self.encode_list, self.student_ids]
+            print("Encoding done.")
 
-        encode_file = open("EncodeFile.p", 'wb')
-        pickle.dump(encode_and_ids_list, encode_file)
-        encode_file.close()
-        print("Encode file saved.")
+            with open("EncodeFile.p", 'wb') as encode_file:
+                pickle.dump(encode_and_ids_list, encode_file)
+            print("Encode file saved.")
+            return True
+        except Exception as e:
+            print("An error occurred while encoding images:", e)
+            return False
 
 
 encode_photos = EncodePhotos()

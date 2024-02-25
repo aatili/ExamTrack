@@ -6,6 +6,7 @@ import cv2
 import re
 import threading
 
+import ReportFrames
 import UserInterface
 import FaceRecFrame
 import ExamConfig
@@ -20,9 +21,9 @@ class ExamApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
-        self.resizable(False, False)
         self.title("Exam App")
         self.geometry("1200x600+20+20")
+        self.resizable(False, False)
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand = True)
 
@@ -33,7 +34,7 @@ class ExamApp(tk.Tk):
 
         self.firebase_manager = FirebaseManager.firebase_manager
 
-        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface):
+        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrameOne):
 
             page_name = F.__name__
             frame = F(parent=container, controller=self)
@@ -369,6 +370,8 @@ class StartPage(tk.Frame):
 
             return error_flag
 
+
+
         # continue functionality
 
         def starting_frame_continue():
@@ -386,21 +389,10 @@ class StartPage(tk.Frame):
             app.frames["UserInterface"].initiate_table()
             app.frames["UserInterface"].initiate_time()
 
-            self.firebase_manager.update_images_list()
             FirebaseManager.delete_cache_dir()  # Delete existing Cache folder if existing
 
-            # Cache images using thread
-            def download_and_encode():
-                self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD)
-                print(self.firebase_manager.images_state_dict)
-                self.firebase_manager.set_encoding()
-                self.encode_photos.create_img_list()
-                self.encode_photos.find_encodings()
-                self.encode_photos.encode_images()
-                self.firebase_manager.set_done()
-
             # Thread to allow the app to run while downloading images
-            fetch_thread = threading.Thread(target=lambda: download_and_encode())
+            fetch_thread = threading.Thread(target=lambda: self.download_and_encode())
             fetch_thread.start()
 
             controller.show_frame("UserInterface")
@@ -413,6 +405,24 @@ class StartPage(tk.Frame):
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)
+
+        # temp button
+        button1 = tk.Button(self, text="Report Frame",
+                            command=lambda: controller.show_frame("ReportFrameOne"))
+        button1.pack(side='left')
+
+    # Cache images using thread
+    def download_and_encode(self):
+        self.firebase_manager.cache_files_from_firebase(FirebaseManager.CACHE_FOLDER_DOWNLOAD)
+
+        self.firebase_manager.set_encoding()
+        self.encode_photos.create_img_list()
+        self.encode_photos.find_encodings()
+        if not self.encode_photos.encode_images():
+            self.firebase_manager.set_failed()
+            return
+
+        self.firebase_manager.set_done()
 
 
 app = ExamApp()

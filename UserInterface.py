@@ -29,16 +29,22 @@ class LoadingLabel:
         self.update_text()
 
     def update_text(self):
+        temp_state = FirebaseManager.firebase_manager.get_state()
         rot = self.rotation_chars[self.rotation_index]
         loading_text = self.text + " " + rot + " " + rot + " " + rot
-        self.canvas.itemconfig(self.label_ref, text=loading_text)
-        if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.ENCODING:
-            self.text = "Encoding"
-        if FirebaseManager.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
+
+        if temp_state == FirebaseManager.AppState.ENCODING or temp_state == FirebaseManager.AppState.DOWNLOADING :
+            self.text = str(self.frame.firebase_manager.get_state().value)
+            self.rotation_index = (self.rotation_index + 1) % len(self.rotation_chars)
+            self.canvas.itemconfig(self.label_ref, text=loading_text)
+        elif temp_state == FirebaseManager.AppState.FAILED:
+            self.canvas.itemconfig(self.label_ref, text="Failed")
+            self.frame.show_retry_btn()
+        elif temp_state == FirebaseManager.AppState.DONE:
             self.canvas.itemconfig(self.label_ref, text="")
             self.frame.enable_face_recognition()
             return
-        self.rotation_index = (self.rotation_index + 1) % len(self.rotation_chars)
+
         self.canvas.after(350, self.update_text)  # Update every given milliseconds
 
 
@@ -546,6 +552,19 @@ class UserInterface(tk.Frame):
                            activebackground='#917FB3',height='1',width='2',command = add_time)
         #add_time_btn.place(x = 590,y = 80)
 
+        # retry button - only shows in case the encoding fails
+        def retry_download_encode():
+            # Thread to allow the app to run while downloading images
+            self.firebase_manager.set_downloading()
+            self.retry_btn.place_forget()  # hide button when clicked
+            fetch_thread = threading.Thread(target=lambda: controller.frames["StartPage"].download_and_encode())
+            fetch_thread.start()
+
+        self.retry_btn = Button(self, text='Retry', bd='4',fg="#FFFFFF" ,bg='#812e91',
+                                      activebackground='#917FB3',font=("Calibri", 12 * -1),height='1',width='10'
+                                      ,command=retry_download_encode)
+        # self.retry_btn.place(x = 1100,y = 40)
+
         # open face recognition frame
         self.face_recognition_btn = Button(self, text='Face Recognition', bd='4',fg="#FFFFFF" ,bg='#812e91',
                                       activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
@@ -669,6 +688,7 @@ class UserInterface(tk.Frame):
                 messagebox.showerror("Undo Waiver Error", "Student is already attending.")
                 return
             messagebox.showinfo("Waiver Message", "Undo waiver successful.")
+            filter_on_waiver()
             self.waiver_btn.place(x=700, y=480)
             self.undo_waiver_btn.place_forget()
 
@@ -734,6 +754,11 @@ class UserInterface(tk.Frame):
 
     def enable_face_recognition(self):
         self.face_recognition_btn["state"] = 'normal'
+
+    def show_retry_btn(self):
+        self.retry_btn.place(x = 1100,y = 40)
+
+
 
 
 

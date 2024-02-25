@@ -22,6 +22,7 @@ class AppState(Enum):
     IDLE = "Idle"
     DOWNLOADING = "Downloading"
     ENCODING = "Encoding"
+    FAILED = "Failed"
     DONE = "Done"
     LOADED = "Loaded"
 
@@ -55,7 +56,6 @@ class FirebaseManager:
             print("Firebase initialization error:", e)
 
         self.bucket = storage.bucket(app=self.exam_app)
-        self.images_list = self.get_image_list()
         self.state = AppState.IDLE
         self.images_state_dict = {}
 
@@ -76,6 +76,8 @@ class FirebaseManager:
             if f'{s_id}.png' in self.images_state_dict.keys():
                 if self.images_state_dict[f'{s_id}.png']:  # picture was downloaded already
                     continue
+                else:
+                    self.images_state_dict[f'{s_id}.png'] = True
             # Construct local file path
             local_file_path = os.path.join(cache_dir, f'{s_id}.png')
             # Download file from Firebase Storage to local cache
@@ -99,22 +101,12 @@ class FirebaseManager:
 
     # Get student image path
 
-    def get_image_list(self):
+    def get_all_image_list(self):
         b_list = self.bucket.list_blobs(prefix=FIREBASE_IMAGES_PATH)
         img_list = []
         for blob in b_list:
             img_list.append(os.path.basename(blob.name))
         return img_list
-
-    def update_images_list(self):
-        students_id_list = students.student_table_ids()
-        temp_list = self.images_list.copy()
-        for img in temp_list:
-            temp_id = img.split(".")[0]
-            if temp_id not in students_id_list:
-                self.images_list.remove(temp_id + '.png')
-
-        self.images_state_dict = {key: False for key in self.images_list}
 
     def get_notes_reference(self):
         return db.reference(FIREBASE_NOTES_PATH,app=self.exam_app)
@@ -137,6 +129,9 @@ class FirebaseManager:
     def set_loaded(self):
         self.state = AppState.LOADED
 
+    def set_failed(self):
+        self.state = AppState.FAILED
+
     def get_state(self):
         return self.state
 
@@ -155,4 +150,3 @@ class FirebaseManager:
 
 firebase_manager = FirebaseManager()
 
-print(firebase_manager.images_list)
