@@ -21,6 +21,7 @@ def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
 class ReportFrameOne(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
+
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/report_background.png")
         # Creating Canvas
@@ -45,6 +46,9 @@ class ReportFrameOne(tk.Frame):
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
+        button2 = tk.Button(self, text="FrameTwo",
+                            command=lambda: controller.show_frame("ReportFrameTwo"))
+        button2.pack()
 
         self.display_attendance_graph()
         self.display_waiver_graph()
@@ -74,9 +78,13 @@ class ReportFrameOne(tk.Frame):
         )
         text_add_border(self.canvas, exam_term_label)
 
-        summary_text = "\n" + " - " + "50" +" Students enlisted for the exam, " + "35" + " of them attended the exam.\n\n"
+        summary_text = "\n" + " - " + "Exams original time: " + "50" + " minutes" + " - Added time: " + "15" + " minutes.\n\n"
+        summary_text += " - " + "50" + " Students enlisted for the exam, " + "35" + " of them attended the exam.\n\n"
         summary_text += " - " + "20" + " Students were confirmed using face recognition whereas\n"
         summary_text += "   " + "15" + " Were confirmed manually by the supervisors.\n\n"
+        summary_text += " - " + "Most common reason for manual confirm: " + "Face not recognized" + " \n\n"
+        # if waiver
+        summary_text += " - " + "7" + " Students used the waiver option.\n\n"
         attendance_summary_label = self.canvas.create_text(
             600.0,
             150.0,
@@ -90,7 +98,7 @@ class ReportFrameOne(tk.Frame):
     def display_attendance_graph(self):
 
         # Create a frame to hold the canvas
-        frame = tk.Frame(self, bd=3, relief=tk.RIDGE, background='#dbc5db')
+        frame = tk.Frame(self, bd=3, relief=tk.RAISED, background='#dbc5db')
         frame.place(x=50, y=70)
 
         # Create a Figure instance
@@ -143,7 +151,7 @@ class ReportFrameOne(tk.Frame):
     def display_manual_confirm_graph(self):
 
         # Create a frame to hold the canvas
-        frame = tk.Frame(self, bd=3, relief=tk.RIDGE, background='#dbc5db')
+        frame = tk.Frame(self, bd=3, relief=tk.RAISED, background='#dbc5db')
         frame.place(x=50, y=325)
 
         # Sample data
@@ -158,10 +166,10 @@ class ReportFrameOne(tk.Frame):
 
         # Plot the donut chart
         wedges, texts, autotexts = ax.pie(reason_values, labels=reason_labels, startangle=90, wedgeprops=dict(width=0.4),
-                                          autopct='%1.1f%%', textprops=dict(fontsize=8))
+                                          autopct='%1.0f%%', textprops=dict(fontsize=8))
 
         # Draw a circle in the center to make it a donut chart
-        centre_circle = Wedge((0, 0), 0.4, 0, 360, color='white', fill=True, edgecolor='white')
+        centre_circle = Wedge((0, 0), 0.4, 0, 360, color='white', fill=True)
         ax.add_patch(centre_circle)
 
         # Equal aspect ratio ensures that pie is drawn as a circle
@@ -172,7 +180,7 @@ class ReportFrameOne(tk.Frame):
 
         # Convert the Figure to a Tkinter canvas
         canvas = FigureCanvasTkAgg(fig, master=frame)
-        canvas._tkcanvas.config(background='#dbc5db')
+        canvas._tkcanvas.config(background='#8b77a7')
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -212,6 +220,77 @@ class ReportFrameOne(tk.Frame):
         canvas._tkcanvas.config(background='#dbc5db')
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+class ReportFrameTwo(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        self.controller = controller
+        self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
+        # Creating Canvas
+        self.canvas = Canvas(
+            self,
+            bg = "#FF6EC7",
+            height = 600,
+            width = 1200,
+            bd = 0,
+            highlightthickness = 0,
+            relief = "ridge"
+        )
+
+        self.canvas.create_image(0,0,anchor=NW,image=self.bgimg)
+
+        self.canvas.place(x = 0, y = 0)
+
+        #self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
+
+
+        # temp button
+        button1 = tk.Button(self, text="Back to Home",
+                            command=lambda: controller.show_frame("StartPage"))
+        button1.pack()
+
+        button2 = tk.Button(self, text="FrameOne",
+                            command=lambda: controller.show_frame("ReportFrameOne"))
+        button2.pack()
+
+        self.display_exam_details()
+
+    def display_exam_details(self):
+        exam_number_label = self.canvas.create_text(
+            70.0,
+            50.0,
+            anchor="nw",
+            text=" Exam Number: " + "24133" + " ",
+            fill="#d6b0e8",
+            font=("Inter Bold", 20 * -1)
+        )
+        text_add_border(self.canvas, exam_number_label)
+
+        today = date.today()
+        d1 = today.strftime("%d/%m/%Y")
+        exam_term_label = self.canvas.create_text(
+            290.0,
+            55.0,
+            anchor="nw",
+            text=" " + "MoedA" + " - " + d1 + " ",
+            fill="#d6b0e8",
+            font=("Inter Bold", 16 * -1)
+        )
+        text_add_border(self.canvas, exam_term_label)
+
+        summary_text = "\n " + "15" + " Notes have been given throughout the exam. \n\n"
+        # if waiver
+        attendance_summary_label = self.canvas.create_text(
+            70.0,
+            125.0,
+            anchor="nw",
+            text=summary_text,
+            fill="white",
+            font=("Inter Bold", 18 * -1)
+        )
+        text_add_border(self.canvas, attendance_summary_label, 1, 'white')
+
 
 
 

@@ -2,7 +2,6 @@ import firebase_admin
 from firebase_admin import credentials, db, storage
 from enum import Enum
 
-
 import os
 import shutil
 

@@ -35,7 +35,8 @@ class ExamApp(tk.Tk):
 
         self.firebase_manager = FirebaseManager.firebase_manager
 
-        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrameOne):
+        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrameOne,
+                  ReportFrames.ReportFrameTwo):
 
             page_name = F.__name__
             frame = F(parent=container, controller=self)
@@ -411,6 +412,10 @@ class StartPage(tk.Frame):
         button1 = tk.Button(self, text="Report Frame",
                             command=lambda: controller.show_frame("ReportFrameOne"))
         button1.pack(side='left')
+
+        button2 = tk.Button(self, text="Report Frame Two",
+                            command=lambda: controller.show_frame("ReportFrameTwo"))
+        button2.pack(side='left')
 
     # Cache images using thread
     def download_and_encode(self):

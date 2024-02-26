@@ -36,6 +36,9 @@ class StudentManager:
 
         # Notes
 
+        self.student_notes = {}
+        self.notes_count = 0
+
         # Breaks
 
         self.students_breaks = {}  # contains: [number of breaks, list of time(seconds) and list of reasons for each break]
@@ -108,7 +111,7 @@ class StudentManager:
     def student_table_ids(self):
         return self.table_df['id'].tolist()
 
-    # GET Functions
+    # Student GET Functions
     def student_get_name(self, student_id):
         temp_first = "No"
         temp_last = "Name"
@@ -242,6 +245,20 @@ class StudentManager:
         if not self.student_had_break(student_id):
             return STUDENT_NOT_FOUND
         return self.students_breaks[student_id][0]
+
+    # Notes functions
+
+    def student_report_note(self, student_id):
+        if student_id in self.student_notes:
+            # If the student exists, increment notes value by 1
+            self.student_notes[student_id] += 1
+        else:
+            # otherwise, initiate
+            self.student_notes[student_id] = 1
+        self.notes_count += 1
+
+    def get_notes_count(self):
+        return self.notes_count
 
     # Waiver functions
 
