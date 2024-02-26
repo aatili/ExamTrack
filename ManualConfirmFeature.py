@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import Button, ttk, messagebox,scrolledtext
 import tkinter as tk
+
+import StudentData
 from StudentData import *
 
 
@@ -77,8 +79,8 @@ class ManualConfirm:
                 confirm_window_specify.place_forget()
                 self.flag_other_reason = 0
                 self.str_reason = selected_reason
-
-        reason_list = ['Face not recognized' , 'No picture in system' , 'Time Circumstances' , 'Other']
+        reason_list = [StudentData.ManualConfirmReason.FACEREC.value , StudentData.ManualConfirmReason.PIC.value,
+                       StudentData.ManualConfirmReason.TIME.value , StudentData.ManualConfirmReason.OTHER.value]
 
         combo_reasons = ttk.Combobox(confirm_window, state="readonly" , values=reason_list,
                                    background="gray",font=("Calibri", 16 * -1))

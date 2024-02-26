@@ -107,18 +107,22 @@ class UserInterface(tk.Frame):
         # extra_img_panel.place(x=90,y=422)
         no_extra_img_panel = Label(self, image=self.not_confirmed_img,borderwidth=0)
 
+        # Date label
 
-        # Style for buttons
-        button_style = ttk.Style()
-        button_style.configure("Custom.TButton",
-                               bd=5,
-                               foreground="#FFFFFF",
-                               background='#812e91',
-                               font=("Calibri", 16),
-                               activebackground='#917FB3',
-                               height=1,
-                               width=14,
-                               disabledforeground='gray')
+        today = date.today()
+        d1 = today.strftime("%d/%m/%Y")
+        date_label = self.canvas.create_text(
+            10.0,
+            10.0,
+            anchor="nw",
+            text=d1,
+            fill="#d6b0e8",
+            font=("Inter Bold", 18 * -1)
+        )
+
+        date_bbox = self.canvas.bbox(date_label)
+        date_rect = self.canvas.create_rectangle(date_bbox, outline="#d6b0e8")
+        self.canvas.tag_raise(date_label, date_rect)
 
         # adding labels
         student_name_label = self.canvas.create_text(

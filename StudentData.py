@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import io
+from enum import Enum
 
 # Constants
 
@@ -12,6 +13,13 @@ STUDENT_ALREADY_ON_BREAK = -4
 FUNC_SUCCESS = 0
 
 
+class ManualConfirmReason(Enum):
+    FACEREC = 'Face not recognized'
+    PIC = "No picture in system"
+    TIME = "Time Circumstances"
+    OTHER = "Other"
+
+
 class StudentManager:
     def __init__(self):
         # Attendance and Confirmation
@@ -19,6 +27,8 @@ class StudentManager:
         self.students_attendance = {}  # tracks current state of exam attendance
         self.students_manual_confirm = {}  # students manually confirmed - will contain the reason
         self.students_auto_confirm = {}  # students auto confirmed
+
+        self.manual_confirm_hist = {attr.value: 0 for attr in ManualConfirmReason}
 
         # Waiver
 
@@ -150,7 +160,15 @@ class StudentManager:
             return res
         else:
             self.students_manual_confirm[student_id] = reason
-            return res
+            # Check if reason matches any enum value
+            if reason in [member.value for member in ManualConfirmReason]:
+                self.manual_confirm_hist[reason] += 1
+            else:
+                self.manual_confirm_hist[ManualConfirmReason.OTHER.value] += 1
+        return res
+
+    def get_manual_confirm_hist(self):
+        return self.manual_confirm_hist
 
     def student_cancel_attendance(self, student_id):
         if student_id in self.students_attendance.keys():
