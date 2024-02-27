@@ -542,14 +542,12 @@ class UserInterface(tk.Frame):
             add_time_confirm_btn = Button(add_time_window, text='Confirm', bd='4',fg="#FFFFFF" ,bg='#812e91',
                                       font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                       disabledforeground='gray',command=add_total_seconds)
-            add_time_confirm_btn.place(x = 30, y= 200)
+            add_time_confirm_btn.place(x=30, y=200)
 
-            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='4',fg="#FFFFFF" ,bg='##812e91',
+            add_time_cancel_btn = Button(add_time_window, text='Cancel', bd='4',fg="#FFFFFF" ,bg='#812e91',
                                      font=("Calibri", 14 * -1),activebackground='#917FB3',height='1',width='12',
                                      disabledforeground='gray',command= add_time_window.destroy)
-            add_time_cancel_btn.place(x = 145, y= 200)
-
-
+            add_time_cancel_btn.place(x=145, y=200)
 
         # add time button
         add_time_btn = Button(self, text='+', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Arial", 13 * -1),
@@ -580,6 +578,10 @@ class UserInterface(tk.Frame):
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame("StartPage"))
         button1.pack()
+
+        button2 = tk.Button(self, text="TEST",
+                            command=lambda: [students.create_result_table() , print(students.result_table_df)])
+        button2.pack()
 
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm
@@ -730,7 +732,7 @@ class UserInterface(tk.Frame):
             self.canvas.itemconfig(self.rect_item2, state="hidden")
 
     def initiate_table(self):
-        students.student_data_initiate()
+        students.students_initiate_attendance()
         table_columns = students.student_table_columns()
         self.table.configure(columns=table_columns, show="headings")
         for column in table_columns:
@@ -753,6 +755,8 @@ class UserInterface(tk.Frame):
                         font=("Calibri", 14 * -1))
         style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
                         foreground="white", font=("Calibri", 14 * -1))
+        style.map("Treeview.Heading", background=[("active", "#917FB3"), ("!active", "#917FB3")],
+           foreground=[("active", "white"), ("!active", "white")])
         style.map("Treeview", background=[("selected", "#000080")])
         self.table.place(x=360, y=150, height=260)
 

@@ -11,6 +11,8 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Wedge
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import StudentData
+
 
 def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
     number_bbox = canvas.bbox(label_ref)
@@ -227,6 +229,9 @@ class ReportFrameTwo(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
+
+        self.students = StudentData.students
+
         # Creating Canvas
         self.canvas = Canvas(
             self,
@@ -242,8 +247,7 @@ class ReportFrameTwo(tk.Frame):
 
         self.canvas.place(x = 0, y = 0)
 
-        #self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
-
+        self.table = None
 
         # temp button
         button1 = tk.Button(self, text="Back to Home",
@@ -255,6 +259,7 @@ class ReportFrameTwo(tk.Frame):
         button2.pack()
 
         self.display_exam_details()
+        #self.display_table()
 
     def display_exam_details(self):
         exam_number_label = self.canvas.create_text(
@@ -279,7 +284,8 @@ class ReportFrameTwo(tk.Frame):
         )
         text_add_border(self.canvas, exam_term_label)
 
-        summary_text = "\n " + "15" + " Notes have been given throughout the exam. \n\n"
+        summary_text = "\n - " + "15" + " Notes have been given throughout the exam. \n\n"
+        summary_text += " - " + "23" + " Students took a break"
         # if waiver
         attendance_summary_label = self.canvas.create_text(
             70.0,
@@ -291,6 +297,57 @@ class ReportFrameTwo(tk.Frame):
         )
         text_add_border(self.canvas, attendance_summary_label, 1, 'white')
 
+    # Display Table
+    def display_table(self):
+
+        # Create a Frame to contain the Treeview
+        frame = ttk.Frame(self, borderwidth=2)
+        frame.place(x=650, y=50)
+
+        # Creating Table
+        self.table = ttk.Treeview(master=frame)
+
+        self.table.tag_configure('oddrow', background='#917FB3')
+        self.table.tag_configure('evenrow', background='#BAA4CA')
+
+        table_columns = self.students.student_table_columns()
+        self.table.configure(columns=table_columns, show="headings")
+        for column in table_columns:
+            self.table.heading(column=column, text=column)
+            self.table.column(column=column, width=70)
+
+        color_j = 0
+        table_data = self.students.student_table_values()
+        for row_data in table_data:
+            color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
+            self.table.insert(parent="", index="end", values=row_data, tags=color_tags)
+            color_j += 1
+
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", rowheight=30, background="#917FB3", fieldbackground="#917FB3", foreground="white",
+                        font=("Calibri", 14 * -1))
+        style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
+                        foreground="white", font=("Calibri", 14 * -1))
+        style.map("Treeview.Heading", background=[("active", "#917FB3"), ("!active", "#917FB3")],
+           foreground=[("active", "white"), ("!active", "white")])
+        style.map("Treeview", background=[("selected", "#000080")])
+
+        # Set the height of the Treeview
+        self.table["height"] = 6
+
+        # Create a vertical scrollbar
+        y_scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.table.yview)
+
+        # Configure the Treeview to use the scrollbar
+        self.table.configure(yscrollcommand=y_scrollbar.set)
+
+        # Pack the Treeview and scrollbar
+        self.table.pack(side="left", fill="both", expand=True)
+        y_scrollbar.pack(side="right", fill="y")
+
+        #self.table.pack(fill="both", expand=True)
+        #self.table.place(x=650, y=50, height=200)
 
 
 

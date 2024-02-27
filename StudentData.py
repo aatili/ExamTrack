@@ -36,7 +36,7 @@ class StudentManager:
 
         # Notes
 
-        self.student_notes = {}
+        self.students_notes = {}
         self.notes_count = 0
 
         # Breaks
@@ -55,16 +55,33 @@ class StudentManager:
 
         self.table_df = pd.DataFrame(columns=list(self.dtype_dict.keys()))
 
+        self.result_table_df = None
+
         # print(table_df.loc[table_df['ID']=='002', 'First Name'].values[0])
 
         '''def get_csv():
             table_df.to_csv('output.csv', index=False)'''
 
     # initiate attendance
-    def student_data_initiate(self):
+    def students_initiate_attendance(self):
         list_id = self.table_df['id'].tolist()
         for i in list_id:
             self.students_attendance[i] = False
+
+    # initiate result table
+    def create_result_table(self):
+        self.result_table_df = self.table_df.copy()
+        self.result_table_df.drop(columns=['major'], inplace=True)
+        self.result_table_df.drop(columns=['tuition'], inplace=True)
+        self.result_table_df.drop(columns=['extra_time'], inplace=True)
+
+        self.result_table_df['breaks'] = self.result_table_df['id'].map(lambda x: self.students_breaks.get(x, [0])[0])
+
+        self.result_table_df['notes'] = self.result_table_df['id'].map(self.students_notes)
+        self.result_table_df['notes'].fillna(0, inplace=True)
+
+        self.result_table_df['attendance'] = 0
+
 
     # CHECKING CSV FILE STRUCTURE
 
@@ -249,12 +266,12 @@ class StudentManager:
     # Notes functions
 
     def student_report_note(self, student_id):
-        if student_id in self.student_notes:
+        if student_id in self.students_notes:
             # If the student exists, increment notes value by 1
-            self.student_notes[student_id] += 1
+            self.students_notes[student_id] += 1
         else:
             # otherwise, initiate
-            self.student_notes[student_id] = 1
+            self.students_notes[student_id] = 1
         self.notes_count += 1
 
     def get_notes_count(self):

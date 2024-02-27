@@ -372,8 +372,6 @@ class StartPage(tk.Frame):
 
             return error_flag
 
-
-
         # continue functionality
 
         def starting_frame_continue():
@@ -414,7 +412,7 @@ class StartPage(tk.Frame):
         button1.pack(side='left')
 
         button2 = tk.Button(self, text="Report Frame Two",
-                            command=lambda: controller.show_frame("ReportFrameTwo"))
+                            command=lambda: [controller.show_frame("ReportFrameTwo"),app.frames["ReportFrameTwo"].display_table()])
         button2.pack(side='left')
 
     # Cache images using thread
