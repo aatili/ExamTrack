@@ -82,7 +82,6 @@ class StudentManager:
 
         self.result_table_df['attendance'] = 0
 
-
     # CHECKING CSV FILE STRUCTURE
 
     def check_csv_struct(self):

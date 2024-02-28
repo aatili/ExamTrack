@@ -141,7 +141,7 @@ class FaceRec(tk.Frame):
                                 bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                                 self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0)
 
-                                if self.loaded_flag==0:
+                                if self.loaded_flag == 0:
                                     self.loaded_flag = 1
                                     # displaying student info
                                     ui_update_labels()
@@ -192,7 +192,7 @@ class FaceRec(tk.Frame):
 
         # Confirm or Cancel Attendance once student recognized
 
-        def rec_confirm_func(student_id): # mode: confirm 1, cancel 0
+        def rec_confirm_func(student_id):
             self.imgholder = tk.PhotoImage(file = "Resources/not_rec.png")
             canvas.itemconfig(profile_pic,image=self.imgholder)
             self.loaded_flag = 0
@@ -218,9 +218,6 @@ class FaceRec(tk.Frame):
             canvas.itemconfig(student_id_label,text="(ID)")
             canvas.itemconfig(student_name_label,text="(Name)")
             canvas.itemconfig(student_major_label,text="(Major)")
-            #canvas.itemconfig(student_extra_time_label,text="?")
-            #canvas.itemconfig(student_tuition_label,text="?")
-
 
         confirm_btn = Button(self, text='Confirm', bd='4',fg="#FFFFFF" ,bg='#812e91',state="disabled",
                            activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'

@@ -10,6 +10,8 @@ import pandas as pd
 from matplotlib.figure import Figure
 from matplotlib.patches import Wedge
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.ticker import MaxNLocator
+
 
 import StudentData
 
@@ -20,15 +22,42 @@ def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
     canvas.tag_raise(label_ref, rect_item)
 
 
-class ReportFrameOne(tk.Frame):
+class ReportFrames(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
-
         self.controller = controller
-        self.bgimg = tk.PhotoImage(file = "Resources/report_background.png")
+
+        self.report_frame_one = tk.Frame(self, width=1200, height=600)
+        self.report_frame_one.place(x=0, y=0)
+
+        self.report_frame_two = tk.Frame(self, width=1200, height=600)
+        #self.report_frame_two.place(x=0, y=0)
+
+        self.frame_one_bg = tk.PhotoImage(file = "Resources/report_background.png")
+
+        self.frame_two_bg = tk.PhotoImage(file = "Resources/interface_background.png")
+
+        # temp button
+        button1 = tk.Button(self, text="Back to Home",
+                            command=lambda: self.controller.show_frame("StartPage"))
+        button1.pack()
+        button2 = tk.Button(self, text="FrameTwo",
+                            command=lambda: [self.report_frame_one.place_forget(),
+                                             self.report_frame_two.place(x=0, y=0)])
+        button2.pack()
+
+        button3 = tk.Button(self, text="FrameOne",
+                            command=lambda: [self.report_frame_one.place(x=0, y=0), self.report_frame_two.place_forget()])
+        button3.pack()
+
+        self.initiate_report_one()
+        self.initiate_report_two()
+
+    def initiate_report_one(self):  # Creates first part of the report
+
         # Creating Canvas
-        self.canvas = Canvas(
-            self,
+        canvas = Canvas(
+            self.report_frame_one,
             bg = "#FF6EC7",
             height = 600,
             width = 1200,
@@ -37,28 +66,16 @@ class ReportFrameOne(tk.Frame):
             relief = "ridge"
         )
 
-        self.canvas.create_image(0,0,anchor=NW,image=self.bgimg)
+        canvas.create_image(0,0,anchor=NW,image=self.frame_one_bg)
 
-        self.canvas.place(x = 0, y = 0)
+        canvas.place(x = 0, y = 0)
 
         #self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
 
 
-        # temp button
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame("StartPage"))
-        button1.pack()
-        button2 = tk.Button(self, text="FrameTwo",
-                            command=lambda: controller.show_frame("ReportFrameTwo"))
-        button2.pack()
+        # Display exam details and summary
 
-        self.display_attendance_graph()
-        self.display_waiver_graph()
-        self.display_exam_details()
-        self.display_manual_confirm_graph()
-
-    def display_exam_details(self):
-        exam_number_label = self.canvas.create_text(
+        exam_number_label = canvas.create_text(
             600.0,
             70.0,
             anchor="nw",
@@ -66,11 +83,11 @@ class ReportFrameOne(tk.Frame):
             fill="#d6b0e8",
             font=("Inter Bold", 20 * -1)
         )
-        text_add_border(self.canvas, exam_number_label)
+        text_add_border(canvas, exam_number_label)
 
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
-        exam_term_label = self.canvas.create_text(
+        exam_term_label = canvas.create_text(
             820.0,
             75.0,
             anchor="nw",
@@ -78,30 +95,19 @@ class ReportFrameOne(tk.Frame):
             fill="#d6b0e8",
             font=("Inter Bold", 16 * -1)
         )
-        text_add_border(self.canvas, exam_term_label)
+        text_add_border(canvas, exam_term_label)
 
         summary_text = "\n" + " - " + "Exams original time: " + "50" + " minutes" + " - Added time: " + "15" + " minutes.\n\n"
         summary_text += " - " + "50" + " Students enlisted for the exam, " + "35" + " of them attended the exam.\n\n"
         summary_text += " - " + "20" + " Students were confirmed using face recognition whereas\n"
         summary_text += "   " + "15" + " Were confirmed manually by the supervisors.\n\n"
         summary_text += " - " + "Most common reason for manual confirm: " + "Face not recognized" + " \n\n"
-        # if waiver
-        summary_text += " - " + "7" + " Students used the waiver option.\n\n"
-        attendance_summary_label = self.canvas.create_text(
-            600.0,
-            150.0,
-            anchor="nw",
-            text=summary_text,
-            fill="white",
-            font=("Inter Bold", 18 * -1)
-        )
-        text_add_border(self.canvas, attendance_summary_label, 1, 'white')
 
-    def display_attendance_graph(self):
+        # Creating Attendance Graph
 
         # Create a frame to hold the canvas
-        frame = tk.Frame(self, bd=3, relief=tk.RAISED, background='#dbc5db')
-        frame.place(x=50, y=70)
+        attendance_frame = tk.Frame(self.report_frame_one, bd=3, relief=tk.RAISED, background='#dbc5db')
+        attendance_frame.place(x=50, y=70)
 
         # Create a Figure instance
         fig = Figure(figsize=(4.5, 2))
@@ -145,16 +151,16 @@ class ReportFrameOne(tk.Frame):
         ax2.set_xlim(- 2.5 * width, 2.5 * width)
 
         # Convert the Figure to a Tkinter canvas
-        canvas = FigureCanvasTkAgg(fig, master=frame)
-        canvas._tkcanvas.config(background='#dbc5db')
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        attendance_canvas = FigureCanvasTkAgg(fig, master=attendance_frame)
+        attendance_canvas._tkcanvas.config(background='#dbc5db')
+        attendance_canvas.draw()
+        attendance_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-    def display_manual_confirm_graph(self):
+        # Manual Confirm Graph
 
         # Create a frame to hold the canvas
-        frame = tk.Frame(self, bd=3, relief=tk.RAISED, background='#dbc5db')
-        frame.place(x=50, y=325)
+        manual_confirm_frame = tk.Frame(self.report_frame_one, bd=3, relief=tk.RAISED, background='#dbc5db')
+        manual_confirm_frame.place(x=50, y=325)
 
         # Sample data
         reason_counts = {'TIME': 10, 'NO PIC': 5, 'FACE_REC': 8, 'OTHER': 7}
@@ -171,7 +177,7 @@ class ReportFrameOne(tk.Frame):
                                           autopct='%1.0f%%', textprops=dict(fontsize=8))
 
         # Draw a circle in the center to make it a donut chart
-        centre_circle = Wedge((0, 0), 0.4, 0, 360, color='white', fill=True)
+        centre_circle = Wedge((0, 0), 0.4, 0, 360, color='#dbc5db', fill=True)
         ax.add_patch(centre_circle)
 
         # Equal aspect ratio ensures that pie is drawn as a circle
@@ -181,60 +187,70 @@ class ReportFrameOne(tk.Frame):
         ax.set_title('Reasons for Manual Confirmation',fontsize='small')
 
         # Convert the Figure to a Tkinter canvas
-        canvas = FigureCanvasTkAgg(fig, master=frame)
-        canvas._tkcanvas.config(background='#8b77a7')
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        manual_confirm_canvas = FigureCanvasTkAgg(fig, master=manual_confirm_frame)
+        manual_confirm_canvas._tkcanvas.config(background='#8b77a7')
+        manual_confirm_canvas.draw()
+        manual_confirm_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-    def display_waiver_graph(self):
+        waiver_temp = True
 
-        # Create a frame to hold the canvas
-        frame = tk.Frame(self, bd=3, relief=tk.RIDGE, background='#dbc5db')
-        frame.place(x=600, y=450)
+        # Disaply Waiver graph if exam had waiver option
+        if waiver_temp:
 
-        # Bar chart parameters
-        waiver_ratio = [0.25, 0.75]
-        waiver_labels = ['Waiver', 'Continued']
-        bottom = 1
-        width = .2
+            # if waiver
+            summary_text += " - " + "7" + " Students used the waiver option.\n\n"
+            # Create a frame to hold the canvas
+            waiver_frame = tk.Frame(self.report_frame_one, bd=3, relief=tk.RIDGE, background='#dbc5db')
+            waiver_frame.place(x=600, y=450)
 
-        # Create a Figure
-        fig = Figure(figsize=(3, 1.1))
-        fig.patch.set_alpha(0)
+            # Bar chart parameters
+            waiver_ratio = [0.25, 0.75]
+            waiver_labels = ['Waiver', 'Continued']
+            bottom = 1
+            width = .2
 
-        # Create an Axes within the Figure
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+            # Create a Figure
+            fig = Figure(figsize=(3, 1.1))
+            fig.patch.set_alpha(0)
 
-        # Adding from the top matches the legend.
-        for j, (height, label) in enumerate(reversed([*zip(waiver_ratio, waiver_labels)])):
-            bottom -= height
-            bc = ax.barh(0, height, width, left=bottom, color='#ff7f0e', label=label,
-                         alpha=0.3 + 0.5 * j, edgecolor='black')
-            ax.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+            # Create an Axes within the Figure
+            ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
-        ax.set_title('Waiver %', fontsize='small', loc='center', pad=-0, y = 0.85)
-        ax.legend( loc='center', bbox_to_anchor=(0.5, 0.1), fontsize='small', ncol=2)
-        ax.axis('off')
-        ax.set_ylim(- 2.5 * width, 2.5 * width)
+            # Adding from the top matches the legend.
+            for j, (height, label) in enumerate(reversed([*zip(waiver_ratio, waiver_labels)])):
+                bottom -= height
+                bc = ax.barh(0, height, width, left=bottom, color='#ff7f0e', label=label,
+                             alpha=0.3 + 0.5 * j, edgecolor='black')
+                ax.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
-        # Convert the Figure to a Tkinter canvas
-        canvas = FigureCanvasTkAgg(fig, master=frame)
-        canvas._tkcanvas.config(background='#dbc5db')
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            ax.set_title('Waiver %', fontsize='small', loc='center', pad=-0, y = 0.85)
+            ax.legend( loc='center', bbox_to_anchor=(0.5, 0.1), fontsize='small', ncol=2)
+            ax.axis('off')
+            ax.set_ylim(- 2.5 * width, 2.5 * width)
 
+            # Convert the Figure to a Tkinter canvas
+            waiver_canvas = FigureCanvasTkAgg(fig, master=waiver_frame)
+            waiver_canvas._tkcanvas.config(background='#dbc5db')
+            waiver_canvas.draw()
+            waiver_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-class ReportFrameTwo(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        self.controller = controller
-        self.bgimg = tk.PhotoImage(file = "Resources/interface_background.png")
+        # Displaying summary at the end (in case we need to add waiver info)
 
-        self.students = StudentData.students
+        attendance_summary_label = canvas.create_text(
+            600.0,
+            150.0,
+            anchor="nw",
+            text=summary_text,
+            fill="white",
+            font=("Inter Bold", 18 * -1)
+        )
+        text_add_border(canvas, attendance_summary_label, 1, 'white')
+
+    def initiate_report_two(self):
 
         # Creating Canvas
-        self.canvas = Canvas(
-            self,
+        canvas = Canvas(
+            self.report_frame_two,
             bg = "#FF6EC7",
             height = 600,
             width = 1200,
@@ -243,63 +259,185 @@ class ReportFrameTwo(tk.Frame):
             relief = "ridge"
         )
 
-        self.canvas.create_image(0,0,anchor=NW,image=self.bgimg)
+        canvas.create_image(0,0,anchor=NW,image=self.frame_two_bg)
 
-        self.canvas.place(x = 0, y = 0)
+        canvas.place(x = 0, y = 0)
 
-        self.table = None
-
-        # temp button
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame("StartPage"))
-        button1.pack()
-
-        button2 = tk.Button(self, text="FrameOne",
-                            command=lambda: controller.show_frame("ReportFrameOne"))
-        button2.pack()
-
-        self.display_exam_details()
-        #self.display_table()
-
-    def display_exam_details(self):
-        exam_number_label = self.canvas.create_text(
+        exam_number_label = canvas.create_text(
             70.0,
-            50.0,
+            20.0,
             anchor="nw",
             text=" Exam Number: " + "24133" + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 20 * -1)
         )
-        text_add_border(self.canvas, exam_number_label)
+        text_add_border(canvas, exam_number_label)
 
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
-        exam_term_label = self.canvas.create_text(
+        exam_term_label = canvas.create_text(
             290.0,
-            55.0,
+            20.0,
             anchor="nw",
             text=" " + "MoedA" + " - " + d1 + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 16 * -1)
         )
-        text_add_border(self.canvas, exam_term_label)
+        text_add_border(canvas, exam_term_label)
 
         summary_text = "\n - " + "15" + " Notes have been given throughout the exam. \n\n"
-        summary_text += " - " + "23" + " Students took a break"
-        # if waiver
-        attendance_summary_label = self.canvas.create_text(
+        summary_text += " - " + "23" + " Students took a break\n\n"
+        summary_text += " - " + "Break length on average: " + "12" + " minutes " + "35" + " seconds \n\n"
+
+        attendance_summary_label = canvas.create_text(
             70.0,
-            125.0,
+            70.0,
             anchor="nw",
             text=summary_text,
             fill="white",
             font=("Inter Bold", 18 * -1)
         )
-        text_add_border(self.canvas, attendance_summary_label, 1, 'white')
+        text_add_border(canvas, attendance_summary_label, 1, 'white')
 
+        # Display Notes graph (hist)
+
+        # Create a frame to hold the canvas
+        notes_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
+        notes_frame.place(x=550, y=20)
+
+        notes_dict = {'311244057' : 3 , '206902111' : 2 , '311255932' : 1 , '909090122' : 1,
+                      '311244157' : 3 , '216902111' : 2 , '312255932' : 1 , '929090122' : 1,
+                      '311244151' : 3 , '216902112' : 2 , '312255933' : 1 , '929090124' : 1}
+        # Convert dictionary keys and values to lists
+        student_ids = list(notes_dict.keys())
+        notes_given = list(notes_dict.values())
+
+        # Create a new figure
+        fig = Figure(figsize=(6, 3))
+        fig.patch.set_alpha(0)
+
+        # Add subplot
+        ax = fig.add_subplot(111)
+
+        # Create histogram
+        ax.bar(student_ids, notes_given, width=0.3,color='#d2700a')
+
+        ax.set_facecolor('#dbc5db')
+
+        # Rotate the ID labels vertically
+        ax.set_xticklabels(student_ids, rotation=315)
+
+        # Set the size of the x-axis label ticks
+        ax.tick_params(axis='x', which='major', labelsize=8)  # Adjust the label size as needed (here, 10 points)
+
+
+        # Set y-axis ticks to integers only
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        # Adjust padding to make the plot take less space
+        fig.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.25)
+
+        # Add labels and title
+        # ax.set_xlabel('Student ID')
+        ax.set_ylabel('Number of Notes Given')
+        ax.set_title('Histogram of Notes Given by Student', fontsize='medium')
+
+        # Convert the Figure to a Tkinter canvas
+        notes_canvas = FigureCanvasTkAgg(fig, master=notes_frame)
+        notes_canvas._tkcanvas.config(background='#8b77a7')
+        notes_canvas.draw()
+        notes_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Breaks Reasons Graph
+
+        # Create a frame to hold the canvas
+        breaks_reasons_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.SUNKEN, background='#dbc5db')
+        breaks_reasons_frame.place(x=835, y=360)
+
+        # Create a Figure instance
+        fig = Figure(figsize=(3, 2))
+        fig.patch.set_alpha(0)
+
+        # Add subplot
+        ax = fig.add_subplot(111)
+
+        # Pie chart parameters
+        overall_ratios = [0.7, .2, 0.1]
+        labels = ['Restroom', 'Medical', 'Other']
+        explode = [0, 0, 0.1]
+        angle = -180 * overall_ratios[0]
+        wedges, *_, texts = ax.pie(overall_ratios, autopct='%1.1f%%', startangle=angle, labels=labels, explode=explode,
+                                    colors=['#1f77b4', '#ff7f0e', '#2ca02c'])
+        ax.set_title('Breaks Reasons',fontsize='medium')
+
+        # Set label size
+        for text in texts:
+            text.set_fontsize(8)
+
+        # Convert the Figure to a Tkinter canvas
+        breaks_reasons_canvas = FigureCanvasTkAgg(fig, master=breaks_reasons_frame)
+        breaks_reasons_canvas._tkcanvas.config(background='#dbc5db')
+        breaks_reasons_canvas.draw()
+        breaks_reasons_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Display Breaks Time Distribution
+
+        # Create a frame to hold the canvas
+        breaks_time_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
+        breaks_time_frame.place(x=350, y=360)
+
+        breaks_dict = {'311244057' : 150 , '206902111' : 200 , '311255932' : 500 , '909090122' : 1200,
+                      '311244157' : 800 , '216902111' : 600 , '312255932' : 750 , '929090122' : 900,
+                      '311244151' : 1100 , '216902112' : 620 , '312255933' : 720 , '929090124' : 270}
+        # Convert dictionary keys and values to lists
+        student_ids_b = list(breaks_dict.keys())
+        student_breaks_time = list(breaks_dict.values())
+
+        break_times_minutes = [time / 60 for time in student_breaks_time]
+
+        # Create a new figure
+        fig = Figure(figsize=(4, 2))
+        fig.patch.set_alpha(0)
+
+        # Add subplot
+        ax = fig.add_subplot(111)
+
+        # Create histogram
+        ax.bar(student_ids_b, break_times_minutes, width=0.3,color='blue')
+
+        ax.set_facecolor('#dbc5db')
+
+        # Rotate the ID labels vertically
+        ax.set_xticklabels(student_ids, rotation=315)
+
+        # Hide the labels on the x-axis
+        ax.set_xticklabels([])
+
+        # Set y-axis ticks to integers only
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        # Adjust padding to make the plot take less space
+        fig.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
+
+        # Add labels and title
+        ax.set_ylabel('Break Time (minutes)')
+        ax.set_title('Break Time Distribution', fontsize='medium')
+
+        # Convert the Figure to a Tkinter canvas
+        breaks_time_canvas = FigureCanvasTkAgg(fig, master=breaks_time_frame)
+        breaks_time_canvas._tkcanvas.config(background='#dbc5db')
+        breaks_time_canvas.draw()
+        breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+
+
+
+
+    # self.table = None
+    # self.display_table()
     # Display Table
     def display_table(self):
-
         # Create a Frame to contain the Treeview
         frame = ttk.Frame(self, borderwidth=2)
         frame.place(x=650, y=50)
