@@ -13,6 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.ticker import MaxNLocator
 
 
+import ExamConfig
 import StudentData
 
 
@@ -27,6 +28,11 @@ class ReportFrames(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
 
+        self.exam = ExamConfig.cur_exam
+        self.students = StudentData.students
+
+        self.report_data = {}
+
         self.report_frame_one = tk.Frame(self, width=1200, height=600)
         self.report_frame_one.place(x=0, y=0)
 
@@ -36,6 +42,8 @@ class ReportFrames(tk.Frame):
         self.frame_one_bg = tk.PhotoImage(file = "Resources/report_background.png")
 
         self.frame_two_bg = tk.PhotoImage(file = "Resources/interface_background.png")
+
+        self.img_avg_break = tk.PhotoImage(file = "Resources/avg_break.png")
 
         # temp button
         button1 = tk.Button(self, text="Back to Home",
@@ -50,8 +58,26 @@ class ReportFrames(tk.Frame):
                             command=lambda: [self.report_frame_one.place(x=0, y=0), self.report_frame_two.place_forget()])
         button3.pack()
 
+    def create_report(self):
+        if not self.exam.is_loaded_exam():
+            # Exam Related
+            self.report_data['exam_number'] = self.exam.get_exam_number()
+            self.report_data['term'] = self.exam.get_exam_term()
+            self.report_data['date'] = self.exam.get_exam_date()
+            self.report_data['duration'] = self.exam.get_exam_duration()
+            self.report_data['added_time'] = self.exam.get_exam_added_time()
+            self.report_data['waiver_available'] = self.exam.is_waiver_available()
+
+            # Students Related
+            self.report_data['enlisted_count'] = self.students.get_students_count()
+            self.report_data['attendance_count'] = self.students.get_students_attendance_count()
+            self.report_data['auto_confirm_count'] = self.students.get_auto_confirm_count()
+            self.report_data['manual_confirm_count'] = self.students.get_manual_confirm_count()
+            self.report_data['manual_confirm_hist'] = self.students.get_manual_confirm_hist()
+            self.report_data['waiver_count'] = self.students.get_waiver_count()
+
         self.initiate_report_one()
-        self.initiate_report_two()
+        #self.initiate_report_two()
 
     def initiate_report_one(self):  # Creates first part of the report
 
@@ -70,8 +96,7 @@ class ReportFrames(tk.Frame):
 
         canvas.place(x = 0, y = 0)
 
-        #self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
-
+        # self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
 
         # Display exam details and summary
 
@@ -79,29 +104,29 @@ class ReportFrames(tk.Frame):
             600.0,
             70.0,
             anchor="nw",
-            text=" Exam Number: " + "24133" + " ",
+            text=" Exam Number: " + self.report_data['exam_number'] + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 20 * -1)
         )
         text_add_border(canvas, exam_number_label)
 
-        today = date.today()
-        d1 = today.strftime("%d/%m/%Y")
         exam_term_label = canvas.create_text(
             820.0,
             75.0,
             anchor="nw",
-            text=" " + "MoedA" + " - " + d1 + " ",
+            text=" " + self.report_data['term'] + " - " + self.report_data['date'] + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 16 * -1)
         )
         text_add_border(canvas, exam_term_label)
 
-        summary_text = "\n" + " - " + "Exams original time: " + "50" + " minutes" + " - Added time: " + "15" + " minutes.\n\n"
-        summary_text += " - " + "50" + " Students enlisted for the exam, " + "35" + " of them attended the exam.\n\n"
-        summary_text += " - " + "20" + " Students were confirmed using face recognition whereas\n"
-        summary_text += "   " + "15" + " Were confirmed manually by the supervisors.\n\n"
-        summary_text += " - " + "Most common reason for manual confirm: " + "Face not recognized" + " \n\n"
+        summary_text = "\n" + " - " + "Exams original time: " + str(self.report_data['duration']) + " minutes" +\
+                       " - Added time: " + str(self.report_data['added_time']) + " minutes.\n\n"
+        summary_text += " - " + str(self.report_data['enlisted_count']) + " Students enlisted for the exam, " +\
+                        str(self.report_data['attendance_count']) + " of them attended the exam.\n\n"
+        summary_text += " - " + str(self.report_data['auto_confirm_count']) + " Students were confirmed using face " \
+                                                                         "recognition whereas\n"
+        summary_text += "   " + str(self.report_data['manual_confirm_count']) + " Were confirmed manually by the supervisors.\n\n"
 
         # Creating Attendance Graph
 
@@ -118,9 +143,10 @@ class ReportFrames(tk.Frame):
         ax2 = fig.add_subplot(122)
 
         fig.subplots_adjust(wspace=0)
-
+        attended_perc = round(self.report_data['attendance_count'] / self.report_data['enlisted_count'], 2)
+        absent_perc = 1-attended_perc
         # Pie chart parameters
-        overall_ratios = [0.7, .3]
+        overall_ratios = [attended_perc, absent_perc]
         labels = ['Attended', 'Absent']
         explode = [0.1, 0]
         angle = -180 * overall_ratios[0]
@@ -133,7 +159,8 @@ class ReportFrames(tk.Frame):
             text.set_fontsize(12)
 
         # Bar chart parameters
-        method_ratio = [0.81, .19]
+        manual_confirm_perc = round(self.report_data['manual_confirm_count'] / self.report_data['attendance_count'], 2)
+        method_ratio = [1-manual_confirm_perc, manual_confirm_perc]
         method_labels = ['Auto', 'Manual']
         bottom = 1
         width = .2
@@ -156,14 +183,14 @@ class ReportFrames(tk.Frame):
         attendance_canvas.draw()
         attendance_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        # Manual Confirm Graph
+        # Manual Confirm Reasons Graph
 
         # Create a frame to hold the canvas
         manual_confirm_frame = tk.Frame(self.report_frame_one, bd=3, relief=tk.RAISED, background='#dbc5db')
         manual_confirm_frame.place(x=50, y=325)
 
-        # Sample data
-        reason_counts = {'TIME': 10, 'NO PIC': 5, 'FACE_REC': 8, 'OTHER': 7}
+        # Manual confirm reasons data
+        reason_counts = self.report_data['manual_confirm_hist']
         reason_labels = list(reason_counts.keys())
         reason_values = list(reason_counts.values())
 
@@ -192,19 +219,18 @@ class ReportFrames(tk.Frame):
         manual_confirm_canvas.draw()
         manual_confirm_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        waiver_temp = True
-
         # Disaply Waiver graph if exam had waiver option
-        if waiver_temp:
+        if self.report_data['waiver_available']:
 
             # if waiver
-            summary_text += " - " + "7" + " Students used the waiver option.\n\n"
+            summary_text += " - " + str(self.report_data['waiver_count']) + " Students used the waiver option.\n\n"
             # Create a frame to hold the canvas
             waiver_frame = tk.Frame(self.report_frame_one, bd=3, relief=tk.RIDGE, background='#dbc5db')
             waiver_frame.place(x=600, y=450)
 
             # Bar chart parameters
-            waiver_ratio = [0.25, 0.75]
+            waiver_perc = round(self.report_data['waiver_count'] / self.report_data['attendance_count'], 2)
+            waiver_ratio = [waiver_perc, 1-waiver_perc]
             waiver_labels = ['Waiver', 'Continued']
             bottom = 1
             width = .2
@@ -235,6 +261,8 @@ class ReportFrames(tk.Frame):
             waiver_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         # Displaying summary at the end (in case we need to add waiver info)
+        max_reason = max(self.report_data["manual_confirm_hist"], key=self.report_data["manual_confirm_hist"].get)
+        summary_text += " - " + "Most common reason for manual confirm: " + max_reason + " \n\n"
 
         attendance_summary_label = canvas.create_text(
             600.0,
@@ -339,8 +367,8 @@ class ReportFrames(tk.Frame):
 
         # Add labels and title
         # ax.set_xlabel('Student ID')
-        ax.set_ylabel('Number of Notes Given')
-        ax.set_title('Histogram of Notes Given by Student', fontsize='medium')
+        ax.set_ylabel('Number of Notes')
+        ax.set_title('Number of Notes Given by Student', fontsize='medium')
 
         # Convert the Figure to a Tkinter canvas
         notes_canvas = FigureCanvasTkAgg(fig, master=notes_frame)
@@ -403,18 +431,28 @@ class ReportFrames(tk.Frame):
         ax = fig.add_subplot(111)
 
         # Create histogram
-        ax.bar(student_ids_b, break_times_minutes, width=0.3,color='blue')
+        #ax.bar(student_ids_b, break_times_minutes, width=0.3,color='#ad0309')
 
-        ax.set_facecolor('#dbc5db')
+        # Create scatter plot
+        ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
 
-        # Rotate the ID labels vertically
-        ax.set_xticklabels(student_ids, rotation=315)
+        # Calculate the average break time
+        average_break_time = np.mean(break_times_minutes)
+
+        # Display the average break time as a horizontal line
+        ax.axhline(y=average_break_time, color='red', linestyle='--', label='Average Break Time')
+
+        ax.set_facecolor('#8b77a7')
 
         # Hide the labels on the x-axis
         ax.set_xticklabels([])
 
         # Set y-axis ticks to integers only
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        # Add a legend
+        #ax.legend()
+        canvas.create_image(350, 320, anchor=NW, image=self.img_avg_break)
 
         # Adjust padding to make the plot take less space
         fig.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
@@ -428,6 +466,11 @@ class ReportFrames(tk.Frame):
         breaks_time_canvas._tkcanvas.config(background='#dbc5db')
         breaks_time_canvas.draw()
         breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Break features buttons
+        view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray')
+        view_table_btn.place(x = 70,y = 290)
 
 
 

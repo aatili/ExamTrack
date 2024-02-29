@@ -79,6 +79,7 @@ class StudentManager:
 
         self.result_table_df['notes'] = self.result_table_df['id'].map(self.students_notes)
         self.result_table_df['notes'].fillna(0, inplace=True)
+        self.result_table_df['notes'] = self.result_table_df['notes'].astype(int)
 
         self.result_table_df['attendance'] = 0
 
@@ -113,7 +114,7 @@ class StudentManager:
             return False
         return True
 
-    # DATAFRAME GET
+    # DATAFRAME / DICT GET
 
     def get_student_df_ref(self):
         return self.table_df
@@ -127,7 +128,22 @@ class StudentManager:
     def student_table_ids(self):
         return self.table_df['id'].tolist()
 
-    # Student GET Functions
+    def get_students_count(self):
+        return len(self.students_attendance)
+
+    def get_manual_confirm_count(self):
+        return len(self.students_manual_confirm)
+
+    def get_auto_confirm_count(self):
+        return len(self.students_auto_confirm)
+
+    def get_students_attendance_count(self):  # Current students plus the students that used waiver
+        return len(self.students_manual_confirm) + len(self.students_auto_confirm)
+
+    def get_waiver_count(self):
+        return len(self.students_waiver)
+
+    # Student GET Attributes Functions
     def student_get_name(self, student_id):
         temp_first = "No"
         temp_last = "Name"

@@ -233,7 +233,6 @@ class UserInterface(tk.Frame):
                 self.waiver_btn.place(x=700, y=480)
                 self.waiver_btn["state"] = "disabled"
 
-
         def table_select_row(a):  # view selected row items
             cur_item = self.table.focus()
             cur_values = self.table.item(cur_item,option='values') # this option keeps ID as string
@@ -535,7 +534,9 @@ class UserInterface(tk.Frame):
 
             # add minute to time variable
             def add_total_seconds():
-                self.total_seconds += int(add_time_box.get()) * 60
+                temp_added = int(add_time_box.get())
+                self.total_seconds += temp_added * 60
+                ExamConfig.cur_exam.add_time(temp_added)
                 add_time_window.destroy()
 
             # Buttons
@@ -709,6 +710,15 @@ class UserInterface(tk.Frame):
                                       activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                       command=lambda: student_undo_waiver(self.current_id))
         #self.undo_waiver_btn.place(x=700, y=480)
+
+
+        # View Report
+        self.view_report_btn = Button(self, text='View Report', bd='4',fg="#FFFFFF" ,bg='#812e91',
+                                      activebackground='#917FB3',font=("Calibri", 16 * -1),height='1',width='14'
+                                      ,command=lambda: [controller.frames["ReportFrames"].create_report(),
+                                                        controller.show_frame("ReportFrames")])
+
+        self.view_report_btn.place(x = 950,y = 500)
 
     def initiate_time(self):
         self.waiver_available = self.exam.is_waiver_available()
