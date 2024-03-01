@@ -75,6 +75,7 @@ class NotesFeature:
                     ref.child(key).update(value)
             except ValueError:
                 messagebox.showerror("Add Note Error","Failed to submit.",parent=note_window)
+            students.student_report_note(noted_id)
             messagebox.showinfo("Add Note Message","Submitted succesfully.",parent=note_window)
             note_window.destroy()
 

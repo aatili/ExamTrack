@@ -20,6 +20,12 @@ class ManualConfirmReason(Enum):
     OTHER = "Other"
 
 
+class BreakReason(Enum):
+    RESTROOM = 'Restroom'
+    MEDICAL = "Medical"
+    OTHER = "Other"
+
+
 class StudentManager:
     def __init__(self):
         # Attendance and Confirmation
@@ -44,6 +50,9 @@ class StudentManager:
         self.students_breaks = {}  # contains: [number of breaks, list of time(seconds) and list of reasons for each break]
         self.current_break = {}  # contains : [timestamp of current break]
 
+        self.breaks_reasons_hist = {attr.value: 0 for attr in BreakReason}
+
+        # Dataframe
         self.dtype_dict = {
             "id": str,  # Specify 'id' column as string to preserve leading zeros
             "first_name": str,
@@ -134,6 +143,9 @@ class StudentManager:
     def get_manual_confirm_count(self):
         return len(self.students_manual_confirm)
 
+    def get_manual_confirm_hist(self):
+        return self.manual_confirm_hist
+
     def get_auto_confirm_count(self):
         return len(self.students_auto_confirm)
 
@@ -142,6 +154,35 @@ class StudentManager:
 
     def get_waiver_count(self):
         return len(self.students_waiver)
+
+    def get_breaks_count(self):
+        return len(self.students_breaks)
+
+    def student_get_break_time(self,student_id):
+        if student_id not in self.students_breaks.keys():
+            return 0
+        # Calculate sum of seconds
+        return sum(self.students_breaks[student_id][1])
+
+    def get_avg_break_time(self):  # Returns average time in seconds (rounded down)
+        total_seconds = 0
+        for student_id in self.students_breaks.keys():
+            total_seconds += self.student_get_break_time(student_id)
+        if len(self.students_breaks) != 0:
+            return int(total_seconds/len(self.students_breaks))
+        return 0
+
+    def get_notes_hist(self):
+        return self.students_notes
+
+    def get_breaks_reasons_hist(self):
+        return self.breaks_reasons_hist
+
+    def get_breaks_time_hist(self):
+        breaks_time_hist = {}
+        for student_id in self.students_breaks.keys():
+            breaks_time_hist[student_id] = self.student_get_break_time(student_id)
+        return breaks_time_hist
 
     # Student GET Attributes Functions
     def student_get_name(self, student_id):
@@ -202,9 +243,6 @@ class StudentManager:
                 self.manual_confirm_hist[ManualConfirmReason.OTHER.value] += 1
         return res
 
-    def get_manual_confirm_hist(self):
-        return self.manual_confirm_hist
-
     def student_cancel_attendance(self, student_id):
         if student_id in self.students_attendance.keys():
             self.students_attendance[student_id] = False
@@ -252,6 +290,11 @@ class StudentManager:
         else:
             self.students_breaks[student_id] = [1, [], []]
             self.students_breaks[student_id][2].append(reason)
+        # Check if reason matches any enum value
+        if reason in [member.value for member in BreakReason]:
+            self.breaks_reasons_hist[reason] += 1
+        else:
+            self.breaks_reasons_hist[BreakReason.OTHER.value] += 1
         self.current_break[student_id] = datetime.now()
         return FUNC_SUCCESS
 

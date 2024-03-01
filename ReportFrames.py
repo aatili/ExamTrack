@@ -75,9 +75,15 @@ class ReportFrames(tk.Frame):
             self.report_data['manual_confirm_count'] = self.students.get_manual_confirm_count()
             self.report_data['manual_confirm_hist'] = self.students.get_manual_confirm_hist()
             self.report_data['waiver_count'] = self.students.get_waiver_count()
+            self.report_data['notes_count'] = self.students.get_notes_count()
+            self.report_data['breaks_count'] = self.students.get_breaks_count()
+            self.report_data['avg_break_time'] = self.students.get_avg_break_time()
+            self.report_data['notes_hist'] = self.students.get_notes_hist()
+            self.report_data['breaks_reasons_hist'] = self.students.get_breaks_reasons_hist()
+            self.report_data['breaks_time_hist'] = self.students.get_breaks_time_hist()
 
         self.initiate_report_one()
-        #self.initiate_report_two()
+        self.initiate_report_two()
 
     def initiate_report_one(self):  # Creates first part of the report
 
@@ -104,7 +110,7 @@ class ReportFrames(tk.Frame):
             600.0,
             70.0,
             anchor="nw",
-            text=" Exam Number: " + self.report_data['exam_number'] + " ",
+            text=" Exam Number: " + str(self.report_data['exam_number']) + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 20 * -1)
         )
@@ -143,7 +149,10 @@ class ReportFrames(tk.Frame):
         ax2 = fig.add_subplot(122)
 
         fig.subplots_adjust(wspace=0)
-        attended_perc = round(self.report_data['attendance_count'] / self.report_data['enlisted_count'], 2)
+
+        attended_per = 0
+        if self.report_data['enlisted_count'] != 0:  # Avoiding Divide by 0
+            attended_perc = round(self.report_data['attendance_count'] / self.report_data['enlisted_count'], 2)
         absent_perc = 1-attended_perc
         # Pie chart parameters
         overall_ratios = [attended_perc, absent_perc]
@@ -159,7 +168,9 @@ class ReportFrames(tk.Frame):
             text.set_fontsize(12)
 
         # Bar chart parameters
-        manual_confirm_perc = round(self.report_data['manual_confirm_count'] / self.report_data['attendance_count'], 2)
+        manual_confirm_perc = 0
+        if self.report_data['attendance_count'] != 0:  # Avoiding Divide by 0
+            manual_confirm_perc = round(self.report_data['manual_confirm_count'] / self.report_data['attendance_count'], 2)
         method_ratio = [1-manual_confirm_perc, manual_confirm_perc]
         method_labels = ['Auto', 'Manual']
         bottom = 1
@@ -191,11 +202,15 @@ class ReportFrames(tk.Frame):
 
         # Manual confirm reasons data
         reason_counts = self.report_data['manual_confirm_hist']
-        reason_labels = list(reason_counts.keys())
         reason_values = list(reason_counts.values())
+        reason_labels = list(reason_counts.keys())
+
+        # Remove labels with 0% value
+        '''reason_labels_filtered = [label if value != 0 else '' for label, value in reason_counts.items()]
+        reason_values_filtered = [value for value in reason_values if value != 0]'''
 
         # Create a Figure instance
-        fig = Figure(figsize=(3.5, 2.5))
+        fig = Figure(figsize=(4.5, 2.5))
         ax = fig.add_subplot(111)
         fig.patch.set_alpha(0)
 
@@ -219,7 +234,7 @@ class ReportFrames(tk.Frame):
         manual_confirm_canvas.draw()
         manual_confirm_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        # Disaply Waiver graph if exam had waiver option
+        # Display Waiver graph if exam had waiver option
         if self.report_data['waiver_available']:
 
             # if waiver
@@ -229,7 +244,9 @@ class ReportFrames(tk.Frame):
             waiver_frame.place(x=600, y=450)
 
             # Bar chart parameters
-            waiver_perc = round(self.report_data['waiver_count'] / self.report_data['attendance_count'], 2)
+            waiver_perc = 0
+            if self.report_data['attendance_count'] != 0:  # Avoiding Divide by 0
+                waiver_perc = round(self.report_data['waiver_count'] / self.report_data['attendance_count'], 2)
             waiver_ratio = [waiver_perc, 1-waiver_perc]
             waiver_labels = ['Waiver', 'Continued']
             bottom = 1
@@ -295,7 +312,7 @@ class ReportFrames(tk.Frame):
             70.0,
             20.0,
             anchor="nw",
-            text=" Exam Number: " + "24133" + " ",
+            text=" Exam Number: " + str(self.report_data['exam_number']) + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 20 * -1)
         )
@@ -307,15 +324,20 @@ class ReportFrames(tk.Frame):
             290.0,
             20.0,
             anchor="nw",
-            text=" " + "MoedA" + " - " + d1 + " ",
+            text=" " + self.report_data['term'] + " - " + self.report_data['date'] + " ",
             fill="#d6b0e8",
             font=("Inter Bold", 16 * -1)
         )
         text_add_border(canvas, exam_term_label)
 
-        summary_text = "\n - " + "15" + " Notes have been given throughout the exam. \n\n"
-        summary_text += " - " + "23" + " Students took a break\n\n"
-        summary_text += " - " + "Break length on average: " + "12" + " minutes " + "35" + " seconds \n\n"
+        summary_text = "\n - " + str(self.report_data['notes_count']) + " Notes have been given throughout the exam. \n\n"
+        summary_text += " - " + str(self.report_data['breaks_count']) + " Students took a break\n\n"
+
+        break_avg_seconds = self.report_data['avg_break_time']
+        break_avg_time = divmod(break_avg_seconds, 60)
+
+        summary_text += " - " + "Break length on average: " + str(break_avg_time[0]) + " minutes " \
+                        + str(break_avg_time[1]) + " seconds \n\n"
 
         attendance_summary_label = canvas.create_text(
             70.0,
@@ -333,9 +355,11 @@ class ReportFrames(tk.Frame):
         notes_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
         notes_frame.place(x=550, y=20)
 
-        notes_dict = {'311244057' : 3 , '206902111' : 2 , '311255932' : 1 , '909090122' : 1,
+        '''notes_dict = {'311244057' : 3 , '206902111' : 2 , '311255932' : 1 , '909090122' : 1,
                       '311244157' : 3 , '216902111' : 2 , '312255932' : 1 , '929090122' : 1,
-                      '311244151' : 3 , '216902112' : 2 , '312255933' : 1 , '929090124' : 1}
+                      '311244151' : 3 , '216902112' : 2 , '312255933' : 1 , '929090124' : 1}'''
+
+        notes_dict = self.report_data['notes_hist']
         # Convert dictionary keys and values to lists
         student_ids = list(notes_dict.keys())
         notes_given = list(notes_dict.values())
@@ -389,9 +413,24 @@ class ReportFrames(tk.Frame):
         # Add subplot
         ax = fig.add_subplot(111)
 
+        # Manual confirm reasons data
+        breaks_reasons_counts = self.report_data['breaks_reasons_hist']
+
+        total_count = sum(breaks_reasons_counts.values())
+
         # Pie chart parameters
-        overall_ratios = [0.7, .2, 0.1]
-        labels = ['Restroom', 'Medical', 'Other']
+
+        if total_count != 0:
+            # Calculate ratios for each reason
+            overall_ratios = [count / total_count for count in breaks_reasons_counts.values()]
+        else:
+            overall_ratios = [0 for count in breaks_reasons_counts.values()]
+
+        # Round the ratios to two decimal places
+        overall_ratios = [round(ratio, 2) for ratio in overall_ratios]
+
+        labels = list(breaks_reasons_counts.keys())
+
         explode = [0, 0, 0.1]
         angle = -180 * overall_ratios[0]
         wedges, *_, texts = ax.pie(overall_ratios, autopct='%1.1f%%', startangle=angle, labels=labels, explode=explode,
@@ -414,9 +453,12 @@ class ReportFrames(tk.Frame):
         breaks_time_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
         breaks_time_frame.place(x=350, y=360)
 
-        breaks_dict = {'311244057' : 150 , '206902111' : 200 , '311255932' : 500 , '909090122' : 1200,
+        '''breaks_dict = {'311244057' : 150 , '206902111' : 200 , '311255932' : 500 , '909090122' : 1200,
                       '311244157' : 800 , '216902111' : 600 , '312255932' : 750 , '929090122' : 900,
-                      '311244151' : 1100 , '216902112' : 620 , '312255933' : 720 , '929090124' : 270}
+                      '311244151' : 1100 , '216902112' : 620 , '312255933' : 720 , '929090124' : 270}'''
+
+        breaks_dict = self.report_data['breaks_time_hist']
+
         # Convert dictionary keys and values to lists
         student_ids_b = list(breaks_dict.keys())
         student_breaks_time = list(breaks_dict.values())
