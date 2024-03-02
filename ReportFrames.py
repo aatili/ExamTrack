@@ -4,8 +4,8 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
 from datetime import date,datetime
-
 import pandas as pd
+from tkinter import filedialog
 
 from matplotlib.figure import Figure
 from matplotlib.patches import Wedge
@@ -35,6 +35,8 @@ class ReportFrames(tk.Frame):
 
         self.report_data = ReportData.cur_report
 
+        self.table = None
+
         self.report_frame_one = tk.Frame(self, width=1200, height=600)
         self.report_frame_one.place(x=0, y=0)
 
@@ -51,14 +53,6 @@ class ReportFrames(tk.Frame):
         button1 = tk.Button(self, text="Back to Home",
                             command=lambda: self.controller.show_frame("StartPage"))
         button1.pack()
-        button2 = tk.Button(self, text="FrameTwo",
-                            command=lambda: [self.report_frame_one.place_forget(),
-                                             self.report_frame_two.place(x=0, y=0)])
-        button2.pack()
-
-        button3 = tk.Button(self, text="FrameOne",
-                            command=lambda: [self.report_frame_one.place(x=0, y=0), self.report_frame_two.place_forget()])
-        button3.pack()
 
     def create_report(self):
         if not self.exam.is_loaded_exam():
@@ -84,6 +78,12 @@ class ReportFrames(tk.Frame):
         canvas.place(x = 0, y = 0)
 
         # self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
+
+        next_btn = tk.Button(self.report_frame_one, text='Next', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+                             font=("Calibri", 16 * -1),height='1',width='14'
+                             ,command=lambda: [self.report_frame_one.place_forget(),self.report_frame_two.place(x=0, y=0)])
+
+        next_btn.place(x=990,y=450)
 
         # Display exam details and summary
 
@@ -428,7 +428,7 @@ class ReportFrames(tk.Frame):
 
         # Create a frame to hold the canvas
         breaks_time_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
-        breaks_time_frame.place(x=350, y=360)
+        breaks_time_frame.place(x=335, y=360)
 
         '''breaks_dict = {'311244057' : 150 , '206902111' : 200 , '311255932' : 500 , '909090122' : 1200,
                       '311244157' : 800 , '216902111' : 600 , '312255932' : 750 , '929090122' : 900,
@@ -471,7 +471,7 @@ class ReportFrames(tk.Frame):
 
         # Add a legend
         #ax.legend()
-        canvas.create_image(350, 320, anchor=NW, image=self.img_avg_break)
+        canvas.create_image(335, 320, anchor=NW, image=self.img_avg_break)
 
         # Adjust padding to make the plot take less space
         fig.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
@@ -487,18 +487,31 @@ class ReportFrames(tk.Frame):
         breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         # Break features buttons
-        view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
-                               activebackground='#917FB3', height='1', width='14', disabledforeground='gray')
-        view_table_btn.place(x = 70,y = 290)
+        view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91',
+                                font=("Calibri", 16 * -1), activebackground='#917FB3', height='1', width='14',
+                                disabledforeground='gray', command=self.display_table)
+        view_table_btn.place(x = 70,y = 260)
 
+        back_btn = tk.Button(self.report_frame_two, text='Previous', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+                             font=("Calibri", 16 * -1),height='1',width='14'
+                             ,command=lambda: [self.report_frame_one.place(x=0, y=0), self.report_frame_two.place_forget()])
+
+        back_btn.place(x = 330,y = 260)
 
     # self.table = None
     # self.display_table()
     # Display Table
     def display_table(self):
+
+        table_window = Toplevel(self)
+        table_window.geometry("550x500+200+100")
+        table_window.resizable(False,False)
+        table_window.title("Students Table")
+        table_window.configure(bg='#917FB3')
+
         # Create a Frame to contain the Treeview
-        frame = ttk.Frame(self, borderwidth=2)
-        frame.place(x=650, y=50)
+        frame = ttk.Frame(table_window, borderwidth=2)
+        frame.place(x=50, y=50)
 
         # Creating Table
         self.table = ttk.Treeview(master=frame)
@@ -530,7 +543,7 @@ class ReportFrames(tk.Frame):
         style.map("Treeview", background=[("selected", "#000080")])
 
         # Set the height of the Treeview
-        self.table["height"] = 6
+        self.table["height"] = 7
 
         # Create a vertical scrollbar
         y_scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.table.yview)
@@ -542,8 +555,30 @@ class ReportFrames(tk.Frame):
         self.table.pack(side="left", fill="both", expand=True)
         y_scrollbar.pack(side="right", fill="y")
 
-        #self.table.pack(fill="both", expand=True)
-        #self.table.place(x=650, y=50, height=200)
+        def export_student_table():
+            table_window.withdraw()
+            # Ask user to choose file destination
+            file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+            if file_path:
+                # Export DataFrame to CSV
+                self.students.get_student_df_ref().to_csv(file_path, index=False)
+                print("DataFrame exported to:", file_path)
+            else:
+                print("Export canceled.")
+
+            table_window.deiconify()
+
+        export_btn = tk.Button(table_window, text='Export File...', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+                             font=("Calibri", 16 * -1),height='1',width='14'
+                             ,command=export_student_table)
+
+        export_btn.place(x = 50,y = 400)
+
+        done_btn = tk.Button(table_window, text='Done', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
+                             font=("Calibri", 16 * -1),height='1',width='14'
+                             ,command=lambda : table_window.destroy())
+
+        done_btn.place(x = 200,y = 400)
 
 
 

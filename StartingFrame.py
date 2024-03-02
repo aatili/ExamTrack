@@ -407,7 +407,7 @@ class StartPage(tk.Frame):
 
         # temp button
         button1 = tk.Button(self, text="Report Frame",
-                            command=lambda: controller.show_frame("ReportFrames"))
+                            command=lambda: [controller.frames["ReportFrames"].create_report(),controller.show_frame("ReportFrames")])
         button1.pack(side='left')
 
     # Cache images using thread
