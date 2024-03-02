@@ -16,13 +16,43 @@ import EncodePhotos
 
 from StudentData import *
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+
+def send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password):
+    # Create a MIMEText object to represent the email message
+    email_message = MIMEMultipart()
+    email_message['From'] = sender_email
+    email_message['To'] = receiver_email
+    email_message['Subject'] = subject
+    email_message.attach(MIMEText(message, 'plain'))
+
+    # Connect to the SMTP server and send the email
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()  # Secure the connection
+        server.login(smtp_username, smtp_password)  # Login to the SMTP server
+        server.sendmail(sender_email, receiver_email, email_message.as_string())  # Send the email
+
+'''sender_email = 'exam.track.haifa@gmail.com'
+receiver_email = 'xo93@live.com'
+subject = 'Test Email'
+message = 'This is a test email sent from Python.'
+smtp_server = 'smtp.gmail.com'
+smtp_port = 587
+smtp_username = 'exam.track.haifa@gmail.com'
+smtp_password = 'mqnsuhgxgdivcppc'
+
+send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password)'''
+
 
 # Class used to transition between tkinter pages
 class ExamApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
-        self.title("Exam App")
+        self.title("ExamTrack")
         self.geometry("1200x600+20+20")
         self.resizable(False, False)
         container = tk.Frame(self)

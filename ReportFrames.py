@@ -6,6 +6,7 @@ import numpy as np
 from datetime import date,datetime
 import pandas as pd
 from tkinter import filedialog
+from PIL import ImageGrab
 
 from matplotlib.figure import Figure
 from matplotlib.patches import Wedge
@@ -23,6 +24,24 @@ def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
     number_bbox = canvas.bbox(label_ref)
     rect_item = canvas.create_rectangle(number_bbox, outline=bcolor, width=width)
     canvas.tag_raise(label_ref, rect_item)
+
+
+def take_screenshot(root):
+    # Capture the entire screen
+    #screenshot = ImageGrab.grab()
+
+    # Get the coordinates of the Tkinter window
+    x = root.winfo_rootx()*1.5
+    y = root.winfo_rooty()*1.5
+    w = root.winfo_width()*1.5
+    h = root.winfo_height()*1.5
+
+    # Capture the entire window including decorations
+    screenshot = ImageGrab.grab(bbox=(x, y, x + w, y + h))
+    #screenshot.show()
+
+    # Save the screenshot to a variable (optional)
+    return screenshot
 
 
 class ReportFrames(tk.Frame):
@@ -81,7 +100,7 @@ class ReportFrames(tk.Frame):
 
         next_btn = tk.Button(self.report_frame_one, text='Next', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
                              font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda: [self.report_frame_one.place_forget(),self.report_frame_two.place(x=0, y=0)])
+                             ,command=lambda: [take_screenshot(self),self.report_frame_one.place_forget(),self.report_frame_two.place(x=0, y=0)])
 
         next_btn.place(x=990,y=450)
 

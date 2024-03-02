@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
 import cv2
-from datetime import date,datetime
+from datetime import date, datetime
 import threading
 
 from StudentData import *
