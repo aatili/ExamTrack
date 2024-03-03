@@ -128,7 +128,7 @@ class FaceRec(tk.Frame):
                             bbox = 10 + x1, 10 + y1, x2 - x1, y2 - y1
                             self.img_arr = cvzone.cornerRect(self.img_arr, bbox, rt=0,colorC=(220, 60, 60))
 
-                            matches = face_recognition.compare_faces(self.encode_list_known, encode_face)
+                            matches = face_recognition.compare_faces(self.encode_list_known, encode_face,tolerance=0.5)
                             face_distances = face_recognition.face_distance(self.encode_list_known, encode_face)
 
                             match_index = np.argmin(face_distances)

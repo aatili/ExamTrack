@@ -24,8 +24,12 @@ class EncodePhotos:
     def find_encodings(self):
         for image in self.image_list:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            encode = face_recognition.face_encodings(image)[0]
-            self.encode_list.append(encode)
+            face_locations = face_recognition.face_locations(image)
+            if face_locations:  # Check if any faces are detected
+                encode = face_recognition.face_encodings(image)[0]
+                self.encode_list.append(encode)
+            else:
+                print("No faces detected in the image.")
 
     def encode_images(self):
         try:
