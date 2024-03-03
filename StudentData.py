@@ -128,6 +128,9 @@ class StudentManager:
     def get_student_df_ref(self):
         return self.table_df
 
+    def get_result_table_df_ref(self):
+        return self.result_table_df
+
     def student_table_values(self):
         return self.table_df.values.tolist()
 

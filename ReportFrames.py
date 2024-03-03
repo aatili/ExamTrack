@@ -1,10 +1,14 @@
 from tkinter import *
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox,scrolledtext
-from PIL import Image, ImageTk
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, ttk, messagebox, scrolledtext
 import tkinter as tk
 import numpy as np
-from datetime import date,datetime
+import os
+import re
+
+from datetime import date, datetime
 import pandas as pd
+from PIL import Image, ImageTk
+
 from tkinter import filedialog
 from PIL import ImageGrab
 
@@ -13,11 +17,55 @@ from matplotlib.patches import Wedge
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.ticker import MaxNLocator
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 import ExamConfig
+import FirebaseManager
 import StudentData
 
 import ReportData
+
+# CONSTANTS
+
+APP_EMAIL = "exam.track.haifa@gmail.com"
+APP_PW = 'mqnsuhgxgdivcppc'
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587
+
+
+def send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password, file_paths):
+    try:
+        # Create a MIMEMultipart object to represent the email message
+        email_message = MIMEMultipart()
+        email_message['From'] = sender_email
+        email_message['To'] = receiver_email
+        email_message['Subject'] = subject
+        email_message.attach(MIMEText(message, 'plain'))
+
+        # Attach files to the email
+        for file_path in file_paths:
+            with open(file_path, "rb") as attachment:
+                part = MIMEApplication(attachment.read(), Name=os.path.basename(file_path))
+            # Add header for attachment
+            part['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+            email_message.attach(part)
+
+        # Connect to the SMTP server and send the email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Secure the connection
+            server.login(smtp_username, smtp_password)  # Login to the SMTP server
+            server.sendmail(sender_email, receiver_email, email_message.as_string())  # Send the email
+
+        return True
+    except Exception as e:
+        # Print the exception message
+        print(f"Error sending email: {e}")
+
+        # Return False if there was an error sending the email
+        return False
 
 
 def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
@@ -26,19 +74,31 @@ def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
     canvas.tag_raise(label_ref, rect_item)
 
 
-def take_screenshot(root):
+def take_screenshot(root, ss_number):
+    file_path = os.path.join(FirebaseManager.CACHE_FOLDER_LOCAL, f"report_{ss_number}.png")
+    # Check if the file already exists
+    if os.path.exists(file_path):
+        return
+
     # Capture the entire screen
-    #screenshot = ImageGrab.grab()
+    # screenshot = ImageGrab.grab()
 
     # Get the coordinates of the Tkinter window
-    x = root.winfo_rootx()*1.5
-    y = root.winfo_rooty()*1.5
-    w = root.winfo_width()*1.5
-    h = root.winfo_height()*1.5
+    x = root.winfo_rootx() * 1.5
+    y = root.winfo_rooty() * 1.5
+    w = root.winfo_width() * 1.5
+    h = root.winfo_height() * 1.5
 
     # Capture the entire window including decorations
     screenshot = ImageGrab.grab(bbox=(x, y, x + w, y + h))
-    #screenshot.show()
+    # screenshot.show()
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(FirebaseManager.CACHE_FOLDER_LOCAL):
+        os.makedirs(FirebaseManager.CACHE_FOLDER_LOCAL)
+
+    # Save the screenshot in the folder
+    screenshot.save(file_path)  # You can specify the file name and format here
 
     # Save the screenshot to a variable (optional)
     return screenshot
@@ -46,7 +106,7 @@ def take_screenshot(root):
 
 class ReportFrames(tk.Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
+        tk.Frame.__init__(self, parent)
         self.controller = controller
 
         self.exam = ExamConfig.cur_exam
@@ -54,28 +114,30 @@ class ReportFrames(tk.Frame):
 
         self.report_data = ReportData.cur_report
 
+        self.students_table_df = None
         self.table = None
 
         self.report_frame_one = tk.Frame(self, width=1200, height=600)
         self.report_frame_one.place(x=0, y=0)
 
         self.report_frame_two = tk.Frame(self, width=1200, height=600)
-        #self.report_frame_two.place(x=0, y=0)
+        # self.report_frame_two.place(x=0, y=0)
 
-        self.frame_one_bg = tk.PhotoImage(file = "Resources/report_background.png")
+        self.frame_one_bg = tk.PhotoImage(file="Resources/report_background.png")
 
-        self.frame_two_bg = tk.PhotoImage(file = "Resources/interface_background.png")
+        self.frame_two_bg = tk.PhotoImage(file="Resources/interface_background.png")
 
-        self.img_avg_break = tk.PhotoImage(file = "Resources/avg_break.png")
+        self.img_avg_break = tk.PhotoImage(file="Resources/avg_break.png")
 
         # temp button
-        button1 = tk.Button(self, text="Back to Home",
+        '''button1 = tk.Button(self, text="Back to Home",
                             command=lambda: self.controller.show_frame("StartPage"))
-        button1.pack()
+        button1.pack()'''
 
     def create_report(self):
         if not self.exam.is_loaded_exam():
             self.report_data.create_new_report()
+            self.students.get_result_table_df_ref().to_csv("cachedPictures/data.csv", index=False)
         self.initiate_report_one()
         self.initiate_report_two()
 
@@ -84,25 +146,27 @@ class ReportFrames(tk.Frame):
         # Creating Canvas
         canvas = Canvas(
             self.report_frame_one,
-            bg = "#FF6EC7",
-            height = 600,
-            width = 1200,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
+            bg="#FF6EC7",
+            height=600,
+            width=1200,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
         )
 
-        canvas.create_image(0,0,anchor=NW,image=self.frame_one_bg)
+        canvas.create_image(0, 0, anchor=NW, image=self.frame_one_bg)
 
-        canvas.place(x = 0, y = 0)
+        canvas.place(x=0, y=0)
 
         # self.canvas.create_rectangle(-1, 50, 1200, 500, fill='#8b77a7')
 
-        next_btn = tk.Button(self.report_frame_one, text='Next', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
-                             font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda: [take_screenshot(self),self.report_frame_one.place_forget(),self.report_frame_two.place(x=0, y=0)])
+        next_btn = tk.Button(self.report_frame_one, text='Next', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [take_screenshot(self, 1), self.report_frame_one.place_forget(),
+                                                self.report_frame_two.place(x=0, y=0)])
 
-        next_btn.place(x=990,y=450)
+        next_btn.place(x=990, y=450)
 
         # Display exam details and summary
 
@@ -126,12 +190,12 @@ class ReportFrames(tk.Frame):
         )
         text_add_border(canvas, exam_term_label)
 
-        summary_text = "\n" + " - " + "Exams original time: " + str(self.report_data.get_duration()) + " minutes" +\
+        summary_text = "\n" + " - " + "Exams original time: " + str(self.report_data.get_duration()) + " minutes" + \
                        " - Added time: " + str(self.report_data.get_added_time()) + " minutes.\n\n"
-        summary_text += " - " + str(self.report_data.get_enlisted_count()) + " Students enlisted for the exam, " +\
+        summary_text += " - " + str(self.report_data.get_enlisted_count()) + " Students enlisted for the exam, " + \
                         str(self.report_data.get_attendance_count()) + " of them attended the exam.\n\n"
         summary_text += " - " + str(self.report_data.get_auto_confirm_count()) + " Students were confirmed using face " \
-                                                                         "recognition whereas\n"
+                                                                                 "recognition whereas\n"
         summary_text += "   " + str(self.report_data.get_manual_confirm_count()) + " Were confirmed manually by the " \
                                                                                    "supervisors.\n\n"
 
@@ -154,7 +218,7 @@ class ReportFrames(tk.Frame):
         attended_perc = 0
         if self.report_data.get_enlisted_count() != 0:  # Avoiding Divide by 0
             attended_perc = round(self.report_data.get_attendance_count() / self.report_data.get_enlisted_count(), 2)
-        absent_perc = 1-attended_perc
+        absent_perc = 1 - attended_perc
         # Pie chart parameters
         overall_ratios = [attended_perc, absent_perc]
         labels = ['Attended', 'Absent']
@@ -162,7 +226,7 @@ class ReportFrames(tk.Frame):
         angle = -180 * overall_ratios[0]
         wedges, *_, texts = ax1.pie(overall_ratios, autopct='%1.1f%%', startangle=angle, labels=labels, explode=explode,
                                     colors=['#1f77b4', 'red', '#2ca02c'])
-        ax1.set_title('Overall Attendance',fontsize='medium')
+        ax1.set_title('Overall Attendance', fontsize='medium')
 
         # Set label size
         for text in texts:
@@ -171,8 +235,9 @@ class ReportFrames(tk.Frame):
         # Bar chart parameters
         manual_confirm_perc = 0
         if self.report_data.get_attendance_count() != 0:  # Avoiding Divide by 0
-            manual_confirm_perc = round(self.report_data.manual_confirm_count / self.report_data.get_attendance_count(), 2)
-        method_ratio = [1-manual_confirm_perc, manual_confirm_perc]
+            manual_confirm_perc = round(self.report_data.manual_confirm_count / self.report_data.get_attendance_count(),
+                                        2)
+        method_ratio = [1 - manual_confirm_perc, manual_confirm_perc]
         method_labels = ['Auto', 'Manual']
         bottom = 1
         width = .2
@@ -215,7 +280,8 @@ class ReportFrames(tk.Frame):
         fig.patch.set_alpha(0)
 
         # Plot the donut chart
-        wedges, texts, autotexts = ax.pie(reason_values_filtered, labels=reason_labels_filtered, startangle=90, wedgeprops=dict(width=0.4),
+        wedges, texts, autotexts = ax.pie(reason_values_filtered, labels=reason_labels_filtered, startangle=90,
+                                          wedgeprops=dict(width=0.4),
                                           autopct='%1.0f%%', textprops=dict(fontsize=8))
 
         # Draw a circle in the center to make it a donut chart
@@ -226,7 +292,7 @@ class ReportFrames(tk.Frame):
         ax.axis('equal')
 
         # Add title
-        ax.set_title('Reasons for Manual Confirmation',fontsize='small')
+        ax.set_title('Reasons for Manual Confirmation', fontsize='small')
 
         # Convert the Figure to a Tkinter canvas
         manual_confirm_canvas = FigureCanvasTkAgg(fig, master=manual_confirm_frame)
@@ -247,7 +313,7 @@ class ReportFrames(tk.Frame):
             waiver_perc = 0
             if self.report_data.get_attendance_count() != 0:  # Avoiding Divide by 0
                 waiver_perc = round(self.report_data.get_waiver_count() / self.report_data.get_attendance_count(), 2)
-            waiver_ratio = [waiver_perc, 1-waiver_perc]
+            waiver_ratio = [waiver_perc, 1 - waiver_perc]
             waiver_labels = ['Waiver', 'Continued']
             bottom = 1
             width = .2
@@ -266,8 +332,8 @@ class ReportFrames(tk.Frame):
                              alpha=0.3 + 0.5 * j, edgecolor='black')
                 ax.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
-            ax.set_title('Waiver %', fontsize='small', loc='center', pad=-0, y = 0.85)
-            ax.legend( loc='center', bbox_to_anchor=(0.5, 0.1), fontsize='small', ncol=2)
+            ax.set_title('Waiver %', fontsize='small', loc='center', pad=-0, y=0.85)
+            ax.legend(loc='center', bbox_to_anchor=(0.5, 0.1), fontsize='small', ncol=2)
             ax.axis('off')
             ax.set_ylim(- 2.5 * width, 2.5 * width)
 
@@ -296,17 +362,17 @@ class ReportFrames(tk.Frame):
         # Creating Canvas
         canvas = Canvas(
             self.report_frame_two,
-            bg = "#FF6EC7",
-            height = 600,
-            width = 1200,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
+            bg="#FF6EC7",
+            height=600,
+            width=1200,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
         )
 
-        canvas.create_image(0,0,anchor=NW,image=self.frame_two_bg)
+        canvas.create_image(0, 0, anchor=NW, image=self.frame_two_bg)
 
-        canvas.place(x = 0, y = 0)
+        canvas.place(x=0, y=0)
 
         exam_number_label = canvas.create_text(
             70.0,
@@ -328,7 +394,8 @@ class ReportFrames(tk.Frame):
         )
         text_add_border(canvas, exam_term_label)
 
-        summary_text = "\n - " + str(self.report_data.get_notes_count()) + " Notes have been given throughout the exam. \n\n"
+        summary_text = "\n - " + str(
+            self.report_data.get_notes_count()) + " Notes have been given throughout the exam. \n\n"
         summary_text += " - " + str(self.report_data.get_breaks_count()) + " Students took a break\n\n"
 
         break_avg_seconds = self.report_data.get_avg_break_time()
@@ -380,7 +447,6 @@ class ReportFrames(tk.Frame):
         # Set the size of the x-axis label ticks
         ax.tick_params(axis='x', which='major', labelsize=8)  # Adjust the label size as needed (here, 10 points)
 
-
         # Set y-axis ticks to integers only
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
@@ -429,9 +495,10 @@ class ReportFrames(tk.Frame):
             # Pie chart parameters
 
             angle = -180 * overall_ratios[0]
-            wedges, *_, texts = ax.pie(ratios_filtered, autopct='%1.1f%%', startangle=angle, labels=reasons_labels_filtered,
+            wedges, *_, texts = ax.pie(ratios_filtered, autopct='%1.1f%%', startangle=angle,
+                                       labels=reasons_labels_filtered,
                                        colors=['#1f77b4', '#ff7f0e', '#2ca02c'])
-            ax.set_title('Breaks Reasons',fontsize='medium')
+            ax.set_title('Breaks Reasons', fontsize='medium')
 
             # Set label size
             for text in texts:
@@ -469,7 +536,7 @@ class ReportFrames(tk.Frame):
         ax = fig.add_subplot(111)
 
         # Create histogram
-        #ax.bar(student_ids_b, break_times_minutes, width=0.3,color='#ad0309')
+        # ax.bar(student_ids_b, break_times_minutes, width=0.3,color='#ad0309')
 
         # Create scatter plot
         ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
@@ -489,7 +556,7 @@ class ReportFrames(tk.Frame):
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         # Add a legend
-        #ax.legend()
+        # ax.legend()
         canvas.create_image(335, 320, anchor=NW, image=self.img_avg_break)
 
         # Adjust padding to make the plot take less space
@@ -505,26 +572,79 @@ class ReportFrames(tk.Frame):
         breaks_time_canvas.draw()
         breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        # Break features buttons
+        # Report features buttons
         view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91',
                                 font=("Calibri", 16 * -1), activebackground='#917FB3', height='1', width='14',
                                 disabledforeground='gray', command=self.display_table)
-        view_table_btn.place(x = 70,y = 260)
+        view_table_btn.place(x=70, y=260)
 
-        back_btn = tk.Button(self.report_frame_two, text='Previous', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
-                             font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda: [self.report_frame_one.place(x=0, y=0), self.report_frame_two.place_forget()])
+        email_btn = Button(self.report_frame_two, text='E-Mail Report', bd='4', fg="#FFFFFF", bg='#812e91',
+                           font=("Calibri", 16 * -1), activebackground='#917FB3', height='1', width='14',
+                           disabledforeground='gray', command=lambda: [take_screenshot(self, 2), self.email_report()])
+        email_btn.place(x=70, y=310)
 
-        back_btn.place(x = 330,y = 260)
+        back_btn = tk.Button(self.report_frame_two, text='Previous', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [self.report_frame_one.place(x=0, y=0),
+                                                self.report_frame_two.place_forget()])
 
-    # self.table = None
-    # self.display_table()
+        back_btn.place(x=330, y=260)
+
+    def email_report(self):
+        email_window = Toplevel(self)
+        email_window.geometry("320x155+350+200")
+        email_window.resizable(False, False)
+        email_window.title("E-mail report")
+        email_window.configure(bg='#917FB3')
+        email_window_label = Label(email_window, text="Insert E-Mail:",
+                                       bg='#917FB3', font=("Calibri", 16 * -1))
+        email_window_label.place(x=20, y=20)
+
+        email_window_entry = tk.Entry(email_window, width=32, bg="#dbc5db", font=("Calibri", 16 * -1), borderwidth=3)
+        email_window_entry.place(x=20, y=45)
+
+        # add minute to time variable
+        def email_report_send():
+            mail_recep = email_window_entry.get()
+            # Regular expression pattern for validating email addresses
+            pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+            if re.match(pattern, mail_recep) is not None:
+                sender_email = APP_EMAIL
+                receiver_email = mail_recep
+                subject = 'ExamTrack Report ' + str(self.report_data.get_exam_number())
+                message = " " + self.report_data.get_term() + " - " + self.report_data.get_date() + " \n" + \
+                          'Sent from ExamTrack App.'
+                smtp_server = SMTP_SERVER
+                smtp_port = SMTP_PORT
+                smtp_username = APP_EMAIL
+                smtp_password = APP_PW
+                file_paths = ['cachedPictures/data.csv', 'cachedPictures/report_1.png', 'cachedPictures/report_2.png']
+
+                res = send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password, file_paths)
+                if res:
+                    messagebox.showinfo("E-Mail Message", "E-Mail was sent successfully.")
+                email_window.destroy()
+            else:
+                messagebox.showerror("E-Mail Error", "Invalid E-Mail Address.",parent=email_window)
+
+        # Buttons
+        email_send_btn = Button(email_window, text='Send', bd='4', fg="#FFFFFF", bg='#812e91',
+                                      font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
+                                      disabledforeground='gray', command=email_report_send)
+        email_send_btn.place(x=100, y=100)
+
+        email_cancel_btn = Button(email_window, text='Cancel', bd='4', fg="#FFFFFF", bg='#812e91',
+                                     font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
+                                     disabledforeground='gray', command=email_window.destroy)
+        email_cancel_btn.place(x=205, y=100)
+
     # Display Table
     def display_table(self):
 
         table_window = Toplevel(self)
         table_window.geometry("550x500+200+100")
-        table_window.resizable(False,False)
+        table_window.resizable(False, False)
         table_window.title("Students Table")
         table_window.configure(bg='#917FB3')
 
@@ -558,7 +678,7 @@ class ReportFrames(tk.Frame):
         style.configure("Treeview.Heading", rowheight=30, background="#917FB3", fieldbackground="#917FB3",
                         foreground="white", font=("Calibri", 14 * -1))
         style.map("Treeview.Heading", background=[("active", "#917FB3"), ("!active", "#917FB3")],
-           foreground=[("active", "white"), ("!active", "white")])
+                  foreground=[("active", "white"), ("!active", "white")])
         style.map("Treeview", background=[("selected", "#000080")])
 
         # Set the height of the Treeview
@@ -580,28 +700,23 @@ class ReportFrames(tk.Frame):
             file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
             if file_path:
                 # Export DataFrame to CSV
-                self.students.get_student_df_ref().to_csv(file_path, index=False)
+                self.students.get_result_table_df_ref().to_csv(file_path, index=False)
                 print("DataFrame exported to:", file_path)
             else:
                 print("Export canceled.")
 
             table_window.deiconify()
 
-        export_btn = tk.Button(table_window, text='Export File...', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
-                             font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=export_student_table)
+        export_btn = tk.Button(table_window, text='Export File...', bd='4', fg="#FFFFFF", bg='#812e91',
+                               activebackground='#917FB3',
+                               font=("Calibri", 16 * -1), height='1', width='14'
+                               , command=export_student_table)
 
-        export_btn.place(x = 50,y = 400)
+        export_btn.place(x=50, y=400)
 
-        done_btn = tk.Button(table_window, text='Done', bd='4',fg="#FFFFFF" ,bg='#812e91',activebackground='#917FB3',
-                             font=("Calibri", 16 * -1),height='1',width='14'
-                             ,command=lambda : table_window.destroy())
+        close_btn = tk.Button(table_window, text='Close', bd='4', fg="#FFFFFF", bg='#812e91',
+                              activebackground='#917FB3',
+                              font=("Calibri", 16 * -1), height='1', width='14'
+                              , command=lambda: table_window.destroy())
 
-        done_btn.place(x = 200,y = 400)
-
-
-
-
-
-
-
+        close_btn.place(x=200, y=400)

@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import Canvas, Button, PhotoImage, ttk, messagebox,filedialog
 from PIL import Image, ImageTk
-from datetime import date,datetime
 import tkinter as tk
 import cv2
 import re
@@ -15,36 +14,6 @@ import FirebaseManager
 import EncodePhotos
 
 from StudentData import *
-
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-
-def send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password):
-    # Create a MIMEText object to represent the email message
-    email_message = MIMEMultipart()
-    email_message['From'] = sender_email
-    email_message['To'] = receiver_email
-    email_message['Subject'] = subject
-    email_message.attach(MIMEText(message, 'plain'))
-
-    # Connect to the SMTP server and send the email
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()  # Secure the connection
-        server.login(smtp_username, smtp_password)  # Login to the SMTP server
-        server.sendmail(sender_email, receiver_email, email_message.as_string())  # Send the email
-
-'''sender_email = 'exam.track.haifa@gmail.com'
-receiver_email = 'xo93@live.com'
-subject = 'Test Email'
-message = 'This is a test email sent from Python.'
-smtp_server = 'smtp.gmail.com'
-smtp_port = 587
-smtp_username = 'exam.track.haifa@gmail.com'
-smtp_password = 'mqnsuhgxgdivcppc'
-
-send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password)'''
 
 
 # Class used to transition between tkinter pages
@@ -435,10 +404,6 @@ class StartPage(tk.Frame):
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)
 
-        # temp button
-        button1 = tk.Button(self, text="Report Frame",
-                            command=lambda: [controller.frames["ReportFrames"].create_report(),controller.show_frame("ReportFrames")])
-        button1.pack(side='left')
 
     # Cache images using thread
     def download_and_encode(self):
