@@ -137,6 +137,7 @@ class ReportFrames(tk.Frame):
     def create_report(self):
         if not self.exam.is_loaded_exam():
             self.report_data.create_new_report()
+            self.students.create_result_table()
             self.students.get_result_table_df_ref().to_csv("cachedPictures/data.csv", index=False)
         self.initiate_report_one()
         self.initiate_report_two()
