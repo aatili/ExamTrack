@@ -696,14 +696,14 @@ class ReportFrames(tk.Frame):
     def display_table(self):
 
         table_window = Toplevel(self)
-        table_window.geometry("550x500+200+100")
+        table_window.geometry("800x400+200+100")
         table_window.resizable(False, False)
         table_window.title("Students Table")
         table_window.configure(bg='#917FB3')
 
         # Create a Frame to contain the Treeview
         frame = ttk.Frame(table_window, borderwidth=2)
-        frame.place(x=50, y=50)
+        frame.place(x=20, y=20)
 
         # Creating Table
         self.table = ttk.Treeview(master=frame)
@@ -711,14 +711,18 @@ class ReportFrames(tk.Frame):
         self.table.tag_configure('oddrow', background='#917FB3')
         self.table.tag_configure('evenrow', background='#BAA4CA')
 
-        table_columns = self.students.student_table_columns()
+        table_columns = self.students.result_table_columns()
         self.table.configure(columns=table_columns, show="headings")
         for column in table_columns:
-            self.table.heading(column=column, text=column)
-            self.table.column(column=column, width=70)
+            if column == 'break_time':
+                self.table.heading(column=column, text=column)
+                self.table.column(column=column, width=160)
+            else:
+                self.table.heading(column=column, text=column)
+                self.table.column(column=column, width=80)
 
         color_j = 0
-        table_data = self.students.student_table_values()
+        table_data = self.students.result_table_values()
         for row_data in table_data:
             color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
             self.table.insert(parent="", index="end", values=row_data, tags=color_tags)
@@ -765,11 +769,11 @@ class ReportFrames(tk.Frame):
                                font=("Calibri", 16 * -1), height='1', width='14'
                                , command=export_student_table)
 
-        export_btn.place(x=50, y=400)
+        export_btn.place(x=50, y=300)
 
         close_btn = tk.Button(table_window, text='Close', bd='4', fg="#FFFFFF", bg='#812e91',
                               activebackground='#917FB3',
                               font=("Calibri", 16 * -1), height='1', width='14'
                               , command=lambda: table_window.destroy())
 
-        close_btn.place(x=200, y=400)
+        close_btn.place(x=200, y=300)

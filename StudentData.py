@@ -79,6 +79,7 @@ class StudentManager:
 
     # initiate result table
     def create_result_table(self):
+        print("hi")
         self.result_table_df = self.table_df.copy()
         self.result_table_df.drop(columns=['major'], inplace=True)
         self.result_table_df.drop(columns=['tuition'], inplace=True)
@@ -90,8 +91,36 @@ class StudentManager:
         self.result_table_df['notes'].fillna(0, inplace=True)
         self.result_table_df['notes'] = self.result_table_df['notes'].astype(int)
 
-        self.result_table_df['attendance'] = 0
+        def map_attendance(row):
+            student_id = row['id']
+            if student_id in self.students_waiver:
+                return "Waiver"
+            elif self.student_check_attendance(student_id):
+                return "Attended"
+            else:
+                return "Absent"
+        self.result_table_df['attendance'] = self.result_table_df.apply(map_attendance, axis=1)
 
+        def map_break_time(row):
+            if row['breaks'] > 0:
+                total_time = divmod(self.student_get_break_time(row['id']), 60)
+                return str(int(total_time[0])) + ' minutes ' + str(int(total_time[1])) + ' seconds'
+            else:
+                return 'None'
+        self.result_table_df['break_time'] = self.result_table_df.apply(map_break_time, axis=1)
+
+        def map_confirm_method(row):
+            student_id = row['id']
+            if row['attendance'] != 'Absent':
+                if student_id in self.students_auto_confirm:
+                    return 'Auto'
+                else:
+                    return 'Manual'
+            else:
+                return 'None'
+        self.result_table_df['confirm_method'] = self.result_table_df.apply(map_confirm_method, axis=1)
+        print("hi")
+        print(self.result_table_df)
     # CHECKING CSV FILE STRUCTURE
 
     def check_csv_struct(self):
@@ -134,11 +163,20 @@ class StudentManager:
     def student_table_values(self):
         return self.table_df.values.tolist()
 
+    def result_table_values(self):
+        return self.result_table_df.values.tolist()
+
     def student_table_columns(self):
         return self.table_df.columns.tolist()
 
+    def result_table_columns(self):
+        return self.result_table_df.columns.tolist()
+
     def student_table_ids(self):
         return self.table_df['id'].tolist()
+
+    def result_table_ids(self):
+        return self.result_table_df['id'].tolist()
 
     def get_students_count(self):
         return len(self.students_attendance)

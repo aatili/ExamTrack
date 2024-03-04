@@ -578,11 +578,6 @@ class UserInterface(tk.Frame):
 
         self.face_recognition_btn.place(x=950, y=80)
 
-
-        button2 = tk.Button(self, text="TEST",
-                            command=lambda: [students.create_result_table(), print(students.result_table_df)])
-        button2.pack()
-
         # confirm manually
         def manual_confirm_check(student_id):  # check before calling manual confirm
             if students.student_check_attendance(student_id):
@@ -769,6 +764,7 @@ class UserInterface(tk.Frame):
         style.map("Treeview.Heading", background=[("active", "#917FB3"), ("!active", "#917FB3")],
                   foreground=[("active", "white"), ("!active", "white")])
         style.map("Treeview", background=[("selected", "#000080")])
+        self.table["height"] = 8
         self.table.place(x=360, y=150, height=260)
 
     def enable_face_recognition(self):
