@@ -43,12 +43,12 @@ class ExamApp(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame("StartPage")
 
-        def on_closing():
-            if messagebox.askokcancel("Quit", "Data will be lost, quit?"):
-                FirebaseManager.delete_cache_dir()
-                self.destroy()
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        self.protocol("WM_DELETE_WINDOW", on_closing)
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Data will be lost, quit?"):
+            FirebaseManager.delete_cache_dir()
+            self.destroy()
 
     def show_frame(self, page_name):
         if page_name == "FaceRec" and self.firebase_manager.get_state() == FirebaseManager.AppState.DONE:
@@ -403,7 +403,6 @@ class StartPage(tk.Frame):
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)
-
 
     # Cache images using thread
     def download_and_encode(self):

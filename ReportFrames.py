@@ -4,6 +4,7 @@ import tkinter as tk
 import numpy as np
 import os
 import re
+import shutil
 
 from datetime import date, datetime
 import pandas as pd
@@ -36,7 +37,8 @@ SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
 
 
-def send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password, file_paths):
+def send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password,
+               file_paths):
     try:
         # Create a MIMEMultipart object to represent the email message
         email_message = MIMEMultipart()
@@ -78,7 +80,7 @@ def take_screenshot(root, ss_number):
     file_path = os.path.join(FirebaseManager.CACHE_FOLDER_LOCAL, f"report_{ss_number}.png")
     # Check if the file already exists
     if os.path.exists(file_path):
-        return
+        return False
 
     # Capture the entire screen
     # screenshot = ImageGrab.grab()
@@ -100,14 +102,14 @@ def take_screenshot(root, ss_number):
     # Save the screenshot in the folder
     screenshot.save(file_path)  # You can specify the file name and format here
 
-    # Save the screenshot to a variable (optional)
-    return screenshot
+    return True
 
 
 class ReportFrames(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        self.parent = parent
 
         self.exam = ExamConfig.cur_exam
         self.students = StudentData.students
@@ -168,6 +170,13 @@ class ReportFrames(tk.Frame):
                                                 self.report_frame_two.place(x=0, y=0)])
 
         next_btn.place(x=990, y=450)
+
+        back_btn = tk.Button(self.report_frame_one, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: self.controller.show_frame("UserInterface"))
+
+        back_btn.place(x=20, y=15)
 
         # Display exam details and summary
 
@@ -377,7 +386,7 @@ class ReportFrames(tk.Frame):
 
         exam_number_label = canvas.create_text(
             70.0,
-            20.0,
+            70.0,
             anchor="nw",
             text=" Exam Number: " + str(self.report_data.get_exam_number()) + " ",
             fill="#d6b0e8",
@@ -387,7 +396,7 @@ class ReportFrames(tk.Frame):
 
         exam_term_label = canvas.create_text(
             295.0,
-            25.0,
+            75.0,
             anchor="nw",
             text=" " + self.report_data.get_term() + " - " + self.report_data.get_date() + " ",
             fill="#d6b0e8",
@@ -407,7 +416,7 @@ class ReportFrames(tk.Frame):
 
         attendance_summary_label = canvas.create_text(
             70.0,
-            70.0,
+            115.0,
             anchor="nw",
             text=summary_text,
             fill="white",
@@ -515,7 +524,7 @@ class ReportFrames(tk.Frame):
 
         # Create a frame to hold the canvas
         breaks_time_frame = tk.Frame(self.report_frame_two, bd=3, relief=tk.RAISED, background='#dbc5db')
-        breaks_time_frame.place(x=335, y=360)
+        breaks_time_frame.place(x=355, y=360)
 
         '''breaks_dict = {'311244057' : 150 , '206902111' : 200 , '311255932' : 500 , '909090122' : 1200,
                       '311244157' : 800 , '216902111' : 600 , '312255932' : 750 , '929090122' : 900,
@@ -558,7 +567,7 @@ class ReportFrames(tk.Frame):
 
         # Add a legend
         # ax.legend()
-        canvas.create_image(335, 320, anchor=NW, image=self.img_avg_break)
+        canvas.create_image(355, 320, anchor=NW, image=self.img_avg_break)
 
         # Adjust padding to make the plot take less space
         fig.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
@@ -577,21 +586,61 @@ class ReportFrames(tk.Frame):
         view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91',
                                 font=("Calibri", 16 * -1), activebackground='#917FB3', height='1', width='14',
                                 disabledforeground='gray', command=self.display_table)
-        view_table_btn.place(x=70, y=260)
+        view_table_btn.place(x=20, y=330)
 
         email_btn = Button(self.report_frame_two, text='E-Mail Report', bd='4', fg="#FFFFFF", bg='#812e91',
                            font=("Calibri", 16 * -1), activebackground='#917FB3', height='1', width='14',
                            disabledforeground='gray', command=lambda: [take_screenshot(self, 2), self.email_report()])
-        email_btn.place(x=70, y=310)
+        email_btn.place(x=20, y=380)
 
-        back_btn = tk.Button(self.report_frame_two, text='Previous', bd='4', fg="#FFFFFF", bg='#812e91',
+        export_btn = tk.Button(self.report_frame_two, text='Export Report...', bd='4', fg="#FFFFFF", bg='#812e91',
+                               activebackground='#917FB3',
+                               font=("Calibri", 16 * -1), height='1', width='14',
+                               command=lambda: [take_screenshot(self, 2), self.create_folder_with_files()])
+
+        export_btn.place(x=170, y=330)
+
+        exit_btn = tk.Button(self.report_frame_two, text='Exit', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: [self.report_frame_one.place(x=0, y=0),
-                                                self.report_frame_two.place_forget()])
+                             , command=self.controller.on_closing)
 
-        back_btn.place(x=330, y=260)
+        exit_btn.place(x=170, y=380)
 
+        previous_btn = tk.Button(self.report_frame_two, text='Previous', bd='4', fg="#FFFFFF", bg='#812e91',
+                                 activebackground='#917FB3',
+                                 font=("Calibri", 16 * -1), height='1', width='14'
+                                 , command=lambda: [self.report_frame_one.place(x=0, y=0),
+                                                    self.report_frame_two.place_forget()])
+
+        previous_btn.place(x=20, y=15)
+
+    def create_folder_with_files(self):
+        try:
+            # Prompt the user to select a directory for the new folder
+            folder_path = filedialog.askdirectory(title="Select Location for Folder")
+
+            if folder_path:
+                # Create the new folder
+                new_folder_path = os.path.join(folder_path, f"Report_{self.report_data.get_exam_number()}")
+                os.makedirs(new_folder_path, exist_ok=True)
+
+                # Copy the PNG images and CSV file into the new folder
+                files_to_copy = [
+                    "cachedPictures/report_1.png",
+                    "cachedPictures/report_2.png",
+                    "cachedPictures/data.csv"
+                ]
+                for file in files_to_copy:
+                    shutil.copy(file, new_folder_path)
+
+                # Inform the user that the operation was successful
+                messagebox.showinfo("Success", "Folder created successfully.")
+        except Exception as e:
+            # If an exception occurs, display an error message
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    # send email functionality
     def email_report(self):
         email_window = Toplevel(self)
         email_window.geometry("320x155+350+200")
@@ -599,13 +648,13 @@ class ReportFrames(tk.Frame):
         email_window.title("E-mail report")
         email_window.configure(bg='#917FB3')
         email_window_label = Label(email_window, text="Insert E-Mail:",
-                                       bg='#917FB3', font=("Calibri", 16 * -1))
+                                   bg='#917FB3', font=("Calibri", 16 * -1))
         email_window_label.place(x=20, y=20)
 
         email_window_entry = tk.Entry(email_window, width=32, bg="#dbc5db", font=("Calibri", 16 * -1), borderwidth=3)
         email_window_entry.place(x=20, y=45)
 
-        # add minute to time variable
+        # build email and send
         def email_report_send():
             mail_recep = email_window_entry.get()
             # Regular expression pattern for validating email addresses
@@ -622,22 +671,25 @@ class ReportFrames(tk.Frame):
                 smtp_password = APP_PW
                 file_paths = ['cachedPictures/data.csv', 'cachedPictures/report_1.png', 'cachedPictures/report_2.png']
 
-                res = send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username, smtp_password, file_paths)
+                res = send_email(sender_email, receiver_email, subject, message, smtp_server, smtp_port, smtp_username,
+                                 smtp_password, file_paths)
                 if res:
                     messagebox.showinfo("E-Mail Message", "E-Mail was sent successfully.")
-                email_window.destroy()
+                    email_window.destroy()
+                else:
+                    messagebox.showerror("E-Mail Error", "Error sending E-Mail.", parent=email_window)
             else:
-                messagebox.showerror("E-Mail Error", "Invalid E-Mail Address.",parent=email_window)
+                messagebox.showerror("E-Mail Error", "Invalid E-Mail Address.", parent=email_window)
 
         # Buttons
         email_send_btn = Button(email_window, text='Send', bd='4', fg="#FFFFFF", bg='#812e91',
-                                      font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
-                                      disabledforeground='gray', command=email_report_send)
+                                font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
+                                disabledforeground='gray', command=email_report_send)
         email_send_btn.place(x=100, y=100)
 
         email_cancel_btn = Button(email_window, text='Cancel', bd='4', fg="#FFFFFF", bg='#812e91',
-                                     font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
-                                     disabledforeground='gray', command=email_window.destroy)
+                                  font=("Calibri", 12 * -1), activebackground='#917FB3', height='1', width='11',
+                                  disabledforeground='gray', command=email_window.destroy)
         email_cancel_btn.place(x=205, y=100)
 
     # Display Table
