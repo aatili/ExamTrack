@@ -15,6 +15,7 @@ CACHE_FOLDER_LOCAL = 'cachedPictures'
 FIREBASE_IMAGES_PATH = 'Images'
 FIREBASE_EXAMS_PATH = 'Exams'
 FIREBASE_NOTES_PATH = 'Notes'
+FIREBASE_REPORT_HISTORY_PATH = "ExamHistory"
 
 
 class AppState(Enum):
@@ -57,6 +58,9 @@ class FirebaseManager:
         self.bucket = storage.bucket(app=self.exam_app)
         self.state = AppState.IDLE
         self.images_state_dict = {}
+
+    def get_bucket(self):
+        return self.bucket
 
     # cache images
     def cache_files_from_firebase(self, c_dir):

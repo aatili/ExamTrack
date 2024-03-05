@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import Canvas, Button, PhotoImage, ttk, messagebox,filedialog
+from tkinter import Canvas, Button, PhotoImage, ttk, messagebox, filedialog
 from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
@@ -25,7 +25,7 @@ class ExamApp(tk.Tk):
         self.geometry("1200x600+20+20")
         self.resizable(False, False)
         container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand = True)
+        container.pack(side="top", fill="both", expand=True)
 
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
@@ -35,7 +35,6 @@ class ExamApp(tk.Tk):
         self.firebase_manager = FirebaseManager.firebase_manager
 
         for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrames):
-
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -62,9 +61,9 @@ class ExamApp(tk.Tk):
 class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
+        tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.bgimg = tk.PhotoImage(file = "Resources/start_background.png")
+        self.bgimg = tk.PhotoImage(file="Resources/start_background.png")
 
         self.firebase_manager = FirebaseManager.firebase_manager
         self.encode_photos = EncodePhotos.encode_photos
@@ -72,39 +71,39 @@ class StartPage(tk.Frame):
         # Creating Canvas
         canvas = Canvas(
             self,
-            bg = "#2A2F4F",
-            height = 600,
-            width = 1200,
-            bd = 0,
-            highlightthickness = 0,
-            relief = "ridge"
+            bg="#2A2F4F",
+            height=600,
+            width=1200,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
         )
 
-        canvas.create_image(0,0,anchor=NW,image=self.bgimg)
+        canvas.create_image(0, 0, anchor=NW, image=self.bgimg)
 
-        canvas.place(x = 0, y = 0)
+        canvas.place(x=0, y=0)
 
         # Upload label and picture
 
-        self.upload_pic = tk.PhotoImage(file = "Resources/upload_file.png")
-        panel_upload = tk.Label(self,bd=0,cursor="hand2")
+        self.upload_pic = tk.PhotoImage(file="Resources/upload_file.png")
+        panel_upload = tk.Label(self, bd=0, cursor="hand2")
         panel_upload.place(x=950, y=480)
         panel_upload.configure(image=self.upload_pic)
         panel_upload.tkraise()
 
-        self.confirmed_img = tk.PhotoImage(file = "Resources/confirmed.png")
-        confirmed_img_panel = Label(self, image=self.confirmed_img,borderwidth=0)
+        self.confirmed_img = tk.PhotoImage(file="Resources/confirmed.png")
+        confirmed_img_panel = Label(self, image=self.confirmed_img, borderwidth=0)
         # confirmed_img_panel.place(x=910,y=480)
 
         self.file_uploaded = False
 
         def remove_uploaded_file():
-            self.file_uploaded=0
+            self.file_uploaded = 0
             confirmed_img_panel.place_forget()
             remove_btn.place_forget()
 
-        remove_btn = Button(self, text='Remove', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
-                          activebackground='#917FB3',height='1',width='10',command=remove_uploaded_file)
+        remove_btn = Button(self, text='Remove', bd='3', fg="#FFFFFF", bg='#812e91', font=("Calibri", 12 * -1),
+                            activebackground='#917FB3', height='1', width='10', command=remove_uploaded_file)
         # remove_btn.place(x=1025, y=500)
 
         canvas.create_text(
@@ -120,7 +119,7 @@ class StartPage(tk.Frame):
         self.cap = None
         self.selected_device = 0
         self.capture_running = False
-        self.camera_waiting_small = tk.PhotoImage(file = "Resources/camera_waiting_small.png")
+        self.camera_waiting_small = tk.PhotoImage(file="Resources/camera_waiting_small.png")
 
         # Function to start capture loop
         def start_rec():
@@ -139,8 +138,8 @@ class StartPage(tk.Frame):
 
             if not self.capture_running:
                 self.cap = cv2.VideoCapture(self.selected_device)
-                self.cap.set(3, 240*0.75)
-                self.cap.set(4, 180*0.75)
+                self.cap.set(3, 240 * 0.75)
+                self.cap.set(4, 180 * 0.75)
                 self.capture_running = True
                 scan()  # start the capture loop
             else:
@@ -183,15 +182,15 @@ class StartPage(tk.Frame):
         )
 
         # Create ComboBox to select camera device
-        combo_cameras = ttk.Combobox(self, values=available_devices,state='readonly')
-        combo_cameras.place(x=900,y=165)
+        combo_cameras = ttk.Combobox(self, values=available_devices, state='readonly')
+        combo_cameras.place(x=900, y=165)
         self.selected_device = 0
 
         combo_cameras.bind("<<ComboboxSelected>>", combo_cameras_changed)
 
         # test camera btn
-        test_btn = Button(self, text='Test', bd='3',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 12 * -1),
-                          activebackground='#917FB3',height='1',width='10', command=start_rec)
+        test_btn = Button(self, text='Test', bd='3', fg="#FFFFFF", bg='#812e91', font=("Calibri", 12 * -1),
+                          activebackground='#917FB3', height='1', width='10', command=start_rec)
         test_btn.place(x=950, y=360)
 
         # Select camera  END
@@ -220,7 +219,7 @@ class StartPage(tk.Frame):
         )
 
         # creating combo box
-        combo_terms = ttk.Combobox(self, state="readonly", values=['MoedA', 'MoedB', 'Special'],
+        combo_terms = ttk.Combobox(self, state="readonly", values=['MoedA', 'MoedB', 'MoedC'],
                                    foreground="#917FB3", font=("Calibri", 18 * -1), width=10)
         combo_terms.place(x=525, y=198)
 
@@ -317,7 +316,7 @@ class StartPage(tk.Frame):
                     messagebox.showerror("Exam Error", "Uploaded file structure does not match.")
                     return False
                 self.file_uploaded = True
-                confirmed_img_panel.place(x=910,y=480)
+                confirmed_img_panel.place(x=910, y=480)
                 remove_btn.place(x=1025, y=500)
 
         def check_supervisor_name(str_name):
@@ -397,9 +396,16 @@ class StartPage(tk.Frame):
             # print(ExamConfig.cur_exam.__dict__)
 
         # continue btn
-        continue_btn = Button(self, text='Continue', bd='5',fg="#FFFFFF" ,bg='#812e91',font=("Calibri", 16 * -1),
-                              activebackground='#917FB3',height='1',width='14', command=starting_frame_continue)
+        continue_btn = Button(self, text='Continue', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                              activebackground='#917FB3', height='1', width='14', command=starting_frame_continue)
         continue_btn.place(x=500, y=515)
+
+        # continue btn
+        load_btn = Button(self, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+                          activebackground='#917FB3', height='1', width='14',
+                          command=lambda: [controller.frames["ReportFrames"].create_report(True),
+                                           controller.show_frame("ReportFrames")])
+        load_btn.pack(side='left')
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)

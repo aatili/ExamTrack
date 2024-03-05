@@ -711,7 +711,7 @@ class UserInterface(tk.Frame):
         # View Report
         self.view_report_btn = Button(self, text='View Report', bd='4', fg="#FFFFFF", bg='#812e91',
                                       activebackground='#917FB3', font=("Calibri", 16 * -1), height='1', width='14'
-                                      , command=lambda: [controller.frames["ReportFrames"].create_report(),
+                                      , command=lambda: [controller.frames["ReportFrames"].create_report(False),
                                                          controller.show_frame("ReportFrames")])
 
         self.view_report_btn.place(x=950, y=500)

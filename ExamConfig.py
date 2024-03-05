@@ -14,8 +14,6 @@ class ExamConfig:
         self.exam_supervisors = list(supervisors)
         self.exam_camera = camera_no
 
-        self.loaded_exam = True
-
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
         self.exam_date = d1
@@ -47,9 +45,6 @@ class ExamConfig:
     def is_waiver_available(self):
         return self.waiver_available
 
-    def is_loaded_exam(self):
-        return self.loaded_exam
-
     def add_time(self, duration):
         self.added_time += duration
 
@@ -60,14 +55,12 @@ class ExamConfig:
         self.exam_supervisors = list(supervisors)
         self.exam_camera = camera_no
 
-        self.loaded_exam = False
-
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
         self.exam_date = d1
 
         self.waiver_available = False
-        if term.lower() == 'moedb' or term.lower() == 'special':
+        if term.lower() != 'moeda':
             self.waiver_available = True
 
 

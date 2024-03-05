@@ -79,7 +79,6 @@ class StudentManager:
 
     # initiate result table
     def create_result_table(self):
-        print("hi")
         self.result_table_df = self.table_df.copy()
         self.result_table_df.drop(columns=['major'], inplace=True)
         self.result_table_df.drop(columns=['tuition'], inplace=True)
@@ -119,10 +118,8 @@ class StudentManager:
             else:
                 return 'None'
         self.result_table_df['confirm_method'] = self.result_table_df.apply(map_confirm_method, axis=1)
-        print("hi")
-        print(self.result_table_df)
-    # CHECKING CSV FILE STRUCTURE
 
+    # CHECKING CSV FILE STRUCTURE
     def check_csv_struct(self):
         # Get the columns from the DataFrame
         df_columns = self.table_df.columns

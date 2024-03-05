@@ -136,11 +136,17 @@ class ReportFrames(tk.Frame):
                             command=lambda: self.controller.show_frame("StartPage"))
         button1.pack()'''
 
-    def create_report(self):
-        if not self.exam.is_loaded_exam():
-            self.report_data.create_new_report()
+    def create_report(self, loaded_exam):
+        if not loaded_exam:
             self.students.create_result_table()
-            self.students.get_result_table_df_ref().to_csv("cachedPictures/data.csv", index=False)
+            self.students_table_df = self.students.get_result_table_df_ref()
+            self.students_table_df.to_csv(f"{FirebaseManager.CACHE_FOLDER_LOCAL}/data.csv", index=False)
+            self.report_data.create_new_report()
+            self.report_data.save_report_firebase()
+        else:
+            self.report_data.load_report_from_firebase()
+            self.students_table_df = self.report_data.get_students_table()
+
         self.initiate_report_one()
         self.initiate_report_two()
 
@@ -711,7 +717,7 @@ class ReportFrames(tk.Frame):
         self.table.tag_configure('oddrow', background='#917FB3')
         self.table.tag_configure('evenrow', background='#BAA4CA')
 
-        table_columns = self.students.result_table_columns()
+        table_columns = self.students_table_df.columns.tolist()
         self.table.configure(columns=table_columns, show="headings")
         for column in table_columns:
             if column == 'break_time':
@@ -722,7 +728,7 @@ class ReportFrames(tk.Frame):
                 self.table.column(column=column, width=80)
 
         color_j = 0
-        table_data = self.students.result_table_values()
+        table_data = self.students_table_df.values.tolist()
         for row_data in table_data:
             color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
             self.table.insert(parent="", index="end", values=row_data, tags=color_tags)
@@ -757,7 +763,7 @@ class ReportFrames(tk.Frame):
             file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
             if file_path:
                 # Export DataFrame to CSV
-                self.students.get_result_table_df_ref().to_csv(file_path, index=False)
+                self.students_table_df.to_csv(file_path, index=False)
                 print("DataFrame exported to:", file_path)
             else:
                 print("Export canceled.")
