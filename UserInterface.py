@@ -182,9 +182,13 @@ class UserInterface(tk.Frame):
             font=("Calibri", 12 * -1)
         )
 
-        # Creating Table
+        # Create Table
         # table_columns = student_table_columns()
-        self.table = ttk.Treeview(master=self)
+        # Create a Frame to contain the Treeview
+        self.table_frame = ttk.Frame(self, borderwidth=2)
+        self.table_frame.place(x=360, y=130)
+
+        self.table = ttk.Treeview(master=self.table_frame)
         # table.place(x=360, y=150, height=260)
 
         self.table.tag_configure('oddrow', background='#917FB3')
@@ -209,7 +213,7 @@ class UserInterface(tk.Frame):
                 break_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
 
-                self.undo_waiver_btn.place(x=700, y=480)
+                self.undo_waiver_btn.place(x=700, y=470)
                 self.waiver_btn.place_forget()
                 self.waiver_btn["state"] = "normal"
 
@@ -219,7 +223,7 @@ class UserInterface(tk.Frame):
                 view_breaks_btn["state"] = "normal"
                 if self.exam.is_waiver_available():
                     self.undo_waiver_btn.place_forget()
-                    self.waiver_btn.place(x=700, y=480)
+                    self.waiver_btn.place(x=700, y=470)
                     self.waiver_btn["state"] = "normal"
 
             elif str_state == "not_confirmed":
@@ -228,7 +232,7 @@ class UserInterface(tk.Frame):
                 view_breaks_btn["state"] = "disabled"
                 if self.exam.is_waiver_available():
                     self.undo_waiver_btn.place_forget()
-                    self.waiver_btn.place(x=700, y=480)
+                    self.waiver_btn.place(x=700, y=470)
                     self.waiver_btn["state"] = "disabled"
 
         def table_select_row(a):  # view selected row items
@@ -269,10 +273,10 @@ class UserInterface(tk.Frame):
 
             if students.student_in_break(self.current_id):
                 break_btn.place_forget()
-                back_from_break_btn.place(x=535, y=430)
+                back_from_break_btn.place(x=535, y=420)
             else:
                 back_from_break_btn.place_forget()
-                break_btn.place(x=535, y=430)
+                break_btn.place(x=535, y=420)
 
             self.img_holder = tk.PhotoImage(file=FirebaseManager.get_image_path(self.current_id))
             self.canvas.itemconfig(profile_pic, image=self.img_holder)
@@ -429,7 +433,7 @@ class UserInterface(tk.Frame):
         # Creating original timer labels
         time_note_label = self.canvas.create_text(
             525.0,
-            75.0,
+            55.0,
             anchor="nw",
             text="Time Left",
             fill="#FFFFFF",
@@ -437,7 +441,7 @@ class UserInterface(tk.Frame):
         )
         time_label = self.canvas.create_text(
             525.0,
-            93.0,
+            73.0,
             anchor="nw",
             text="00:00",
             fill="#FFFFFF",
@@ -451,7 +455,7 @@ class UserInterface(tk.Frame):
         # Creating Waiver labels
         self.waiver_label = self.canvas.create_text(
             425.0,
-            75.0,
+            55.0,
             anchor="nw",
             text="Waiver Time",
             fill="#FFFFFF",
@@ -459,7 +463,7 @@ class UserInterface(tk.Frame):
         )
         self.waiver_time_label = self.canvas.create_text(
             430.0,
-            93.0,
+            73.0,
             anchor="nw",
             text="00:00",
             fill="#FFFFFF",
@@ -500,7 +504,7 @@ class UserInterface(tk.Frame):
 
         def start_countdown():
             start_btn["state"] = "disabled"
-            add_time_btn.place(x=595, y=87)
+            add_time_btn.place(x=595, y=67)
             countdown()
             if self.waiver_available:
                 waiver_countdown()
@@ -509,7 +513,7 @@ class UserInterface(tk.Frame):
         start_btn = Button(self, text='Start Exam', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                            activebackground='#917FB3', height='1', width='14', command=start_countdown,
                            disabledforeground='gray')
-        start_btn.place(x=700, y=80)
+        start_btn.place(x=700, y=60)
 
         # Add Time for exam
 
@@ -588,13 +592,13 @@ class UserInterface(tk.Frame):
         confirm_btn = Button(self, text='Manual Confirm', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                              command=lambda: manual_confirm_check(self.current_id))
-        confirm_btn.place(x=700, y=430)
+        confirm_btn.place(x=700, y=420)
 
         # Interface add notes button
         add_notes_btn = Button(self, text='Add Notes', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                command=lambda: self.notes_features.add_note_popup(self.parent, self.current_id))
-        add_notes_btn.place(x=360, y=430)
+        add_notes_btn.place(x=360, y=420)
 
         # View Notes
 
@@ -612,7 +616,7 @@ class UserInterface(tk.Frame):
         view_notes_btn = Button(self, text='View Notes', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                 command=lambda: popup_notes_exist(self.current_id))
-        view_notes_btn.place(x=360, y=480)
+        view_notes_btn.place(x=360, y=470)
 
         self.last_hover_time = datetime.now()
 
@@ -640,7 +644,7 @@ class UserInterface(tk.Frame):
         break_btn = Button(self, text='Break', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                            activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                            command=lambda: student_take_break(self.current_id))
-        break_btn.place(x=535, y=430)
+        break_btn.place(x=535, y=420)
 
         # Back from break check function
         def student_back_from_break(student_id):
@@ -671,7 +675,7 @@ class UserInterface(tk.Frame):
                                  font=("Calibri", 16 * -1),
                                  activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                  command=lambda: self.breaks_feature.view_break_window(self.parent, self.current_id))
-        view_breaks_btn.place(x=535, y=480)
+        view_breaks_btn.place(x=535, y=470)
 
         # waiver
         def student_waiver_popup(student_id):
@@ -679,7 +683,7 @@ class UserInterface(tk.Frame):
                 messagebox.showerror("Waiver Error", "Student not found.")
                 return
             self.waiver_btn.place_forget()
-            self.undo_waiver_btn.place(x=700, y=480)
+            self.undo_waiver_btn.place(x=700, y=470)
             messagebox.showinfo("Waiver Message", "Student waiver successful.")
 
         def student_undo_waiver(student_id):
@@ -692,14 +696,14 @@ class UserInterface(tk.Frame):
                 return
             messagebox.showinfo("Waiver Message", "Undo waiver successful.")
             filter_on_waiver()
-            self.waiver_btn.place(x=700, y=480)
+            self.waiver_btn.place(x=700, y=470)
             self.undo_waiver_btn.place_forget()
 
         # waiver button
         self.waiver_btn = Button(self, text='Waiver', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                  activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                  command=lambda: student_waiver_popup(self.current_id))
-        self.waiver_btn.place(x=700, y=480)
+        self.waiver_btn.place(x=700, y=470)
         if not self.exam.is_waiver_available():  # Show waiver btn only if waiver option is available
             self.waiver_btn["state"] = "disabled"
 
@@ -708,7 +712,7 @@ class UserInterface(tk.Frame):
                                       font=("Calibri", 16 * -1),
                                       activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                       command=lambda: student_undo_waiver(self.current_id))
-        # self.undo_waiver_btn.place(x=700, y=480)
+        # self.undo_waiver_btn.place(x=700, y=470)
 
         # View Report
         self.view_report_btn = Button(self, text='View Report', bd='4', fg="#FFFFFF", bg='#812e91',
@@ -716,9 +720,15 @@ class UserInterface(tk.Frame):
                                       , command=lambda: [controller.frames["ReportFrames"].create_report(False),
                                                          controller.show_frame("ReportFrames")])
 
-        self.view_report_btn.place(x=950, y=500)
+        self.view_report_btn.place(x=950, y=520)
+
+        submit_btn = Button(self, text='Submit Exam', bd='4', fg="#FFFFFF", bg='#812e91',
+                                 font=("Calibri", 16 * -1),
+                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray')
+        submit_btn.place(x=535, y=520)
 
     def initiate_time(self):
+        self.waiver_available = self.exam.is_waiver_available()
         self.extra_time_flag = 0
         self.waiver_total_seconds = ExamConfig.WAIVER_TIME * 60
         self.total_seconds = self.exam.get_exam_duration() * 60
@@ -729,7 +739,7 @@ class UserInterface(tk.Frame):
             self.canvas.itemconfig(self.waiver_time_label, text="")
             self.canvas.create_text(
                 370.0,
-                95.0,
+                75.0,
                 anchor="nw",
                 text="No Waiver Option",
                 fill="#FFFFFF",
@@ -745,8 +755,12 @@ class UserInterface(tk.Frame):
             self.table.heading(column=column, text=column)
             if column == "major":
                 self.table.column(column=column, width=140)
+            elif column == 'tuition':
+                self.table.column(column=column, width=50)
+            elif column == 'extra_time':
+                self.table.column(column=column, width=60)
             else:
-                self.table.column(column=column, width=70)
+                self.table.column(column=column, width=80)
 
         color_j = 0
         table_data = students.student_table_values()
@@ -764,8 +778,18 @@ class UserInterface(tk.Frame):
         style.map("Treeview.Heading", background=[("active", "#917FB3"), ("!active", "#917FB3")],
                   foreground=[("active", "white"), ("!active", "white")])
         style.map("Treeview", background=[("selected", "#000080")])
+
+        # Create a vertical scrollbar
+        y_scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.table.yview)
+
+        # Configure the Treeview to use the scrollbar
+        self.table.configure(yscrollcommand=y_scrollbar.set)
+
         self.table["height"] = 8
-        self.table.place(x=360, y=150, height=260)
+
+        self.table.pack(side="left", fill="both", expand=True)
+        y_scrollbar.pack(side="right", fill="y")
+        #self.table.place(x=360, y=150)
 
     def enable_face_recognition(self):
         self.face_recognition_btn["state"] = 'normal'
