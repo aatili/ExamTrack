@@ -114,6 +114,9 @@ class FirebaseManager:
     def get_notes_reference(self):
         return db.reference(FIREBASE_NOTES_PATH,app=self.exam_app)
 
+    def get_report_history_reference(self):
+        return db.reference(FIREBASE_REPORT_HISTORY_PATH,app=self.exam_app)
+
     def get_student_notes(self,student_id):
         return db.reference(f'{FIREBASE_NOTES_PATH}/{student_id}', app=self.exam_app)
 

@@ -183,6 +183,7 @@ class ReportData:
             csv_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/{report_name}/data.csv")
             csv_data = csv_blob.download_as_string()
             self.students_df = pd.read_csv(io.StringIO(csv_data.decode('utf-8')))
+            self.students_df = self.students_df.fillna('None')
 
             # Assign the values to variables
             self.exam_number = data["exam_number"]

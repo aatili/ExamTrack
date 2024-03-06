@@ -9,6 +9,7 @@ import threading
 import ReportFrames
 import UserInterface
 import FaceRecFrame
+import LandingFrame
 import ExamConfig
 import FirebaseManager
 import EncodePhotos
@@ -34,13 +35,14 @@ class ExamApp(tk.Tk):
 
         self.firebase_manager = FirebaseManager.firebase_manager
 
-        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrames):
+        for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrames,
+                  LandingFrame.LandingFrame):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
 
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame("StartPage")
+        self.show_frame("LandingFrame")
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
@@ -400,12 +402,18 @@ class StartPage(tk.Frame):
                               activebackground='#917FB3', height='1', width='14', command=starting_frame_continue)
         continue_btn.place(x=500, y=515)
 
+        back_btn = tk.Button(self, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [self.controller.show_frame("LandingFrame")])
+        back_btn.place(x=30, y=30)
+
         # continue btn
-        load_btn = Button(self, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        '''load_btn = Button(self, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=lambda: [controller.frames["ReportFrames"].create_report(True),
                                            controller.show_frame("ReportFrames")])
-        load_btn.pack(side='left')
+        load_btn.pack(side='left')'''
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)

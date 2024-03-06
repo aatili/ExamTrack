@@ -6,10 +6,6 @@ import os
 import re
 import shutil
 
-from datetime import date, datetime
-import pandas as pd
-from PIL import Image, ImageTk
-
 from tkinter import filedialog
 from PIL import ImageGrab
 
@@ -119,6 +115,8 @@ class ReportFrames(tk.Frame):
         self.students_table_df = None
         self.table = None
 
+        self.loaded_report = False
+
         self.report_frame_one = tk.Frame(self, width=1200, height=600)
         self.report_frame_one.place(x=0, y=0)
 
@@ -136,14 +134,18 @@ class ReportFrames(tk.Frame):
                             command=lambda: self.controller.show_frame("StartPage"))
         button1.pack()'''
 
-    def create_report(self, loaded_exam):
-        if not loaded_exam:
+    def create_report(self, loaded):
+        if not loaded:
+            self.loaded_report = False
+            # Get student results
             self.students.create_result_table()
             self.students_table_df = self.students.get_result_table_df_ref()
             self.students_table_df.to_csv(f"{FirebaseManager.CACHE_FOLDER_LOCAL}/data.csv", index=False)
+            # create and save report
             self.report_data.create_new_report()
             self.report_data.save_report_firebase()
         else:
+            self.loaded_report = True
             self.report_data.load_report_from_firebase()
             self.students_table_df = self.report_data.get_students_table()
 
@@ -180,9 +182,17 @@ class ReportFrames(tk.Frame):
         back_btn = tk.Button(self.report_frame_one, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: self.controller.show_frame("UserInterface"))
+                             , command=lambda: [back_btn.place_forget() ,self.controller.show_frame("UserInterface")])
 
-        back_btn.place(x=20, y=15)
+        loaded_back_btn = tk.Button(self.report_frame_one, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [loaded_back_btn.place_forget(),self.controller.show_frame("LandingFrame")])
+
+        if self.loaded_report:
+            loaded_back_btn.place(x=20, y=15)
+        else:
+            back_btn.place(x=20, y=15)
 
         # Display exam details and summary
 
