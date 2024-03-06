@@ -699,9 +699,9 @@ class UserInterface(tk.Frame):
         self.waiver_btn = Button(self, text='Waiver', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                  activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                  command=lambda: student_waiver_popup(self.current_id))
-
-        if self.exam.is_waiver_available():  # Show waiver btn only if waiver option is available
-            self.waiver_btn.place(x=700, y=480)
+        self.waiver_btn.place(x=700, y=480)
+        if not self.exam.is_waiver_available():  # Show waiver btn only if waiver option is available
+            self.waiver_btn["state"] = "disabled"
 
         # undo waiver button
         self.undo_waiver_btn = Button(self, text='Undo Waiver', bd='4', fg="#FFFFFF", bg='#812e91',
@@ -719,13 +719,12 @@ class UserInterface(tk.Frame):
         self.view_report_btn.place(x=950, y=500)
 
     def initiate_time(self):
-        self.waiver_available = self.exam.is_waiver_available()
         self.extra_time_flag = 0
         self.waiver_total_seconds = ExamConfig.WAIVER_TIME * 60
         self.total_seconds = self.exam.get_exam_duration() * 60
         self.time_secs_extra = int(ExamConfig.EXTRA_TIME_PERCENTAGE * self.total_seconds)
 
-        if not self.waiver_available:  # do not show waiver button if not available
+        if not self.waiver_available:  # do not show waiver timer if not available
             self.canvas.itemconfig(self.waiver_label, text="")
             self.canvas.itemconfig(self.waiver_time_label, text="")
             self.canvas.create_text(
@@ -736,7 +735,6 @@ class UserInterface(tk.Frame):
                 fill="#FFFFFF",
                 font=("Inter Bold", 14 * -1)
             )
-            self.waiver_btn.place_forget()
             self.canvas.itemconfig(self.rect_item2, state="hidden")
 
     def initiate_table(self):

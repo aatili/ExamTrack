@@ -6,7 +6,6 @@ import pandas as pd
 from datetime import datetime
 import re
 
-
 import FirebaseManager
 import ReportFrames
 
@@ -77,22 +76,26 @@ class LandingFrame(tk.Frame):
         )
         ReportFrames.text_add_border(self.canvas, welcome_message_label, 1, 'white')
 
-        exit_btn = Button(self.landing_frame, text='Exit', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        exit_btn = Button(self.landing_frame, text='Exit', bd='5', fg="#FFFFFF", bg='#812e91',
+                          font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=lambda: self.controller.on_closing())
         exit_btn.place(x=390, y=350)
 
-        credits_btn = Button(self.landing_frame, text='Credits', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
-                          activebackground='#917FB3', height='1', width='14',
-                          command=lambda: self.show_load_reports())
+        credits_btn = Button(self.landing_frame, text='Credits', bd='5', fg="#FFFFFF", bg='#812e91',
+                             font=("Calibri", 16 * -1),
+                             activebackground='#917FB3', height='1', width='14',
+                             command=lambda: self.show_load_reports())
         credits_btn.place(x=390, y=290)
 
-        load_btn = Button(self.landing_frame, text='View Reports', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        load_btn = Button(self.landing_frame, text='View Reports', bd='5', fg="#FFFFFF", bg='#812e91',
+                          font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=lambda: self.show_load_reports())
         load_btn.place(x=390, y=230)
 
-        start_btn = Button(self.landing_frame, text='Start Exam', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        start_btn = Button(self.landing_frame, text='Start Exam', bd='5', fg="#FFFFFF", bg='#812e91',
+                           font=("Calibri", 16 * -1),
                            activebackground='#917FB3', height='1', width='14',
                            command=lambda: self.controller.show_frame('StartPage'))
         start_btn.place(x=390, y=170)
@@ -115,6 +118,8 @@ class LandingFrame(tk.Frame):
 
         canvas.place(x=0, y=0)
 
+        canvas.create_rectangle(795, 285, 880, 370, fill='#917FB3', outline='black')
+
         # Function to retrieve list of folders from Firebase
         def get_folder_list():
 
@@ -127,7 +132,6 @@ class LandingFrame(tk.Frame):
 
             # Iterate over the items in the folder
             for f_item in folder_ref:
-                print(f_item)
                 # Extract the folder name from the object path
                 folder_name = f_item.name.split('/')[1]  # Get the second part of the path as folder name
 
@@ -279,15 +283,30 @@ class LandingFrame(tk.Frame):
                 v = [r for r in dt]  # creating a list from each row
                 # Handling checkbox statuses
                 s_id = v[0]
-                folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
-                j += 1  # colouring
+                s_term = v[1]
+                if moeda_checkbox_var.get() == 1:
+                    if str(s_term).lower() == 'moeda':
+                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        j += 1  # colouring
+                if moedb_checkbox_var.get() == 1:
+                    if str(s_term).lower() == 'moedb':
+                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        j += 1  # colouring
+                if moedc_checkbox_var.get() == 1:
+                    if str(s_term).lower() == 'moedc':
+                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        j += 1  # colouring
+                if moedc_checkbox_var.get() == 0 and moedb_checkbox_var.get() == 0 and moeda_checkbox_var.get() == 0:
+                    folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                    # j += 1  # colouring
 
         search_entry.bind("<KeyRelease>", my_search)
 
         back_btn = tk.Button(self.load_report_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: [self.landing_frame.place(x=0, y=0), self.load_report_frame.place_forget()])
+                             , command=lambda: [self.landing_frame.place(x=0, y=0),
+                                                self.load_report_frame.place_forget()])
         back_btn.place(x=30, y=30)
 
         def load_btn_event():
@@ -300,7 +319,27 @@ class LandingFrame(tk.Frame):
                 self.controller.show_frame("ReportFrames")
 
         # continue btn
-        load_btn = Button(self.load_report_frame, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
+        load_btn = Button(self.load_report_frame, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91',
+                          font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=load_btn_event)
-        load_btn.place(x=200, y=200)
+        load_btn.place(x=795, y=410)
+
+        # Checkboxes
+        moeda_checkbox_var = IntVar()
+        moeda_checkbox = Checkbutton(self.load_report_frame, variable=moeda_checkbox_var, onvalue=1, offvalue=0, height=1,
+                                         font=("Inter Bold", 14 * -1), text="MoedA", bg="#917FB3",
+                                         command=my_search)
+        moeda_checkbox.place(x=800, y=290)
+
+        moedb_checkbox_var = IntVar()
+        moedb_checkbox = Checkbutton(self.load_report_frame, variable=moedb_checkbox_var, onvalue=1, offvalue=0, height=1,
+                                     font=("Inter Bold", 14 * -1), text="MoedB", bg="#917FB3",
+                                     command=my_search)
+        moedb_checkbox.place(x=800, y=315)
+
+        moedc_checkbox_var = IntVar()
+        moedc_checkbox = Checkbutton(self.load_report_frame, variable=moedc_checkbox_var, onvalue=1, offvalue=0, height=1,
+                                     font=("Inter Bold", 14 * -1), text="MoedC", bg="#917FB3",
+                                     command=my_search)
+        moedc_checkbox.place(x=800, y=340)
