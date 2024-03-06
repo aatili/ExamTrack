@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import io
+from datetime import datetime
 
 import ExamConfig
 import StudentData
@@ -126,12 +127,21 @@ class ReportData:
     def save_report_firebase(self):
 
         bucket = self.firebase_manager.get_bucket()
-        json_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/report_{self.exam_number}/report.json")
+
+        # Convert the input date string to a datetime object
+        date_object = datetime.strptime(self.date, "%d/%m/%Y")
+
+        # Format the datetime object as "ddmmyy"
+        formatted_date = date_object.strftime("%d%m%y")
+
+        json_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/Report_{self.exam_number}_{self.term}_"
+                                f"{formatted_date}/report.json")
 
         try:
             # Save the DataFrame as a CSV file
             csv_data = self.students_df.to_csv(index=False)
-            csv_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/report_{self.exam_number}/data.csv")
+            csv_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/Report_{self.exam_number}_{self.term}_"
+                                f"{formatted_date}/data.csv")
             csv_blob.upload_from_string(csv_data, content_type='text/csv')
         except Exception as e:
             print("Failed to upload CSV file to Firebase Storage:", e)
@@ -169,18 +179,18 @@ class ReportData:
         except ValueError:
             print("Failed to save report to Firebase Storage.")
 
-    def load_report_from_firebase(self, report_name='report_112233'):
+    def load_report_from_firebase(self, folder_name):
         bucket = self.firebase_manager.get_bucket()
 
         try:
-            json_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/{report_name}/report.json")
+            json_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/{folder_name}/report.json")
             # Download the JSON file
             json_data = json_blob.download_as_string()
             # Parse the JSON data into Python objects
             data = json.loads(json_data)
 
             # Load the CSV file into self.student_df
-            csv_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/{report_name}/data.csv")
+            csv_blob = bucket.blob(f"{FirebaseManager.FIREBASE_REPORT_HISTORY_PATH}/{folder_name}/data.csv")
             csv_data = csv_blob.download_as_string()
             self.students_df = pd.read_csv(io.StringIO(csv_data.decode('utf-8')))
             self.students_df = self.students_df.fillna('None')
@@ -206,9 +216,11 @@ class ReportData:
             self.breaks_time_hist = data["breaks_time_hist"]
 
             print("Loaded report from Firebase Storage.")
+            return True
 
         except Exception as e:
             print("Failed to load report from Firebase Storage:", e)
+            return False
 
 
 cur_report = ReportData()

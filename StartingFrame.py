@@ -47,7 +47,7 @@ class ExamApp(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def on_closing(self):
-        if messagebox.askokcancel("Quit", "Data will be lost, quit?"):
+        if messagebox.askokcancel("Exit", "Are you sure you want to exit?\nUnsaved data will be lost."):
             FirebaseManager.delete_cache_dir()
             self.destroy()
 
@@ -407,13 +407,6 @@ class StartPage(tk.Frame):
                              font=("Calibri", 16 * -1), height='1', width='14'
                              , command=lambda: [self.controller.show_frame("LandingFrame")])
         back_btn.place(x=30, y=30)
-
-        # continue btn
-        '''load_btn = Button(self, text='Load Report', bd='5', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
-                          activebackground='#917FB3', height='1', width='14',
-                          command=lambda: [controller.frames["ReportFrames"].create_report(True),
-                                           controller.show_frame("ReportFrames")])
-        load_btn.pack(side='left')'''
 
         # Bind the label to the label_clicked function when clicked
         panel_upload.bind("<Button-1>", upload_csv_file)

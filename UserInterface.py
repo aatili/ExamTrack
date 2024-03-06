@@ -217,19 +217,19 @@ class UserInterface(tk.Frame):
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "normal"
                 view_breaks_btn["state"] = "normal"
-
-                self.undo_waiver_btn.place_forget()
-                self.waiver_btn.place(x=700, y=480)
-                self.waiver_btn["state"] = "normal"
+                if self.exam.is_waiver_available():
+                    self.undo_waiver_btn.place_forget()
+                    self.waiver_btn.place(x=700, y=480)
+                    self.waiver_btn["state"] = "normal"
 
             elif str_state == "not_confirmed":
                 confirm_btn["state"] = "normal"
                 break_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
-
-                self.undo_waiver_btn.place_forget()
-                self.waiver_btn.place(x=700, y=480)
-                self.waiver_btn["state"] = "disabled"
+                if self.exam.is_waiver_available():
+                    self.undo_waiver_btn.place_forget()
+                    self.waiver_btn.place(x=700, y=480)
+                    self.waiver_btn["state"] = "disabled"
 
         def table_select_row(a):  # view selected row items
             cur_item = self.table.focus()
@@ -419,7 +419,7 @@ class UserInterface(tk.Frame):
         # Timers
 
         # time variables
-        self.waiver_available = True
+        self.waiver_available = self.exam.is_waiver_available()
         self.extra_time_flag = 0
         self.waiver_total_seconds = 15
         self.total_seconds = 30
@@ -699,7 +699,9 @@ class UserInterface(tk.Frame):
         self.waiver_btn = Button(self, text='Waiver', bd='4', fg="#FFFFFF", bg='#812e91', font=("Calibri", 16 * -1),
                                  activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
                                  command=lambda: student_waiver_popup(self.current_id))
-        self.waiver_btn.place(x=700, y=480)
+
+        if self.exam.is_waiver_available():  # Show waiver btn only if waiver option is available
+            self.waiver_btn.place(x=700, y=480)
 
         # undo waiver button
         self.undo_waiver_btn = Button(self, text='Undo Waiver', bd='4', fg="#FFFFFF", bg='#812e91',

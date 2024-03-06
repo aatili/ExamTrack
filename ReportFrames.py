@@ -74,9 +74,6 @@ def text_add_border(canvas, label_ref, width=2, bcolor="#d6b0e8"):
 
 def take_screenshot(root, ss_number):
     file_path = os.path.join(FirebaseManager.CACHE_FOLDER_LOCAL, f"report_{ss_number}.png")
-    # Check if the file already exists
-    if os.path.exists(file_path):
-        return False
 
     # Capture the entire screen
     # screenshot = ImageGrab.grab()
@@ -87,7 +84,7 @@ def take_screenshot(root, ss_number):
     w = root.winfo_width() * 1.5
     h = root.winfo_height() * 1.5
 
-    # Capture the entire window including decorations
+    # Capture the window
     screenshot = ImageGrab.grab(bbox=(x, y, x + w, y + h))
     # screenshot.show()
 
@@ -96,7 +93,7 @@ def take_screenshot(root, ss_number):
         os.makedirs(FirebaseManager.CACHE_FOLDER_LOCAL)
 
     # Save the screenshot in the folder
-    screenshot.save(file_path)  # You can specify the file name and format here
+    screenshot.save(file_path)
 
     return True
 
@@ -134,23 +131,30 @@ class ReportFrames(tk.Frame):
                             command=lambda: self.controller.show_frame("StartPage"))
         button1.pack()'''
 
-    def create_report(self, loaded):
+    def create_report(self, loaded, folder_name='report_112233_101223'):
         if not loaded:
             self.loaded_report = False
             # Get student results
             self.students.create_result_table()
             self.students_table_df = self.students.get_result_table_df_ref()
-            self.students_table_df.to_csv(f"{FirebaseManager.CACHE_FOLDER_LOCAL}/data.csv", index=False)
             # create and save report
             self.report_data.create_new_report()
             self.report_data.save_report_firebase()
         else:
             self.loaded_report = True
-            self.report_data.load_report_from_firebase()
+            if not self.report_data.load_report_from_firebase(folder_name):
+                return False
             self.students_table_df = self.report_data.get_students_table()
+
+        # Check if the directory exists, if not create it
+        if not os.path.exists(FirebaseManager.CACHE_FOLDER_LOCAL):
+            os.makedirs(FirebaseManager.CACHE_FOLDER_LOCAL)
+
+        self.students_table_df.to_csv(f"{FirebaseManager.CACHE_FOLDER_LOCAL}/data.csv", index=False)
 
         self.initiate_report_one()
         self.initiate_report_two()
+        return True
 
     def initiate_report_one(self):  # Creates first part of the report
 
