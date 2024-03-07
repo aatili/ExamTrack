@@ -460,14 +460,17 @@ class ReportFrames(tk.Frame):
         notes_given = list(notes_dict.values())
 
         # Create a new figure
-        fig = Figure(figsize=(6, 3))
+        fig = Figure(figsize=(4, 3))
         fig.patch.set_alpha(0)
 
         # Add subplot
         ax = fig.add_subplot(111)
 
         # Create histogram
-        ax.bar(student_ids, notes_given, width=0.3, color='#d2700a')
+        #ax.bar(student_ids, notes_given, width=0.3, color='#d2700a')
+
+        # Create scatter plot
+        ax.scatter(student_ids, notes_given, color='#ad0309', marker='o')
 
         ax.set_facecolor('#dbc5db')
 
@@ -477,8 +480,9 @@ class ReportFrames(tk.Frame):
         # Set the size of the x-axis label ticks
         ax.tick_params(axis='x', which='major', labelsize=8)  # Adjust the label size as needed (here, 10 points)
 
-        # Set y-axis ticks to integers only
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        # Set y-axis ticks to show integer values
+        ax.set_yticks(range(int(min(notes_given)), int(max(notes_given))+1))
 
         # Adjust padding to make the plot take less space
         fig.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.25)
@@ -501,11 +505,11 @@ class ReportFrames(tk.Frame):
         breaks_reasons_frame.place(x=835, y=360)
 
         # Create a Figure instance
-        fig = Figure(figsize=(3, 2))
-        fig.patch.set_alpha(0)
+        fig_two = Figure(figsize=(3, 2))
+        fig_two.patch.set_alpha(0)
 
         # Add subplot
-        ax = fig.add_subplot(111)
+        ax_two = fig_two.add_subplot(111)
 
         # breaks reasons data
         breaks_reasons_counts = self.report_data.get_breaks_reasons_hist()
@@ -525,17 +529,17 @@ class ReportFrames(tk.Frame):
             # Pie chart parameters
 
             angle = -180 * overall_ratios[0]
-            wedges, *_, texts = ax.pie(ratios_filtered, autopct='%1.1f%%', startangle=angle,
+            wedges, *_, texts = ax_two.pie(ratios_filtered, autopct='%1.1f%%', startangle=angle,
                                        labels=reasons_labels_filtered,
                                        colors=['#1f77b4', '#ff7f0e', '#2ca02c'])
-            ax.set_title('Breaks Reasons', fontsize='medium')
+            ax_two.set_title('Breaks Reasons', fontsize='medium')
 
             # Set label size
             for text in texts:
                 text.set_fontsize(8)
 
             # Convert the Figure to a Tkinter canvas
-            breaks_reasons_canvas = FigureCanvasTkAgg(fig, master=breaks_reasons_frame)
+            breaks_reasons_canvas = FigureCanvasTkAgg(fig_two, master=breaks_reasons_frame)
             breaks_reasons_canvas._tkcanvas.config(background='#dbc5db')
             breaks_reasons_canvas.draw()
             breaks_reasons_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
@@ -559,45 +563,45 @@ class ReportFrames(tk.Frame):
         break_times_minutes = [time / 60 for time in student_breaks_time]
 
         # Create a new figure
-        fig = Figure(figsize=(4, 2))
-        fig.patch.set_alpha(0)
+        fig_three = Figure(figsize=(4, 2))
+        fig_three.patch.set_alpha(0)
 
         # Add subplot
-        ax = fig.add_subplot(111)
+        ax_three = fig_three.add_subplot(111)
 
         # Create histogram
-        # ax.bar(student_ids_b, break_times_minutes, width=0.3,color='#ad0309')
+        ax_three.bar(student_ids_b, break_times_minutes, width=0.3,color='#4e075c')
 
         # Create scatter plot
-        ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
+        #ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
 
         # Calculate the average break time
         average_break_time = np.mean(break_times_minutes)
 
         # Display the average break time as a horizontal line
-        ax.axhline(y=average_break_time, color='red', linestyle='--', label='Average Break Time')
+        ax_three.axhline(y=average_break_time, color='red', linestyle='--', label='Average Break Time')
 
-        ax.set_facecolor('#8b77a7')
+        ax_three.set_facecolor('#8b77a7')
 
         # Hide the labels on the x-axis
-        ax.set_xticklabels([])
+        ax_three.set_xticklabels([])
 
         # Set y-axis ticks to integers only
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        #ax_three.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         # Add a legend
         # ax.legend()
         canvas.create_image(355, 320, anchor=NW, image=self.img_avg_break)
 
         # Adjust padding to make the plot take less space
-        fig.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
+        fig_three.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
 
         # Add labels and title
-        ax.set_ylabel('Break Time (minutes)')
-        ax.set_title('Break Time Distribution', fontsize='medium')
+        ax_three.set_ylabel('Break Time (minutes)')
+        ax_three.set_title('Break Time Distribution', fontsize='medium')
 
         # Convert the Figure to a Tkinter canvas
-        breaks_time_canvas = FigureCanvasTkAgg(fig, master=breaks_time_frame)
+        breaks_time_canvas = FigureCanvasTkAgg(fig_three, master=breaks_time_frame)
         breaks_time_canvas._tkcanvas.config(background='#dbc5db')
         breaks_time_canvas.draw()
         breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)

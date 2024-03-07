@@ -23,6 +23,8 @@ class LandingFrame(tk.Frame):
 
         self.load_report_frame = tk.Frame(self, width=1200, height=600)
 
+        self.credits_frame = tk.Frame(self, width=1200, height=600)
+
         self.current_folder = -1
 
         # Creating Canvas
@@ -85,7 +87,7 @@ class LandingFrame(tk.Frame):
         credits_btn = Button(self.landing_frame, text='Credits', bd='5', fg="#FFFFFF", bg='#812e91',
                              font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14',
-                             command=lambda: self.show_load_reports())
+                             command=lambda: self.show_credits())
         credits_btn.place(x=390, y=290)
 
         load_btn = Button(self.landing_frame, text='View Reports', bd='5', fg="#FFFFFF", bg='#812e91',
@@ -343,3 +345,71 @@ class LandingFrame(tk.Frame):
                                      font=("Inter Bold", 14 * -1), text="MoedC", bg="#917FB3",
                                      command=my_search)
         moedc_checkbox.place(x=800, y=340)
+
+    def show_credits(self):
+        self.landing_frame.place_forget()
+        self.credits_frame.place(x=0, y=0)
+        # Creating Canvas
+        canvas = Canvas(
+            self.credits_frame,
+            bg="#2A2F4F",
+            height=600,
+            width=1200,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+
+        canvas.create_image(0, 0, anchor=NW, image=self.bgimg)
+
+        canvas.place(x=0, y=0)
+
+        credits_text = """
+
+Project Mentored by:
+Dr. Rami Rashkovits
+
+Project Team:
+- Adnan Atili
+- Haya Shalash
+- Ameer Aburaya
+"""
+
+        more_info_text = """
+Thanks to:
+Department of Information Systems , Faculty and Staff of University of Haifa
+
+About:
+ExamTrack is a collaborative effort by a dedicated team of students from the
+University of Haifa's Department of Information Systems. This project 
+represents the culmination of our studies and showcases our passion for 
+technology and innovation in education.
+
+Contact Us:
+For inquiries, feedback, or support regarding ExamTrack, please contact us at
+ exam.track.haifa@gmail.com
+"""
+        canvas.create_text(
+            400.0,
+            100.0,
+            anchor="nw",
+            text=credits_text,
+            fill="white",
+            font=("Inter Bold", 18 * -1)
+        )
+
+        canvas.create_text(
+            400.0,
+            300.0,
+            anchor="nw",
+            text=more_info_text,
+            fill="white",
+            font=("Inter Bold", 16 * -1)
+        )
+
+        back_btn = tk.Button(self.credits_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [self.landing_frame.place(x=0, y=0),
+                                                self.credits_frame.place_forget()])
+        back_btn.place(x=30, y=30)
