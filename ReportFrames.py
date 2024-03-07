@@ -186,12 +186,13 @@ class ReportFrames(tk.Frame):
         back_btn = tk.Button(self.report_frame_one, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: [back_btn.place_forget() ,self.controller.show_frame("UserInterface")])
+                             , command=lambda: [back_btn.place_forget(), self.controller.show_frame("UserInterface")])
 
         loaded_back_btn = tk.Button(self.report_frame_one, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
-                             activebackground='#917FB3',
-                             font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: [loaded_back_btn.place_forget(),self.controller.show_frame("LandingFrame")])
+                                    activebackground='#917FB3',
+                                    font=("Calibri", 16 * -1), height='1', width='14'
+                                    , command=lambda: [loaded_back_btn.place_forget(), self.reset_report_session(),
+                                                       self.controller.show_frame("LandingFrame")])
 
         if self.loaded_report:
             loaded_back_btn.place(x=20, y=15)
@@ -455,48 +456,49 @@ class ReportFrames(tk.Frame):
                       '311244151' : 3 , '216902112' : 2 , '312255933' : 1 , '929090124' : 1}'''
 
         notes_dict = self.report_data.get_notes_hist()
-        # Convert dictionary keys and values to lists
-        student_ids = list(notes_dict.keys())
-        notes_given = list(notes_dict.values())
 
-        # Create a new figure
-        fig = Figure(figsize=(4, 3))
-        fig.patch.set_alpha(0)
+        if len(notes_dict) > 0:
+            # Convert dictionary keys and values to lists
+            student_ids = list(notes_dict.keys())
+            notes_given = list(notes_dict.values())
 
-        # Add subplot
-        ax = fig.add_subplot(111)
+            # Create a new figure
+            fig = Figure(figsize=(4, 3))
+            fig.patch.set_alpha(0)
 
-        # Create histogram
-        #ax.bar(student_ids, notes_given, width=0.3, color='#d2700a')
+            # Add subplot
+            ax = fig.add_subplot(111)
 
-        # Create scatter plot
-        ax.scatter(student_ids, notes_given, color='#ad0309', marker='o')
+            # Create histogram
+            # ax.bar(student_ids, notes_given, width=0.3, color='#d2700a')
 
-        ax.set_facecolor('#dbc5db')
+            # Create scatter plot
+            ax.scatter(student_ids, notes_given, color='#ad0309', marker='o')
 
-        # Rotate the ID labels vertically
-        ax.set_xticklabels(student_ids, rotation=315)
+            ax.set_facecolor('#dbc5db')
 
-        # Set the size of the x-axis label ticks
-        ax.tick_params(axis='x', which='major', labelsize=8)  # Adjust the label size as needed (here, 10 points)
+            # Rotate the ID labels vertically
+            ax.set_xticklabels(student_ids, rotation=315)
 
+            # Set the size of the x-axis label ticks
+            ax.tick_params(axis='x', which='major', labelsize=8)  # Adjust the label size as needed (here, 10 points)
 
-        # Set y-axis ticks to show integer values
-        ax.set_yticks(range(int(min(notes_given)), int(max(notes_given))+1))
+            # Set y-axis ticks to show integer values
+            ax.set_yticks(range(int(min(notes_given)), int(max(notes_given)) + 1))
 
-        # Adjust padding to make the plot take less space
-        fig.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.25)
+            # Adjust padding to make the plot take less space
+            fig.subplots_adjust(left=0.15, right=0.9, top=0.9, bottom=0.25)
 
-        # Add labels and title
-        # ax.set_xlabel('Student ID')
-        ax.set_ylabel('Number of Notes')
-        ax.set_title('Number of Notes Given by Student', fontsize='medium')
+            # Add labels and title
+            # ax.set_xlabel('Student ID')
+            ax.set_ylabel('Number of Notes')
+            ax.set_title('Number of Notes Given by Student', fontsize='medium')
 
-        # Convert the Figure to a Tkinter canvas
-        notes_canvas = FigureCanvasTkAgg(fig, master=notes_frame)
-        notes_canvas._tkcanvas.config(background='#8b77a7')
-        notes_canvas.draw()
-        notes_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            # Convert the Figure to a Tkinter canvas
+            notes_canvas = FigureCanvasTkAgg(fig, master=notes_frame)
+            notes_canvas._tkcanvas.config(background='#8b77a7')
+            notes_canvas.draw()
+            notes_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         # Breaks Reasons Graph
 
@@ -530,8 +532,8 @@ class ReportFrames(tk.Frame):
 
             angle = -180 * overall_ratios[0]
             wedges, *_, texts = ax_two.pie(ratios_filtered, autopct='%1.1f%%', startangle=angle,
-                                       labels=reasons_labels_filtered,
-                                       colors=['#1f77b4', '#ff7f0e', '#2ca02c'])
+                                           labels=reasons_labels_filtered,
+                                           colors=['#1f77b4', '#ff7f0e', '#2ca02c'])
             ax_two.set_title('Breaks Reasons', fontsize='medium')
 
             # Set label size
@@ -556,55 +558,57 @@ class ReportFrames(tk.Frame):
 
         breaks_dict = self.report_data.get_breaks_time_hist()
 
-        # Convert dictionary keys and values to lists
-        student_ids_b = list(breaks_dict.keys())
-        student_breaks_time = list(breaks_dict.values())
+        if len(breaks_dict) > 0:
 
-        break_times_minutes = [time / 60 for time in student_breaks_time]
+            # Convert dictionary keys and values to lists
+            student_ids_b = list(breaks_dict.keys())
+            student_breaks_time = list(breaks_dict.values())
 
-        # Create a new figure
-        fig_three = Figure(figsize=(4, 2))
-        fig_three.patch.set_alpha(0)
+            break_times_minutes = [time / 60 for time in student_breaks_time]
 
-        # Add subplot
-        ax_three = fig_three.add_subplot(111)
+            # Create a new figure
+            fig_three = Figure(figsize=(4, 2))
+            fig_three.patch.set_alpha(0)
 
-        # Create histogram
-        ax_three.bar(student_ids_b, break_times_minutes, width=0.3,color='#4e075c')
+            # Add subplot
+            ax_three = fig_three.add_subplot(111)
 
-        # Create scatter plot
-        #ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
+            # Create histogram
+            ax_three.bar(student_ids_b, break_times_minutes, width=0.3, color='#4e075c')
 
-        # Calculate the average break time
-        average_break_time = np.mean(break_times_minutes)
+            # Create scatter plot
+            # ax.scatter(student_ids_b, break_times_minutes, color='#4e075c', marker='+')
 
-        # Display the average break time as a horizontal line
-        ax_three.axhline(y=average_break_time, color='red', linestyle='--', label='Average Break Time')
+            # Calculate the average break time
+            average_break_time = np.mean(break_times_minutes)
 
-        ax_three.set_facecolor('#8b77a7')
+            # Display the average break time as a horizontal line
+            ax_three.axhline(y=average_break_time, color='red', linestyle='--', label='Average Break Time')
 
-        # Hide the labels on the x-axis
-        ax_three.set_xticklabels([])
+            ax_three.set_facecolor('#8b77a7')
 
-        # Set y-axis ticks to integers only
-        #ax_three.yaxis.set_major_locator(MaxNLocator(integer=True))
+            # Hide the labels on the x-axis
+            ax_three.set_xticklabels([])
 
-        # Add a legend
-        # ax.legend()
-        canvas.create_image(355, 320, anchor=NW, image=self.img_avg_break)
+            # Set y-axis ticks to integers only
+            # ax_three.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-        # Adjust padding to make the plot take less space
-        fig_three.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
+            # Add a legend
+            # ax.legend()
+            canvas.create_image(355, 320, anchor=NW, image=self.img_avg_break)
 
-        # Add labels and title
-        ax_three.set_ylabel('Break Time (minutes)')
-        ax_three.set_title('Break Time Distribution', fontsize='medium')
+            # Adjust padding to make the plot take less space
+            fig_three.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
 
-        # Convert the Figure to a Tkinter canvas
-        breaks_time_canvas = FigureCanvasTkAgg(fig_three, master=breaks_time_frame)
-        breaks_time_canvas._tkcanvas.config(background='#dbc5db')
-        breaks_time_canvas.draw()
-        breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            # Add labels and title
+            ax_three.set_ylabel('Break Time (minutes)')
+            ax_three.set_title('Break Time Distribution', fontsize='medium')
+
+            # Convert the Figure to a Tkinter canvas
+            breaks_time_canvas = FigureCanvasTkAgg(fig_three, master=breaks_time_frame)
+            breaks_time_canvas._tkcanvas.config(background='#dbc5db')
+            breaks_time_canvas.draw()
+            breaks_time_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         # Report features buttons
         view_table_btn = Button(self.report_frame_two, text='View Table', bd='4', fg="#FFFFFF", bg='#812e91',
@@ -624,10 +628,12 @@ class ReportFrames(tk.Frame):
 
         export_btn.place(x=170, y=330)
 
-        exit_btn = tk.Button(self.report_frame_two, text='Exit', bd='4', fg="#FFFFFF", bg='#812e91',
+        exit_btn = tk.Button(self.report_frame_two, text='Exit to Menu', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=self.controller.on_closing)
+                             ,
+                             command=lambda: [self.reset_report_session(), self.controller.show_frame("LandingFrame"),
+                                              self.controller.frames["LandingFrame"].back_to_menu()])
 
         exit_btn.place(x=170, y=380)
 
@@ -638,6 +644,15 @@ class ReportFrames(tk.Frame):
                                                     self.report_frame_two.place_forget()])
 
         previous_btn.place(x=20, y=15)
+
+    def reset_report_session(self):
+        self.report_frame_one.destroy()
+        self.report_frame_two.destroy()
+        self.report_frame_one = tk.Frame(self, width=1200, height=600)
+        self.report_frame_one.place(x=0, y=0)
+        self.report_frame_two = tk.Frame(self, width=1200, height=600)
+        if not self.loaded_report:
+            self.controller.reset_exam()
 
     def create_folder_with_files(self):
         try:

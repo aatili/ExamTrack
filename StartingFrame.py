@@ -7,6 +7,7 @@ import re
 import threading
 
 import ReportFrames
+import StudentData
 import UserInterface
 import FaceRecFrame
 import LandingFrame
@@ -25,21 +26,23 @@ class ExamApp(tk.Tk):
         self.title("ExamTrack")
         self.geometry("1200x600+20+20")
         self.resizable(False, False)
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
+        self.container = tk.Frame(self)
+        self.container.pack(side="top", fill="both", expand=True)
 
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
+        self.classes = {}
 
         self.firebase_manager = FirebaseManager.firebase_manager
 
         for F in (StartPage, FaceRecFrame.FaceRec, UserInterface.UserInterface, ReportFrames.ReportFrames,
                   LandingFrame.LandingFrame):
             page_name = F.__name__
-            frame = F(parent=container, controller=self)
+            frame = F(parent=self.container, controller=self)
             self.frames[page_name] = frame
+            self.classes[page_name] = F
 
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame("LandingFrame")
@@ -58,6 +61,22 @@ class ExamApp(tk.Tk):
 
         frame = self.frames[page_name]
         frame.tkraise()
+
+    def reset_frame(self, page_name):
+        if page_name == 'UserInterface':
+            self.frames[page_name].destroy_child_frames()
+        self.frames[page_name].destroy()
+        self.frames[page_name] = self.classes[page_name](parent=self.container, controller=self)
+        self.frames[page_name].grid(row=0, column=0, sticky="nsew")
+
+    def reset_exam(self):
+        StudentData.students = StudentData.StudentManager()
+        ExamConfig.cur_exam = ExamConfig.ExamConfig()
+        FirebaseManager.firebase_manager.reset_att()
+
+        self.reset_frame('StartPage')
+        self.reset_frame('UserInterface')
+        self.reset_frame('FaceRec')
 
 
 class StartPage(tk.Frame):

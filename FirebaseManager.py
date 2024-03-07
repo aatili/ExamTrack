@@ -59,6 +59,10 @@ class FirebaseManager:
         self.state = AppState.IDLE
         self.images_state_dict = {}
 
+    def reset_att(self):
+        self.state = AppState.IDLE
+        self.images_state_dict = {}
+
     def get_bucket(self):
         return self.bucket
 
@@ -71,6 +75,7 @@ class FirebaseManager:
             os.makedirs(cache_dir)
 
         students_id_list = students.student_table_ids()
+
         self.set_downloading()
         for s_id in students_id_list:
             blob = self.bucket.get_blob(f'{FIREBASE_IMAGES_PATH}/{s_id}.png')

@@ -25,6 +25,8 @@ class LandingFrame(tk.Frame):
 
         self.credits_frame = tk.Frame(self, width=1200, height=600)
 
+        self.monitor_frame = tk.Frame(self, width=1200, height=600)
+
         self.current_folder = -1
 
         # Creating Canvas
@@ -78,29 +80,47 @@ class LandingFrame(tk.Frame):
         )
         ReportFrames.text_add_border(self.canvas, welcome_message_label, 1, 'white')
 
+        self.create_credits()
+
         exit_btn = Button(self.landing_frame, text='Exit', bd='5', fg="#FFFFFF", bg='#812e91',
                           font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=lambda: self.controller.on_closing())
-        exit_btn.place(x=390, y=350)
+        exit_btn.place(x=390, y=410)
 
         credits_btn = Button(self.landing_frame, text='Credits', bd='5', fg="#FFFFFF", bg='#812e91',
                              font=("Calibri", 16 * -1),
                              activebackground='#917FB3', height='1', width='14',
                              command=lambda: self.show_credits())
-        credits_btn.place(x=390, y=290)
+        credits_btn.place(x=390, y=350)
 
         load_btn = Button(self.landing_frame, text='View Reports', bd='5', fg="#FFFFFF", bg='#812e91',
                           font=("Calibri", 16 * -1),
                           activebackground='#917FB3', height='1', width='14',
                           command=lambda: self.show_load_reports())
-        load_btn.place(x=390, y=230)
+        load_btn.place(x=390, y=290)
+
+        monitor_btn = Button(self.landing_frame, text='Exam Monitor', bd='5', fg="#FFFFFF", bg='#812e91',
+                             font=("Calibri", 16 * -1),
+                             activebackground='#917FB3', height='1', width='14',
+                             command=lambda: self.show_monitor())
+        monitor_btn.place(x=390, y=230)
 
         start_btn = Button(self.landing_frame, text='Start Exam', bd='5', fg="#FFFFFF", bg='#812e91',
                            font=("Calibri", 16 * -1),
                            activebackground='#917FB3', height='1', width='14',
                            command=lambda: self.controller.show_frame('StartPage'))
         start_btn.place(x=390, y=170)
+
+    def reset_load_reports(self):
+        self.load_report_frame.destroy()
+        self.load_report_frame = tk.Frame(self, width=1200, height=600)
+
+    def back_to_menu(self):
+        self.load_report_frame.place_forget()
+        self.monitor_frame.place_forget()
+        self.credits_frame.place_forget()
+        self.landing_frame.place(x=0, y=0)
 
     def show_load_reports(self):
         self.landing_frame.place_forget()
@@ -307,8 +327,7 @@ class LandingFrame(tk.Frame):
         back_btn = tk.Button(self.load_report_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
-                             , command=lambda: [self.landing_frame.place(x=0, y=0),
-                                                self.load_report_frame.place_forget()])
+                             , command=lambda: [self.reset_load_reports(), self.back_to_menu()])
         back_btn.place(x=30, y=30)
 
         def load_btn_event():
@@ -329,19 +348,22 @@ class LandingFrame(tk.Frame):
 
         # Checkboxes
         moeda_checkbox_var = IntVar()
-        moeda_checkbox = Checkbutton(self.load_report_frame, variable=moeda_checkbox_var, onvalue=1, offvalue=0, height=1,
-                                         font=("Inter Bold", 14 * -1), text="MoedA", bg="#917FB3",
-                                         command=my_search)
+        moeda_checkbox = Checkbutton(self.load_report_frame, variable=moeda_checkbox_var, onvalue=1, offvalue=0,
+                                     height=1,
+                                     font=("Inter Bold", 14 * -1), text="MoedA", bg="#917FB3",
+                                     command=my_search)
         moeda_checkbox.place(x=800, y=290)
 
         moedb_checkbox_var = IntVar()
-        moedb_checkbox = Checkbutton(self.load_report_frame, variable=moedb_checkbox_var, onvalue=1, offvalue=0, height=1,
+        moedb_checkbox = Checkbutton(self.load_report_frame, variable=moedb_checkbox_var, onvalue=1, offvalue=0,
+                                     height=1,
                                      font=("Inter Bold", 14 * -1), text="MoedB", bg="#917FB3",
                                      command=my_search)
         moedb_checkbox.place(x=800, y=315)
 
         moedc_checkbox_var = IntVar()
-        moedc_checkbox = Checkbutton(self.load_report_frame, variable=moedc_checkbox_var, onvalue=1, offvalue=0, height=1,
+        moedc_checkbox = Checkbutton(self.load_report_frame, variable=moedc_checkbox_var, onvalue=1, offvalue=0,
+                                     height=1,
                                      font=("Inter Bold", 14 * -1), text="MoedC", bg="#917FB3",
                                      command=my_search)
         moedc_checkbox.place(x=800, y=340)
@@ -349,6 +371,8 @@ class LandingFrame(tk.Frame):
     def show_credits(self):
         self.landing_frame.place_forget()
         self.credits_frame.place(x=0, y=0)
+
+    def create_credits(self):
         # Creating Canvas
         canvas = Canvas(
             self.credits_frame,
@@ -410,6 +434,70 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
         back_btn = tk.Button(self.credits_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
+                             , command=lambda: [self.back_to_menu()])
+        back_btn.place(x=30, y=30)
+
+    def show_monitor(self):
+
+        self.landing_frame.place_forget()
+        self.monitor_frame.place(x=0, y=0)
+
+        def create_overview_card(parent, exam_info):
+            # Create a frame to contain the card
+            card_frame = tk.Frame(parent, bg="white", bd=2, relief="raised")
+            card_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+            # Add exam information to the card
+            for key, value in exam_info.items():
+                label = tk.Label(card_frame, text=f"{key}: {value}", bg="white")
+                label.pack(anchor="w", padx=5, pady=2)
+
+            return card_frame
+
+        # Sample exam information
+        exam_info_list = [
+            {
+                "Exam Number": "123456",
+                "Term": "Spring 2022",
+                "Date": "2022-02-14",
+                "Duration": "2 hours",
+                "Status": "In Progress"
+            },
+            {
+                "Exam Number": "789012",
+                "Term": "Fall 2021",
+                "Date": "2021-10-20",
+                "Duration": "3 hours",
+                "Status": "Completed"
+            },
+            # Add more exam information as needed
+        ]
+
+        # Create a canvas to contain the overview cards
+        canvas = tk.Canvas(self.monitor_frame)
+        canvas.pack(side="left", fill="both", expand=True)
+
+        # Add a scrollbar for the canvas
+        scrollbar = ttk.Scrollbar(self.monitor_frame, orient="vertical", command=canvas.yview)
+        scrollbar.pack(side="right", fill="y")
+
+        # Configure the canvas to use the scrollbar
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Create a frame to contain the overview cards
+        cards_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=cards_frame, anchor="nw")
+
+        # Create overview cards for each exam
+        for exam_info in exam_info_list:
+            overview_card = create_overview_card(cards_frame, exam_info)
+
+        back_btn = tk.Button(self.monitor_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
+                             activebackground='#917FB3',
+                             font=("Calibri", 16 * -1), height='1', width='14'
                              , command=lambda: [self.landing_frame.place(x=0, y=0),
-                                                self.credits_frame.place_forget()])
+                                                self.monitor_frame.place_forget(),
+                                                canvas.destroy(),  # Destroy the canvas
+                                                back_btn.destroy()])
         back_btn.place(x=30, y=30)

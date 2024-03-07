@@ -52,6 +52,7 @@ class UserInterface(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.y_scrollbar = None
         self.controller = controller
         self.parent = parent
         self.bgimg = tk.PhotoImage(file="Resources/interface_background.png")
@@ -105,23 +106,6 @@ class UserInterface(tk.Frame):
         extra_img_panel = Label(self, image=self.confirmed_img, borderwidth=0)
         # extra_img_panel.place(x=90,y=422)
         no_extra_img_panel = Label(self, image=self.not_confirmed_img, borderwidth=0)
-
-        # Date label
-
-        today = date.today()
-        d1 = today.strftime("%d/%m/%Y")
-        date_label = self.canvas.create_text(
-            10.0,
-            10.0,
-            anchor="nw",
-            text=d1,
-            fill="#d6b0e8",
-            font=("Inter Bold", 18 * -1)
-        )
-
-        date_bbox = self.canvas.bbox(date_label)
-        date_rect = self.canvas.create_rectangle(date_bbox, outline="#d6b0e8")
-        self.canvas.tag_raise(date_label, date_rect)
 
         # adding labels
         student_name_label = self.canvas.create_text(
@@ -377,23 +361,28 @@ class UserInterface(tk.Frame):
                                      command=my_search)
         extra_checkbox.place(x=900, y=260)
 
-        # Break Checkbox filter
-        def filter_on_break():
+        def filter_students(checkbox_name):
             table_df = students.get_student_df_ref()
-            if break_checkbox_var.get() == 1:
-                confirmed_checkbox_var.set(0)
-                extra_checkbox_var.set(0)
-                waiver_checkbox_var.set(0)
-                submit_checkbox_var.set(0)
-                confirmed_checkbox.configure(state="disabled")
-                extra_checkbox.configure(state="disabled")
-                waiver_checkbox.configure(state="disabled")
-                submit_checkbox.configure(state="disabled")
+            checkboxes = {
+                'break': (break_checkbox_var, break_checkbox),
+                'waiver': (waiver_checkbox_var, waiver_checkbox),
+                'submit': (submit_checkbox_var, submit_checkbox),
+                'extra': (extra_checkbox_var, extra_checkbox),
+                'confirmed': (confirmed_checkbox_var, confirmed_checkbox)
+            }
+
+            checkbox_var, checkbox = checkboxes[checkbox_name]
+
+            if checkbox_var.get() == 1:
+                for other_checkbox_name, (other_checkbox_var, other_checkbox) in checkboxes.items():
+                    if other_checkbox_name != checkbox_name:
+                        other_checkbox_var.set(0)
+                        other_checkbox.configure(state="disabled")
             else:
-                confirmed_checkbox.configure(state="normal")
-                extra_checkbox.configure(state="normal")
-                waiver_checkbox.configure(state="normal")
-                submit_checkbox.configure(state="normal")
+                for other_checkbox_name, (other_checkbox_var, other_checkbox) in checkboxes.items():
+                    # other_checkbox_var.set(1)
+                    other_checkbox.configure(state="normal")
+
             query = search_entry.get().strip()  # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -403,8 +392,16 @@ class UserInterface(tk.Frame):
             for dt in r_set:
                 v = [r for r in dt]  # creating a list from each row
                 j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
-                if break_checkbox_var.get() == 1:
+                if checkbox_name == 'break' and checkbox_var.get() == 1:
                     if students.student_in_break(v[0]):
+                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        color_i += 1
+                elif checkbox_name == 'waiver' and checkbox_var.get() == 1:
+                    if students.student_check_waiver(v[0]):
+                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        color_i += 1
+                elif checkbox_name == 'submit' and checkbox_var.get() == 1:
+                    if students.student_check_submit(v[0]):
                         self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
                         color_i += 1
                 else:
@@ -414,87 +411,19 @@ class UserInterface(tk.Frame):
         break_checkbox_var = IntVar()
         break_checkbox = Checkbutton(self, variable=break_checkbox_var, onvalue=1, offvalue=0, height=1,
                                      font=("Inter Bold", 14 * -1), text="On Break", bg="#917FB3",
-                                     command=filter_on_break)
+                                     command=lambda: filter_students('break'))
         break_checkbox.place(x=900, y=290)
-
-        # Waiver Checkbox filter
-        def filter_on_waiver():
-            table_df = students.get_student_df_ref()
-            if waiver_checkbox_var.get() == 1:
-                confirmed_checkbox_var.set(0)
-                extra_checkbox_var.set(0)
-                break_checkbox_var.set(0)
-                submit_checkbox_var.set(0)
-                confirmed_checkbox.configure(state="disabled")
-                extra_checkbox.configure(state="disabled")
-                break_checkbox.configure(state="disabled")
-                submit_checkbox.configure(state="disabled")
-            else:
-                confirmed_checkbox.configure(state="normal")
-                extra_checkbox.configure(state="normal")
-                break_checkbox.configure(state="normal")
-                submit_checkbox.configure(state="normal")
-            query = search_entry.get().strip()  # get entry string
-            str1 = table_df.id.str.contains(query, case=False)
-            df2 = table_df[str1]
-            r_set = df2.to_numpy().tolist()  # Create list of list using rows
-            self.table.delete(*self.table.get_children())
-            color_i = 0
-            for dt in r_set:
-                v = [r for r in dt]  # creating a list from each row
-                j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
-                if waiver_checkbox_var.get() == 1:
-                    if students.student_check_waiver(v[0]):
-                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
-                        color_i += 1
-                else:
-                    self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
-                    color_i += 1
 
         waiver_checkbox_var = IntVar()
         waiver_checkbox = Checkbutton(self, variable=waiver_checkbox_var, onvalue=1, offvalue=0, height=1,
                                       font=("Inter Bold", 14 * -1), text="Waiver", bg="#917FB3",
-                                      command=filter_on_waiver)
+                                      command=lambda: filter_students('waiver'))
         waiver_checkbox.place(x=900, y=320)
-
-        # Submitted Checkbox filter
-        def filter_on_submit():
-            table_df = students.get_student_df_ref()
-            if submit_checkbox_var.get() == 1:
-                confirmed_checkbox_var.set(0)
-                extra_checkbox_var.set(0)
-                break_checkbox_var.set(0)
-                waiver_checkbox_var.set(0)
-                confirmed_checkbox.configure(state="disabled")
-                extra_checkbox.configure(state="disabled")
-                break_checkbox.configure(state="disabled")
-                waiver_checkbox.configure(state="disabled")
-            else:
-                confirmed_checkbox.configure(state="normal")
-                extra_checkbox.configure(state="normal")
-                break_checkbox.configure(state="normal")
-                waiver_checkbox.configure(state="normal")
-            query = search_entry.get().strip()  # get entry string
-            str1 = table_df.id.str.contains(query, case=False)
-            df2 = table_df[str1]
-            r_set = df2.to_numpy().tolist()  # Create list of list using rows
-            self.table.delete(*self.table.get_children())
-            color_i = 0
-            for dt in r_set:
-                v = [r for r in dt]  # creating a list from each row
-                j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
-                if submit_checkbox_var.get() == 1:
-                    if students.student_check_submit(v[0]):
-                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
-                        color_i += 1
-                else:
-                    self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
-                    color_i += 1
 
         submit_checkbox_var = IntVar()
         submit_checkbox = Checkbutton(self, variable=submit_checkbox_var, onvalue=1, offvalue=0, height=1,
                                       font=("Inter Bold", 14 * -1), text="Submitted", bg="#917FB3",
-                                      command=filter_on_submit)
+                                      command=lambda: filter_students('submit'))
         submit_checkbox.place(x=900, y=350)
 
         # Timers
@@ -641,9 +570,9 @@ class UserInterface(tk.Frame):
 
         # retry button - only shows in case the encoding fails
         def retry_download_encode():
-            # Thread to allow the app to run while downloading images
             self.firebase_manager.set_downloading()
             self.retry_btn.place_forget()  # hide button when clicked
+            # Thread to allow the app to run while downloading images
             fetch_thread = threading.Thread(target=lambda: controller.frames["StartPage"].download_and_encode())
             fetch_thread.start()
 
@@ -735,7 +664,7 @@ class UserInterface(tk.Frame):
             if res != STUDENT_NOT_FOUND:
                 messagebox.showinfo("Break Info", res)
                 if break_checkbox_var.get() == 1:
-                    filter_on_break()
+                    filter_students('break')
                 else:
                     my_search()
 
@@ -772,7 +701,7 @@ class UserInterface(tk.Frame):
                 messagebox.showerror("Undo Waiver Error", "Student is already attending.")
                 return
             messagebox.showinfo("Waiver Message", "Undo waiver successful.")
-            filter_on_waiver()
+            filter_students('waiver')
             self.waiver_btn.place(x=700, y=470)
             self.undo_waiver_btn.place_forget()
 
@@ -797,7 +726,51 @@ class UserInterface(tk.Frame):
                                       , command=lambda: [controller.frames["ReportFrames"].create_report(False),
                                                          controller.show_frame("ReportFrames")])
 
-        self.view_report_btn.place(x=950, y=520)
+        self.view_report_btn.place(x=950, y=470)
+
+        def exit_popup():
+            exit_window = Toplevel(self)
+            exit_window.geometry("300x230+350+100")
+            exit_window.resizable(False, False)
+            exit_window.title("Exit Exam")
+            exit_window.configure(bg='#917FB3')
+
+            exit_window_text_area = scrolledtext.ScrolledText(exit_window, wrap=tk.WORD, bd=3, background="#E5BEEC",
+                                                              width=25, height=3, font=("Calibri", 16 * -1))
+
+            exit_window_specify = Label(exit_window, text="You are about to cancel the exam.\nPlease specify reason:",
+                                        bg='#917FB3', font=("Calibri", 16 * -1))
+            exit_window_specify.place(x=30, y=20)
+            exit_window_text_area.place(x=30, y=70)
+
+            self.str_reason = ""
+
+            def exit_submit_event():
+                self.str_reason = exit_window_text_area.get("1.0", END).strip()
+                if len(self.str_reason) < 3:
+                    messagebox.showerror("Manual Confirm Error", "Invalid Reason", parent=exit_window)
+                else:
+                    self.controller.reset_exam()
+                    self.controller.show_frame('LandingFrame')
+                    exit_window.destroy()
+
+            # Buttons
+            e_confirm_btn = Button(exit_window, text='Confirm', bd='5', fg="#FFFFFF", bg='#812e91',
+                                   font=("Calibri", 14 * -1), activebackground='#917FB3', height='1', width='12',
+                                   disabledforeground='gray', command=lambda: exit_submit_event())
+            e_confirm_btn.place(x=30, y=160)
+
+            e_cancel_btn = Button(exit_window, text='Cancel', bd='5', fg="#FFFFFF", bg='#812e91',
+                                  font=("Calibri", 14 * -1), activebackground='#917FB3', height='1', width='12',
+                                  disabledforeground='gray', command=exit_window.destroy)
+            e_cancel_btn.place(x=145, y=160)
+
+        # Exit Exam
+        self.exit_btn = Button(self, text='Exit to Menu', bd='4', fg="#FFFFFF", bg='#812e91',
+                               activebackground='#917FB3', font=("Calibri", 14 * -1), height='1', width='12'
+                               , command=lambda: [exit_popup()])
+
+        self.exit_btn.place(x=10, y=10)
 
         # Submit functionality
         def student_submit_popup(student_id):
@@ -817,22 +790,22 @@ class UserInterface(tk.Frame):
                 messagebox.showerror("Undo Submit Error", "Student is already attending.")
                 return
             messagebox.showinfo("Undo Submit Message", "Undo Submit successful.")
-            filter_on_submit()
+            filter_students('submit')
             self.submit_btn.place(x=535, y=520)
             self.undo_submit_btn.place_forget()
 
         # Submit buttons
         self.submit_btn = Button(self, text='Submit Exam', bd='4', fg="#FFFFFF", bg='#812e91',
-                            font=("Calibri", 16 * -1),
-                            activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                            command=lambda: student_submit_popup(self.current_id))
+                                 font=("Calibri", 16 * -1),
+                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                                 command=lambda: student_submit_popup(self.current_id))
         self.submit_btn.place(x=535, y=520)
 
         # Undo submit buttons
         self.undo_submit_btn = Button(self, text='Undo Submit', bd='4', fg="#FFFFFF", bg='#812e91',
-                                 font=("Calibri", 16 * -1),
-                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
-                                 command=lambda: student_undo_submit(self.current_id))
+                                      font=("Calibri", 16 * -1),
+                                      activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                                      command=lambda: student_undo_submit(self.current_id))
         # undo_submit_btn.place(x=535, y=520)
 
     def initiate_time(self):
@@ -888,18 +861,21 @@ class UserInterface(tk.Frame):
         style.map("Treeview", background=[("selected", "#000080")])
 
         # Create a vertical scrollbar
-        y_scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.table.yview)
+        self.y_scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.table.yview)
 
         # Configure the Treeview to use the scrollbar
-        self.table.configure(yscrollcommand=y_scrollbar.set)
+        self.table.configure(yscrollcommand=self.y_scrollbar.set)
 
         self.table["height"] = 8
 
         self.table.pack(side="left", fill="both", expand=True)
-        y_scrollbar.pack(side="right", fill="y")
+        self.y_scrollbar.pack(side="right", fill="y")
 
     def enable_face_recognition(self):
         self.face_recognition_btn["state"] = 'normal'
 
     def show_retry_btn(self):
         self.retry_btn.place(x=1100, y=40)
+
+    def destroy_child_frames(self):
+        self.table_frame.destroy()
