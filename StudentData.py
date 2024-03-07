@@ -40,6 +40,10 @@ class StudentManager:
 
         self.students_waiver = []
 
+        #
+
+        self.students_submitted = []
+
         # Notes
 
         self.students_notes = {}
@@ -385,13 +389,36 @@ class StudentManager:
     def student_undo_waiver(self, student_id):
         if self.student_check_attendance(student_id):
             return STUDENT_ALREADY_CONFIRMED
-        if self.student_confirm_attendance(student_id) != STUDENT_CONFIRMED:
+        if self.student_confirm_attendance(student_id) != STUDENT_CONFIRMED or not self.student_check_waiver(student_id):
             return STUDENT_NOT_FOUND
         self.students_waiver.remove(student_id)
         return FUNC_SUCCESS
 
     def student_check_waiver(self, student_id):
         if student_id in self.students_waiver:
+            return True
+        return False
+
+# SUBMIT functions
+
+    def student_submit_exam(self, student_id):
+        if not self.student_check_attendance(student_id):
+            return STUDENT_NOT_FOUND
+        self.student_cancel_attendance(student_id)
+        self.students_submitted.append(student_id)
+        return FUNC_SUCCESS
+
+    def student_undo_submit(self, student_id):
+        if self.student_check_attendance(student_id):
+            return STUDENT_ALREADY_CONFIRMED
+        if self.student_confirm_attendance(student_id) != STUDENT_CONFIRMED or not self.student_check_submit(student_id):
+            return STUDENT_NOT_FOUND
+
+        self.students_submitted.remove(student_id)
+        return FUNC_SUCCESS
+
+    def student_check_submit(self, student_id):
+        if student_id in self.students_submitted:
             return True
         return False
 

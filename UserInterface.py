@@ -68,7 +68,7 @@ class UserInterface(tk.Frame):
 
         self.canvas.place(x=0, y=0)
 
-        self.canvas.create_rectangle(895, 225, 1000, 350, fill='#917FB3', outline='black')
+        self.canvas.create_rectangle(895, 225, 1000, 380, fill='#917FB3', outline='black')
 
         # Loading Label
 
@@ -208,19 +208,41 @@ class UserInterface(tk.Frame):
 
         # enabled/disabled relevant button depending on the students attendance
         def set_button_state(str_state):
-            if str_state == "waiver":
+            if str_state == "submitted":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
 
+                self.submit_btn.place_forget()
+                self.undo_submit_btn.place(x=535, y=520)
+
+                if self.exam.is_waiver_available():
+                    self.undo_waiver_btn.place_forget()
+                    self.waiver_btn.place(x=700, y=470)
+                    self.waiver_btn["state"] = "disabled"
+
+            elif str_state == "waiver":
+                confirm_btn["state"] = "disabled"
+                break_btn["state"] = "disabled"
+                view_breaks_btn["state"] = "disabled"
+
+                self.submit_btn.place(x=535, y=520)
+                self.undo_submit_btn.place_forget()
+                self.submit_btn["state"] = "disabled"
+
                 self.undo_waiver_btn.place(x=700, y=470)
                 self.waiver_btn.place_forget()
-                self.waiver_btn["state"] = "normal"
+                # self.waiver_btn["state"] = "normal"
 
             elif str_state == "confirmed":
                 confirm_btn["state"] = "disabled"
                 break_btn["state"] = "normal"
                 view_breaks_btn["state"] = "normal"
+
+                self.submit_btn["state"] = "normal"
+                self.submit_btn.place(x=535, y=520)
+                self.undo_submit_btn.place_forget()
+
                 if self.exam.is_waiver_available():
                     self.undo_waiver_btn.place_forget()
                     self.waiver_btn.place(x=700, y=470)
@@ -230,6 +252,11 @@ class UserInterface(tk.Frame):
                 confirm_btn["state"] = "normal"
                 break_btn["state"] = "disabled"
                 view_breaks_btn["state"] = "disabled"
+
+                self.submit_btn["state"] = "disabled"
+                self.submit_btn.place(x=535, y=520)
+                self.undo_submit_btn.place_forget()
+
                 if self.exam.is_waiver_available():
                     self.undo_waiver_btn.place_forget()
                     self.waiver_btn.place(x=700, y=470)
@@ -255,7 +282,11 @@ class UserInterface(tk.Frame):
 
             self.canvas.itemconfig(student_major_label, text=students.student_get_major(self.current_id))
 
-            if students.student_check_waiver(self.current_id):
+            if students.student_check_submit(self.current_id):
+                set_button_state("submitted")
+                confirmed_img_panel.place(x=250, y=422)
+                not_confirmed_img_panel.place_forget()
+            elif students.student_check_waiver(self.current_id):
                 set_button_state("waiver")
                 self.canvas.itemconfig(student_confirmed_label, text="Waiver", fill='#b83e4f')
                 confirmed_img_panel.place_forget()
@@ -353,13 +384,16 @@ class UserInterface(tk.Frame):
                 confirmed_checkbox_var.set(0)
                 extra_checkbox_var.set(0)
                 waiver_checkbox_var.set(0)
+                submit_checkbox_var.set(0)
                 confirmed_checkbox.configure(state="disabled")
                 extra_checkbox.configure(state="disabled")
                 waiver_checkbox.configure(state="disabled")
+                submit_checkbox.configure(state="disabled")
             else:
                 confirmed_checkbox.configure(state="normal")
                 extra_checkbox.configure(state="normal")
                 waiver_checkbox.configure(state="normal")
+                submit_checkbox.configure(state="normal")
             query = search_entry.get().strip()  # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -390,13 +424,16 @@ class UserInterface(tk.Frame):
                 confirmed_checkbox_var.set(0)
                 extra_checkbox_var.set(0)
                 break_checkbox_var.set(0)
+                submit_checkbox_var.set(0)
                 confirmed_checkbox.configure(state="disabled")
                 extra_checkbox.configure(state="disabled")
                 break_checkbox.configure(state="disabled")
+                submit_checkbox.configure(state="disabled")
             else:
                 confirmed_checkbox.configure(state="normal")
                 extra_checkbox.configure(state="normal")
                 break_checkbox.configure(state="normal")
+                submit_checkbox.configure(state="normal")
             query = search_entry.get().strip()  # get entry string
             str1 = table_df.id.str.contains(query, case=False)
             df2 = table_df[str1]
@@ -419,6 +456,46 @@ class UserInterface(tk.Frame):
                                       font=("Inter Bold", 14 * -1), text="Waiver", bg="#917FB3",
                                       command=filter_on_waiver)
         waiver_checkbox.place(x=900, y=320)
+
+        # Submitted Checkbox filter
+        def filter_on_submit():
+            table_df = students.get_student_df_ref()
+            if submit_checkbox_var.get() == 1:
+                confirmed_checkbox_var.set(0)
+                extra_checkbox_var.set(0)
+                break_checkbox_var.set(0)
+                waiver_checkbox_var.set(0)
+                confirmed_checkbox.configure(state="disabled")
+                extra_checkbox.configure(state="disabled")
+                break_checkbox.configure(state="disabled")
+                waiver_checkbox.configure(state="disabled")
+            else:
+                confirmed_checkbox.configure(state="normal")
+                extra_checkbox.configure(state="normal")
+                break_checkbox.configure(state="normal")
+                waiver_checkbox.configure(state="normal")
+            query = search_entry.get().strip()  # get entry string
+            str1 = table_df.id.str.contains(query, case=False)
+            df2 = table_df[str1]
+            r_set = df2.to_numpy().tolist()  # Create list of list using rows
+            self.table.delete(*self.table.get_children())
+            color_i = 0
+            for dt in r_set:
+                v = [r for r in dt]  # creating a list from each row
+                j_tags = ('evenrow',) if color_i % 2 == 0 else ('oddrow',)
+                if submit_checkbox_var.get() == 1:
+                    if students.student_check_submit(v[0]):
+                        self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                        color_i += 1
+                else:
+                    self.table.insert("", "end", iid=v[0], values=v, tags=j_tags)
+                    color_i += 1
+
+        submit_checkbox_var = IntVar()
+        submit_checkbox = Checkbutton(self, variable=submit_checkbox_var, onvalue=1, offvalue=0, height=1,
+                                      font=("Inter Bold", 14 * -1), text="Submitted", bg="#917FB3",
+                                      command=filter_on_submit)
+        submit_checkbox.place(x=900, y=350)
 
         # Timers
 
@@ -722,10 +799,41 @@ class UserInterface(tk.Frame):
 
         self.view_report_btn.place(x=950, y=520)
 
-        submit_btn = Button(self, text='Submit Exam', bd='4', fg="#FFFFFF", bg='#812e91',
+        # Submit functionality
+        def student_submit_popup(student_id):
+            if students.student_submit_exam(student_id) != FUNC_SUCCESS:
+                messagebox.showerror("Submit Error", "Student not found.")
+                return
+            self.submit_btn.place_forget()
+            self.undo_submit_btn.place(x=535, y=520)
+            messagebox.showinfo("Submit Message", "Student submitted exam successfully.")
+
+        def student_undo_submit(student_id):
+            res = students.student_undo_submit(student_id)
+            if res == STUDENT_NOT_FOUND:
+                messagebox.showerror("Undo Submit Error", "Student not found.")
+                return
+            if res == STUDENT_ALREADY_CONFIRMED:
+                messagebox.showerror("Undo Submit Error", "Student is already attending.")
+                return
+            messagebox.showinfo("Undo Submit Message", "Undo Submit successful.")
+            filter_on_submit()
+            self.submit_btn.place(x=535, y=520)
+            self.undo_submit_btn.place_forget()
+
+        # Submit buttons
+        self.submit_btn = Button(self, text='Submit Exam', bd='4', fg="#FFFFFF", bg='#812e91',
+                            font=("Calibri", 16 * -1),
+                            activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                            command=lambda: student_submit_popup(self.current_id))
+        self.submit_btn.place(x=535, y=520)
+
+        # Undo submit buttons
+        self.undo_submit_btn = Button(self, text='Undo Submit', bd='4', fg="#FFFFFF", bg='#812e91',
                                  font=("Calibri", 16 * -1),
-                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray')
-        submit_btn.place(x=535, y=520)
+                                 activebackground='#917FB3', height='1', width='14', disabledforeground='gray',
+                                 command=lambda: student_undo_submit(self.current_id))
+        # undo_submit_btn.place(x=535, y=520)
 
     def initiate_time(self):
         self.waiver_available = self.exam.is_waiver_available()
@@ -789,7 +897,6 @@ class UserInterface(tk.Frame):
 
         self.table.pack(side="left", fill="both", expand=True)
         y_scrollbar.pack(side="right", fill="y")
-        #self.table.place(x=360, y=150)
 
     def enable_face_recognition(self):
         self.face_recognition_btn["state"] = 'normal'
