@@ -1,7 +1,8 @@
 import json
 import pandas as pd
 import io
-from datetime import datetime
+from datetime import datetime,date
+
 
 import ExamConfig
 import StudentData
@@ -125,6 +126,8 @@ class ReportData:
         return self.breaks_time_hist
 
     def save_report_firebase(self):
+        if self.exam_number is None:
+            return
 
         bucket = self.firebase_manager.get_bucket()
 
@@ -180,6 +183,7 @@ class ReportData:
             print("Failed to save report to Firebase Storage.")
 
     def load_report_from_firebase(self, folder_name):
+
         bucket = self.firebase_manager.get_bucket()
 
         try:
@@ -220,6 +224,37 @@ class ReportData:
 
         except Exception as e:
             print("Failed to load report from Firebase Storage:", e)
+            return False
+
+    def update_exam_status(self):
+        if self.exam_number is None:
+            return
+        ref = self.firebase_manager.get_exam_status_reference()
+        data = {
+            "term": self.term,
+            "duration": self.duration,
+            "added_time": self.added_time,
+            "enlisted_count": self.enlisted_count,
+            "attendance_count": self.attendance_count,
+            "auto_confirm_count": self.auto_confirm_count,
+            "manual_confirm_count": self.manual_confirm_count,
+            "waiver_count": self.waiver_count,
+            "notes_count": self.notes_count,
+            "breaks_count": self.breaks_count,
+            "avg_break_time": self.avg_break_time,
+        }
+        now = datetime.now()
+        dt_string = now.strftime("%d-%m-%Y")
+        json_data = {
+            dt_string: {
+                self.exam_number: data
+            }
+        }
+        try:
+            for key, value in json_data.items():
+                ref.child(key).update(value)
+            return True
+        except ValueError:
             return False
 
 

@@ -15,6 +15,7 @@ CACHE_FOLDER_LOCAL = 'cachedPictures'
 FIREBASE_IMAGES_PATH = 'Images'
 FIREBASE_EXAMS_PATH = 'Exams'
 FIREBASE_NOTES_PATH = 'Notes'
+FIREBASE_EXAM_STATUS_PATH = 'ExamStatus'
 FIREBASE_REPORT_HISTORY_PATH = "ExamHistory"
 
 
@@ -50,7 +51,7 @@ class FirebaseManager:
         try:
             self.exam_app = firebase_admin.initialize_app(self.cred, {
                 'databaseURL': "https://examfacerecognition-default-rtdb.europe-west1.firebasedatabase.app/",
-                'storageBucket': "examfacerecognition.appspot.com"} , name="ExamApp")
+                'storageBucket': "examfacerecognition.appspot.com"}, name="ExamApp")
         except firebase_admin.exceptions.FirebaseError as e:
             # Handle Firebase initialization error
             print("Firebase initialization error:", e)
@@ -117,12 +118,15 @@ class FirebaseManager:
         return img_list
 
     def get_notes_reference(self):
-        return db.reference(FIREBASE_NOTES_PATH,app=self.exam_app)
+        return db.reference(FIREBASE_NOTES_PATH, app=self.exam_app)
+
+    def get_exam_status_reference(self):
+        return db.reference(FIREBASE_EXAM_STATUS_PATH, app=self.exam_app)
 
     def get_report_history_reference(self):
-        return db.reference(FIREBASE_REPORT_HISTORY_PATH,app=self.exam_app)
+        return db.reference(FIREBASE_REPORT_HISTORY_PATH, app=self.exam_app)
 
-    def get_student_notes(self,student_id):
+    def get_student_notes(self, student_id):
         return db.reference(f'{FIREBASE_NOTES_PATH}/{student_id}', app=self.exam_app)
 
     def set_idle(self):
@@ -160,4 +164,3 @@ class FirebaseManager:
 
 
 firebase_manager = FirebaseManager()
-

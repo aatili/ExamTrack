@@ -16,6 +16,8 @@ class LandingFrame(tk.Frame):
         self.controller = controller
         self.bgimg = tk.PhotoImage(file="Resources/start_background.png")
 
+        self.monitor_bg = tk.PhotoImage(file="Resources/interface_background.png")
+
         self.firebase_manager = FirebaseManager.firebase_manager
 
         self.landing_frame = tk.Frame(self, width=1200, height=600)
@@ -441,11 +443,28 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
 
         self.landing_frame.place_forget()
         self.monitor_frame.place(x=0, y=0)
+        self.monitor_frame.pack_propagate(False)
+
+        # Creating Canvas
+        canvas = Canvas(
+            self.monitor_frame,
+            bg="#2A2F4F",
+            height=600,
+            width=1200,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+
+        canvas.create_image(0, 0, anchor=NW, image=self.monitor_bg)
+
+        canvas.place(x=0, y=0)
+        canvas.pack_propagate(False)
 
         def create_overview_card(parent, exam_info):
             # Create a frame to contain the card
-            card_frame = tk.Frame(parent, bg="white", bd=2, relief="raised")
-            card_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            card_frame = tk.Frame(parent, bg="white", bd=4, relief="raised")
+            card_frame.pack(anchor="nw", side='left', fill='none', padx=20, pady=100)
 
             # Add exam information to the card
             for key, value in exam_info.items():
@@ -473,25 +492,9 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
             # Add more exam information as needed
         ]
 
-        # Create a canvas to contain the overview cards
-        canvas = tk.Canvas(self.monitor_frame)
-        canvas.pack(side="left", fill="both", expand=True)
-
-        # Add a scrollbar for the canvas
-        scrollbar = ttk.Scrollbar(self.monitor_frame, orient="vertical", command=canvas.yview)
-        scrollbar.pack(side="right", fill="y")
-
-        # Configure the canvas to use the scrollbar
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-        # Create a frame to contain the overview cards
-        cards_frame = tk.Frame(canvas)
-        canvas.create_window((0, 0), window=cards_frame, anchor="nw")
-
         # Create overview cards for each exam
         for exam_info in exam_info_list:
-            overview_card = create_overview_card(cards_frame, exam_info)
+            overview_card = create_overview_card(canvas, exam_info)
 
         back_btn = tk.Button(self.monitor_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
