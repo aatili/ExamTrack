@@ -3,7 +3,7 @@ from tkinter import Canvas, Button, PhotoImage, ttk, messagebox, filedialog
 from PIL import Image, ImageTk
 import tkinter as tk
 import pandas as pd
-from datetime import datetime
+from datetime import datetime,date
 import re
 
 import FirebaseManager
@@ -16,7 +16,7 @@ class LandingFrame(tk.Frame):
         self.controller = controller
         self.bgimg = tk.PhotoImage(file="Resources/start_background.png")
 
-        self.monitor_bg = tk.PhotoImage(file="Resources/interface_background.png")
+        self.logo_bg = tk.PhotoImage(file="Resources/haifa-logo.png")
 
         self.firebase_manager = FirebaseManager.firebase_manager
 
@@ -27,7 +27,7 @@ class LandingFrame(tk.Frame):
 
         self.credits_frame = tk.Frame(self, width=1200, height=600)
 
-        self.monitor_frame = tk.Frame(self, width=1200, height=600)
+        self.monitor_frame = tk.Frame(self, width=1200, height=600, bg='#3c1d40')
 
         self.current_folder = -1
 
@@ -445,31 +445,51 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
         self.monitor_frame.place(x=0, y=0)
         self.monitor_frame.pack_propagate(False)
 
-        # Creating Canvas
-        canvas = Canvas(
-            self.monitor_frame,
-            bg="#2A2F4F",
-            height=600,
-            width=1200,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
+        # Ensure no border or highlight thickness for monitor_frame
+        self.monitor_frame.config(bd=0, highlightthickness=0)
 
-        canvas.create_image(0, 0, anchor=NW, image=self.monitor_bg)
+        def on_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
 
-        canvas.place(x=0, y=0)
-        canvas.pack_propagate(False)
+        # Create a canvas and attach a scrollbar to it
+        canvas = tk.Canvas(self.monitor_frame, bg='#3c1d40')
+        canvas.pack(side="left", fill="both", expand=True, padx=0, pady=0)
 
-        def create_overview_card(parent, exam_info):
+        scrollbar = ttk.Scrollbar(canvas, orient="horizontal", command=canvas.xview)
+        scrollbar.pack(side="bottom", fill="y", pady=55)
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.bind("<Configure>", on_configure)
+
+        # Create a frame inside the canvas for exam cards
+        frame = tk.Frame(canvas, bg='#3c1d40')
+        canvas.create_window((0, 0), window=frame, anchor="nw")
+
+        # Function to adjust the canvas scroll region
+        def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        # Bind the function to the canvas resize event
+        frame.bind("<Configure>", configure_scroll_region)
+
+        def create_overview_card(parent, exam_info_i, color_i):
+            if color_i % 2 == 0:
+                card_bg = '#8b77a7'
+            else:
+                card_bg = '#dbc5db'
+
             # Create a frame to contain the card
-            card_frame = tk.Frame(parent, bg="white", bd=4, relief="raised")
-            card_frame.pack(anchor="nw", side='left', fill='none', padx=20, pady=100)
+            card_frame = tk.Frame(parent, bg=card_bg, bd=5, relief="groove",cursor="hand2")
+            card_frame.pack(anchor="nw", side='left', fill='both', padx=20, pady=150)
 
+            label = tk.Label(card_frame, text=" ", bg=card_bg, font=("Inter Bold", 18 * -1))
+            label.pack(anchor="w", padx=5, pady=2)
             # Add exam information to the card
-            for key, value in exam_info.items():
-                label = tk.Label(card_frame, text=f"{key}: {value}", bg="white")
+            for key, value in exam_info_i.items():
+                label = tk.Label(card_frame, text=f"    {key}: {value}    ", bg=card_bg, font=("Inter Bold", 18 * -1))
                 label.pack(anchor="w", padx=5, pady=2)
+            label = tk.Label(card_frame, text=" ", bg=card_bg, font=("Inter Bold", 18 * -1))
+            label.pack(anchor="w", padx=5, pady=2)
 
             return card_frame
 
@@ -477,24 +497,65 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
         exam_info_list = [
             {
                 "Exam Number": "123456",
-                "Term": "Spring 2022",
-                "Date": "2022-02-14",
-                "Duration": "2 hours",
-                "Status": "In Progress"
+                "Term": "MoedA",
+                "Time Left": "11 Minutes",
+                "Currently Attending": "15",
+                "Status": "Extra Time"
             },
             {
                 "Exam Number": "789012",
-                "Term": "Fall 2021",
-                "Date": "2021-10-20",
-                "Duration": "3 hours",
-                "Status": "Completed"
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
+            },{
+                "Exam Number": "789012",
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
+            },{
+                "Exam Number": "789012",
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
+            },{
+                "Exam Number": "789012",
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
+            },{
+                "Exam Number": "789012",
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
+            },{
+                "Exam Number": "789012",
+                "Term": "MoedB",
+                "Time Left": "35 Minutes",
+                "Currently Attending": "15",
+                "Status": "Original Time"
             },
             # Add more exam information as needed
         ]
-
+        c = 0
         # Create overview cards for each exam
         for exam_info in exam_info_list:
-            overview_card = create_overview_card(canvas, exam_info)
+            overview_card = create_overview_card(frame, exam_info, c)
+            c += 1
+        today = date.today()
+        d1 = today.strftime("%d/%m/%Y")
+        heading_label = tk.Label(self.monitor_frame, text="Ongoing Exams "+d1, fg='white', bg='#3c1d40',
+                                 font=("Calibri Bold", 28 * -1), bd=1)
+        heading_label.place(x=450, y=30)
+
+        panel_logo = tk.Label(self.monitor_frame, bd=0)
+        panel_logo.place(x=15, y=455)
+        panel_logo.configure(image=self.logo_bg)
+        panel_logo.tkraise()
 
         back_btn = tk.Button(self.monitor_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
