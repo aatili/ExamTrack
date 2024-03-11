@@ -437,7 +437,7 @@ class UserInterface(tk.Frame):
 
         self.time_secs_extra = 5
 
-        self.exam_status = 'Not Started'
+        self.exam_status = 'IDLE'
 
         # Creating original timer labels
         time_note_label = self.canvas.create_text(
@@ -452,7 +452,7 @@ class UserInterface(tk.Frame):
             525.0,
             73.0,
             anchor="nw",
-            text=str(ExamConfig.cur_exam.get_exam_duration()) + ":00",
+            text="00:00",
             fill="#FFFFFF",
             font=("Arial", 15, "",)
         )
@@ -470,7 +470,7 @@ class UserInterface(tk.Frame):
             430.0,
             73.0,
             anchor="nw",
-            text="00:00",
+            text=str(ExamConfig.WAIVER_TIME) + ":00",
             fill="#FFFFFF",
             font=("Arial", 15, "",)
         )
@@ -551,7 +551,7 @@ class UserInterface(tk.Frame):
             def add_total_seconds():
                 temp_added = int(add_time_box.get())
                 self.total_seconds += temp_added * 60
-                ExamConfig.cur_exam.add_time(temp_added)
+                self.exam.add_time(temp_added)
                 add_time_window.destroy()
 
             # Buttons
@@ -818,6 +818,8 @@ class UserInterface(tk.Frame):
         self.waiver_total_seconds = ExamConfig.WAIVER_TIME * 60
         self.total_seconds = self.exam.get_exam_duration() * 60
         self.time_secs_extra = int(ExamConfig.EXTRA_TIME_PERCENTAGE * self.total_seconds)
+
+        self.canvas.itemconfig(self.time_label, text=str(self.exam.get_exam_duration()) + ":00")
 
         if not self.waiver_available:  # do not show waiver timer if not available
             self.canvas.itemconfig(self.waiver_label, text="")

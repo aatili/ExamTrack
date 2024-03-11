@@ -3,7 +3,7 @@ from tkinter import Canvas, Button, PhotoImage, ttk, messagebox, filedialog
 from PIL import Image, ImageTk
 import tkinter as tk
 import pandas as pd
-from datetime import datetime,date
+from datetime import datetime, date
 import re
 
 from matplotlib.figure import Figure
@@ -202,8 +202,9 @@ class LandingFrame(tk.Frame):
             return folder_list
 
         # Create a Frame to contain the Treeview
-        frame = ttk.Frame(self.load_report_frame, borderwidth=2)
-        frame.place(x=400, y=170)
+        frame = ttk.Frame(self.load_report_frame, borderwidth=2, height=400, width=300)
+        frame.pack_propagate(False)
+        frame.place(x=380, y=170)
 
         def sort_by_date(row_data):
             # Custom comparison function for sorting by date
@@ -248,9 +249,9 @@ class LandingFrame(tk.Frame):
             color_tags = ('evenrow',) if color_j % 2 == 0 else ('oddrow',)
             folder_table.insert('', 'end', values=folder, tags=color_tags)
             color_j += 1
-        folder_table.column('#1', width=90)
-        folder_table.column('#2', width=60)
-        folder_table.column('#3', width=80)
+        folder_table.column('#1', width=100)
+        folder_table.column('#2', width=100)
+        folder_table.column('#3', width=100)
         folder_table.column('#4', width=50)
 
         def table_select_row(a):  # view selected row items
@@ -483,41 +484,80 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
         frame.bind("<Configure>", configure_scroll_region)
 
         # Display more info in a window
-        def show_exam_info(exam_num):
+        def show_exam_info(exam_num_i):
             info_window = Toplevel(self.monitor_frame)
             info_window.geometry("800x600+150+30")
             info_window.resizable(False, False)
             info_window.title("Exam Info")
             info_window.configure(bg='#917FB3')
-            info_window_exam_label = Label(info_window, text="Exam Number:", bg='#917FB3', font=("Inter Bold", 18 * -1))
-            info_window_exam_label.place(x=30, y=30)
-            info_window_exam_label2 = Label(info_window, text=exam_num, bg='#917FB3', font=("Inter Bold", 18 * -1),
-                                            borderwidth=3, relief="ridge")
-            info_window_exam_label2.place(x=160, y=30)
 
-            exam_info_i = self.exam_db_data.get(exam_number)
+            info_frame = tk.Frame(info_window, width=400, height=600, bg='#333278', bd=3, relief='raised')
+            info_frame.place(x=30, y=30)
+
+            more_info_frame = tk.Frame(info_window, width=400, height=600, bg='#917FB3', bd=3, relief='ridge')
+            more_info_frame.place(x=30, y=180)
+
+            info_window_exam_label = Label(info_frame, text="   Exam Number: " + exam_num_i + "    ", bg='#333278',
+                                           fg='white', font=("Inter Bold", 18 * -1))
+            info_window_exam_label.pack()
+
+            exam_info_i = self.exam_db_data.get(exam_num_i)
             if not exam_info_i:
-                print(f"No data found for exam number: {exam_number}")
+                print(f"No data found for exam number: {exam_num_i}")
                 return
 
             def format_key(word):
                 # Remove underscores and capitalize the first letter of every word
                 return ' '.join(word.capitalize() for word in word.split('_'))
+
             excluded_keys = ['date']
             exam_labels = {}
+
             for key, value in exam_info_i.items():
                 # Skip keys in the excluded_keys list
                 if key in excluded_keys:
                     continue
                 formatted_key = format_key(key)
-                label = tk.Label(info_window, text=f"{formatted_key}: {value}", bg='#917FB3', font=("Inter Bold", 18 * -1))
+                label = tk.Label(info_window, text=f"{formatted_key}: {value}", bg='#917FB3',
+                                 font=("Inter Bold", 18 * -1))
                 exam_labels[key] = label
 
             # Add information labels
+            exam_labels['term'].config(bg='#333278', fg='white')
+            exam_labels['term'].pack(in_=info_frame)
 
-            exam_labels['term'].place(x=30, y=60)
-            exam_labels['duration'].config(text=exam_labels['duration'].cget("text") + " Minutes")
-            exam_labels['duration'].place(x=30, y=90)
+            exam_labels['duration'].config(text=exam_labels['duration'].cget("text") + " Minutes", bg='#333278',
+                                           fg='white')
+            exam_labels['duration'].pack(in_=info_frame)
+
+            status_title_label = tk.Label(info_window, text="Latest Status Update:", bg='#917FB3',
+                                          font=("Inter Bold", 18 * -1))
+            status_title_label.place(x=50, y=140)
+
+            space_label = tk.Label(info_window, text="", bg='#917FB3', font=("Inter Bold", 18 * -1))
+            space_label.pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['current_attendance'].config(
+                text=" " + exam_labels['current_attendance'].cget("text") + " Students ")
+            exam_labels['current_attendance'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['time_left'].config(text=" " + exam_labels['time_left'].cget("text") + " Minutes ")
+            exam_labels['time_left'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['added_time'].config(text=" " + exam_labels['added_time'].cget("text") + " Minutes ")
+            exam_labels['added_time'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['waiver_count'].config(text=" " + exam_labels['waiver_count'].cget("text") + " ")
+            exam_labels['waiver_count'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['notes_count'].config(text=" " + exam_labels['notes_count'].cget("text") + " ")
+            exam_labels['notes_count'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            exam_labels['breaks_count'].config(text=" " + exam_labels['breaks_count'].cget("text") + " ")
+            exam_labels['breaks_count'].pack(in_=more_info_frame, anchor="w", padx=5)
+
+            space_end_label = tk.Label(info_window, text="", bg='#917FB3', font=("Inter Bold", 18 * -1))
+            space_end_label.pack(in_=more_info_frame, anchor="w", padx=5)
 
             # add attendance graph
 
@@ -537,14 +577,14 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
             labels = ['Attended', 'Absent']
             explode = [0.1, 0]
             angle = -180 * overall_ratios[0]
-            wedges, *_, texts = ax.pie(overall_ratios, autopct='%1.1f%%', startangle=angle, labels=labels, explode=explode,
-                                        colors=['#1f77b4', 'red', '#2ca02c'])
+            wedges, *_, texts = ax.pie(overall_ratios, autopct='%1.1f%%', startangle=angle, labels=labels,
+                                       explode=explode,
+                                       colors=['#1f77b4', 'red', '#2ca02c'])
             ax.set_title('Overall Attendance', fontsize='medium')
 
             # Set label size
             for text in texts:
                 text.set_fontsize(12)
-
 
             # Convert the Figure to a Tkinter canvas
             attendance_canvas = FigureCanvasTkAgg(fig, master=attendance_frame)
@@ -582,7 +622,7 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
             for j, (height, label) in enumerate(reversed([*zip(auto_ratio, waiver_labels)])):
                 bottom -= height
                 bc = ax2.barh(0, height, width, left=bottom, color='green', label=label,
-                             alpha=0.3 + 0.5 * j, edgecolor='black')
+                              alpha=0.3 + 0.5 * j, edgecolor='black')
                 ax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
             ax2.set_title('Confirm Method Percentage', fontsize='small', loc='center', pad=-0, y=0.85)
@@ -602,9 +642,9 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
             exam_labels['manual_confirm_count'].place(x=350, y=520)
 
             info_window_done_btn = Button(info_window, text='Done', bd='5', fg="#FFFFFF", bg='#812e91'
-                                    , font=("Calibri", 16 * -1), activebackground='#917FB3', height='1',
-                                    width='14', disabledforeground='gray', command=info_window.destroy)
-            info_window_done_btn.place(x=660, y=555)
+                                          , font=("Calibri", 16 * -1), activebackground='#917FB3', height='1',
+                                          width='14', disabledforeground='gray', command=info_window.destroy)
+            info_window_done_btn.place(x=115, y=450)
 
         def create_overview_card(parent, exam_info_i, color_i):
             if color_i % 2 == 0:
@@ -613,7 +653,7 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
                 card_bg = '#dbc5db'
 
             # Create a frame to contain the card
-            card_frame = tk.Frame(parent, bg=card_bg, bd=5, relief="groove",cursor="hand2")
+            card_frame = tk.Frame(parent, bg=card_bg, bd=5, relief="groove", cursor="hand2")
             card_frame.pack(anchor="nw", side='left', fill='both', padx=20, pady=150)
 
             # Bind the label to the label_clicked function when clicked
@@ -639,6 +679,8 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
 
         if self.exam_db_data:
             for exam_number, data in self.exam_db_data.items():
+                if str(data.get("status", "")).lower() == 'finished':
+                    continue
                 exam_info = {
                     "Exam Number": exam_number,
                     "Term": data.get("term", ""),
@@ -660,13 +702,53 @@ For inquiries, feedback, or support regarding ExamTrack, please contact us at
         heading_label.place(x=480, y=30)
 
         date_label = tk.Label(self.monitor_frame, text=d1, fg='white', bg='#3c1d40',
-                                 font=("Calibri Bold", 24 * -1), bd=1)
+                              font=("Calibri Bold", 24 * -1), bd=1)
         date_label.place(x=510, y=70)
 
         panel_logo = tk.Label(self.monitor_frame, bd=0)
         panel_logo.place(x=15, y=455)
         panel_logo.configure(image=self.logo_bg)
         panel_logo.tkraise()
+
+        # Refresh Functionality
+
+        def refresh_data(f_info_list):
+            # Get current date
+            now_f = datetime.now()
+            dt_string_f = now_f.strftime("%d-%m-%Y")
+
+            # Retrieve exam data from Firebase again
+            self.exam_db_data = self.firebase_manager.get_exam_status_by_date(dt_string_f)
+
+            # Clear existing cards
+            for widget in frame.winfo_children():
+                widget.destroy()
+
+            f_info_list = []
+            if self.exam_db_data:
+                for exam_number_f, data_f in self.exam_db_data.items():
+                    if str(data_f.get("status", "")).lower() == 'finished':
+                        continue
+                    exam_info_f = {
+                        "Exam Number": exam_number_f,
+                        "Term": data_f.get("term", ""),
+                        "Time Left": str(data_f.get("time_left", "")) + " Minutes",
+                        "Currently Attending": str(data_f.get("current_attendance", "")) + " Students",
+                        "Status": data_f.get("status", "")
+                    }
+                    f_info_list.append(exam_info_f)
+
+            c_f = 0
+            # Create overview cards for each exam
+            for exam_info_f in f_info_list:
+                create_overview_card(frame, exam_info_f, c_f)
+                c_f += 1
+
+        refresh_btn = tk.Button(self.monitor_frame, text='Refresh', bd='4', fg="#FFFFFF", bg='#812e91',
+                                activebackground='#917FB3',
+                                font=("Calibri", 16 * -1), height='1', width='14'
+                                , command=lambda: [refresh_data(exam_info_list)])
+        refresh_btn.place(x=400, y=515)
 
         back_btn = tk.Button(self.monitor_frame, text='Back', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',

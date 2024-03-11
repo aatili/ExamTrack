@@ -50,7 +50,10 @@ class ExamApp(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def on_closing(self):
-        if messagebox.askokcancel("Exit", "Are you sure you want to exit?\nUnsaved data will be lost."):
+        if messagebox.askokcancel("Exit", "Are you sure you want to exit the program?"):
+            cur_exam_status = self.frames["UserInterface"].get_exam_status()
+            if cur_exam_status.lower() == 'original time' or cur_exam_status.lower() == 'extra time':
+                self.frames["UserInterface"].set_exam_status_finish()
             FirebaseManager.delete_cache_dir()
             self.destroy()
 

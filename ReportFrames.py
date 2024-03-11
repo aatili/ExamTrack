@@ -627,12 +627,20 @@ class ReportFrames(tk.Frame):
 
         export_btn.place(x=170, y=330)
 
+        def exit_btn_clicked():
+            if messagebox.askokcancel("Exit", "Are you sure you want to exit to menu?"):
+                cur_exam_status = self.controller.frames["UserInterface"].get_exam_status()
+                if cur_exam_status.lower() == 'original time' or cur_exam_status.lower() == 'extra time':
+                    self.controller.frames["UserInterface"].set_exam_status_finish()
+                self.reset_report_session()
+                self.controller.show_frame("LandingFrame"),
+                self.controller.frames["LandingFrame"].back_to_menu()
+
         exit_btn = tk.Button(self.report_frame_two, text='Exit to Menu', bd='4', fg="#FFFFFF", bg='#812e91',
                              activebackground='#917FB3',
                              font=("Calibri", 16 * -1), height='1', width='14'
                              ,
-                             command=lambda: [self.reset_report_session(), self.controller.show_frame("LandingFrame"),
-                                              self.controller.frames["LandingFrame"].back_to_menu()])
+                             command=lambda: [exit_btn_clicked()])
 
         exit_btn.place(x=170, y=380)
 
