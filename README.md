@@ -1,4 +1,4 @@
-#ExamTrack App
+# ExamTrack App
 ExamTrack is an innovative application designed to streamline the process of managing exams, particularly in educational institutions. With its advanced features like face recognition, timers, note-taking, manual confirmation, break tracking, and reporting functionalities, ExamTrack aims to enhance efficiency and accuracy during exam administration.
 
 Features
