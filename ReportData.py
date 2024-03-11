@@ -226,12 +226,15 @@ class ReportData:
             print("Failed to load report from Firebase Storage:", e)
             return False
 
-    def update_exam_status(self):
+    def update_exam_status(self, time_left, current_attendance, status):
         if self.exam_number is None:
             return
         ref = self.firebase_manager.get_exam_status_reference()
         data = {
             "term": self.term,
+            "time_left": time_left,
+            "current_attendance": current_attendance,
+            "status": status,
             "duration": self.duration,
             "added_time": self.added_time,
             "enlisted_count": self.enlisted_count,

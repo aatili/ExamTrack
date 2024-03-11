@@ -14,6 +14,8 @@ class ExamConfig:
         self.exam_supervisors = list(supervisors)
         self.exam_camera = camera_no
 
+
+
         today = date.today()
         d1 = today.strftime("%d/%m/%Y")
         self.exam_date = d1

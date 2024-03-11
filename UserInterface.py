@@ -8,6 +8,7 @@ from datetime import date, datetime
 import threading
 
 from StudentData import *
+import ReportData
 
 import ExamConfig
 import FirebaseManager
@@ -436,6 +437,8 @@ class UserInterface(tk.Frame):
 
         self.time_secs_extra = 5
 
+        self.exam_status = 'Not Started'
+
         # Creating original timer labels
         time_note_label = self.canvas.create_text(
             525.0,
@@ -445,18 +448,14 @@ class UserInterface(tk.Frame):
             fill="#FFFFFF",
             font=("Inter Bold", 12 * -1)
         )
-        time_label = self.canvas.create_text(
+        self.time_label = self.canvas.create_text(
             525.0,
             73.0,
             anchor="nw",
-            text="00:00",
+            text=str(ExamConfig.cur_exam.get_exam_duration()) + ":00",
             fill="#FFFFFF",
             font=("Arial", 15, "",)
         )
-
-        '''bbox = self.canvas.bbox(time_label)
-        rect_item = self.canvas.create_rectangle(bbox, outline="purple")
-        self.canvas.tag_raise(time_label, rect_item)'''
 
         # Creating Waiver labels
         self.waiver_label = self.canvas.create_text(
@@ -483,18 +482,20 @@ class UserInterface(tk.Frame):
             minutes = self.total_seconds // 60
             seconds = self.total_seconds % 60
             if self.total_seconds >= 0:
-                self.canvas.itemconfig(time_label, text="{:02d}:{:02d}".format(minutes, seconds))
+                self.canvas.itemconfig(self.time_label, text="{:02d}:{:02d}".format(minutes, seconds))
                 self.after(1000, countdown)
                 self.total_seconds -= 1
             else:
                 if self.extra_time_flag:
                     messagebox.showinfo("Time Countdown", "Extra time is over.")
+                    self.exam_status = 'Finished'
                     add_time_btn.place_forget()
                 else:
                     messagebox.showinfo("Time Countdown", "Original time is over.")
                     self.canvas.itemconfig(time_note_label, text="Extra Time")
                     self.extra_time_flag = 1
                     self.total_seconds = self.time_secs_extra
+                    self.exam_status = 'Extra Time'
                     countdown()
 
         def waiver_countdown():
@@ -511,6 +512,8 @@ class UserInterface(tk.Frame):
         def start_countdown():
             start_btn["state"] = "disabled"
             add_time_btn.place(x=595, y=67)
+            self.exam_status = 'Original Time'
+            self.send_exam_status()
             countdown()
             if self.waiver_available:
                 waiver_countdown()
@@ -750,6 +753,7 @@ class UserInterface(tk.Frame):
                 if len(self.str_reason) < 3:
                     messagebox.showerror("Manual Confirm Error", "Invalid Reason", parent=exit_window)
                 else:
+                    self.set_exam_status_finish()
                     self.controller.reset_exam()
                     self.controller.show_frame('LandingFrame')
                     exit_window.destroy()
@@ -871,8 +875,30 @@ class UserInterface(tk.Frame):
         self.table.pack(side="left", fill="both", expand=True)
         self.y_scrollbar.pack(side="right", fill="y")
 
+    # Update exam status in firebase every 60 Seconds
+    def send_exam_status(self):
+        time_text = self.canvas.itemcget(self.time_label, "text")  # Get the text of the Canvas text item
+        minutes_str = time_text.split(':')[0]  # Extract the minutes part before the colon
+        minutes_int = int(minutes_str)
+        status_report = ReportData.ReportData()
+        status_report.create_new_report()
+        status_report.update_exam_status(minutes_int, students.get_students_currently_attending(),
+                                         self.exam_status)
+
+        if self.exam_status == 'Finished':
+            return
+
+        self.after(60000, self.send_exam_status)
+
     def enable_face_recognition(self):
         self.face_recognition_btn["state"] = 'normal'
+
+    def get_exam_status(self):
+        return self.exam_status
+
+    def set_exam_status_finish(self):
+        self.exam_status = 'Finished'
+        self.send_exam_status()
 
     def show_retry_btn(self):
         self.retry_btn.place(x=1100, y=40)

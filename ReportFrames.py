@@ -12,7 +12,6 @@ from PIL import ImageGrab
 from matplotlib.figure import Figure
 from matplotlib.patches import Wedge
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.ticker import MaxNLocator
 
 import smtplib
 from email.mime.text import MIMEText

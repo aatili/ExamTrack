@@ -108,8 +108,23 @@ class FirebaseManager:
             return "Exam Error", "File structure does not match."
         return True
 
-    # Get student image path
+    # gets data of ongoing exams
+    def get_exam_status_by_date(self, exam_date):
 
+        ref = self.get_exam_status_reference()
+        try:
+            # Get the data for the specified date from Firebase
+            data = ref.child(exam_date).get()
+            if data:
+                return data
+            else:
+                print(f"No data found for date: {exam_date}")
+                return None
+        except Exception as e:
+            print(f"Error retrieving data for date {exam_date}: {e}")
+            return None
+
+    # Get student image path
     def get_all_image_list(self):
         b_list = self.bucket.list_blobs(prefix=FIREBASE_IMAGES_PATH)
         img_list = []

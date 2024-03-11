@@ -182,6 +182,13 @@ class StudentManager:
     def get_students_count(self):
         return len(self.students_attendance)
 
+    def get_students_currently_attending(self):
+        count = 0
+        for value in self.students_attendance.values():
+            if value == True:
+                count += 1
+        return count
+
     def get_manual_confirm_count(self):
         return len(self.students_manual_confirm)
 
