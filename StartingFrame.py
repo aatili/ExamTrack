@@ -73,7 +73,7 @@ class ExamApp(tk.Tk):
         self.frames[page_name].grid(row=0, column=0, sticky="nsew")
 
     def reset_exam(self):
-        StudentData.students = StudentData.StudentManager()
+        students.reset_att()
         ExamConfig.cur_exam = ExamConfig.ExamConfig()
         FirebaseManager.firebase_manager.reset_att()
 

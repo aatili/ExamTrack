@@ -429,6 +429,32 @@ class StudentManager:
             return True
         return False
 
+    def reset_att(self):
+
+        self.students_attendance = {}
+        self.students_manual_confirm = {}
+        self.students_auto_confirm = {}
+
+        self.manual_confirm_hist = {attr.value: 0 for attr in ManualConfirmReason}
+        self.students_waiver = []
+        self.students_submitted = []
+        self.students_notes = {}
+        self.notes_count = 0
+        self.students_breaks = {}  # contains: [number of breaks, list of time(seconds) and list of reasons for each break]
+        self.current_break = {}  # contains : [timestamp of current break]
+
+        self.breaks_reasons_hist = {attr.value: 0 for attr in BreakReason}
+        self.dtype_dict = {
+            "id": str,  # Specify 'id' column as string to preserve leading zeros
+            "first_name": str,
+            "last_name": str,
+            "extra_time": str,
+            "tuition": str,
+            "major": str
+        }
+        self.table_df = pd.DataFrame(columns=list(self.dtype_dict.keys()))
+        self.result_table_df = None
+
 
 students = StudentManager()
 
