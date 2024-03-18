@@ -488,7 +488,7 @@ class UserInterface(tk.Frame):
             else:
                 if self.extra_time_flag:
                     messagebox.showinfo("Time Countdown", "Extra time is over.")
-                    self.exam_status = 'Finished'
+                    self.set_exam_status_finish()
                     add_time_btn.place_forget()
                 else:
                     messagebox.showinfo("Time Countdown", "Original time is over.")

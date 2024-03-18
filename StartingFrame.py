@@ -7,7 +7,6 @@ import re
 import threading
 
 import ReportFrames
-import StudentData
 import UserInterface
 import FaceRecFrame
 import LandingFrame
