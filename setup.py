@@ -31,9 +31,9 @@ options = {
 }
 
 setup(
-    name="YourAppName",
+    name="ExamTrack",
     version="1.0",
-    description="Your application description",
+    description="ExamTrack is an innovative application designed to streamline the process of managing exams",
     executables=[Executable("StartingFrame.py")],
     options={
         "build_exe": {

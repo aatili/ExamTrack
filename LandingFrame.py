@@ -321,19 +321,19 @@ class LandingFrame(tk.Frame):
                 s_term = v[1]
                 if moeda_checkbox_var.get() == 1:
                     if str(s_term).lower() == 'moeda':
-                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        folder_table.insert("", "end", values=v, tags=tags)  # adding row
                         j += 1  # colouring
                 if moedb_checkbox_var.get() == 1:
                     if str(s_term).lower() == 'moedb':
-                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        folder_table.insert("", "end", values=v, tags=tags)  # adding row
                         j += 1  # colouring
                 if moedc_checkbox_var.get() == 1:
                     if str(s_term).lower() == 'moedc':
-                        folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
+                        folder_table.insert("", "end", values=v, tags=tags)  # adding row
                         j += 1  # colouring
                 if moedc_checkbox_var.get() == 0 and moedb_checkbox_var.get() == 0 and moeda_checkbox_var.get() == 0:
-                    folder_table.insert("", "end", iid=s_id, values=v, tags=tags)  # adding row
-                    # j += 1  # colouring
+                    folder_table.insert("", "end", values=v, tags=tags)  # adding row
+                    j += 1  # colouring
 
         search_entry.bind("<KeyRelease>", my_search)
 

@@ -1,6 +1,9 @@
 # ExamTrack App
 ExamTrack is an innovative application designed to streamline the process of managing exams, particularly in educational institutions. With its advanced features like face recognition, timers, note-taking, manual confirmation, break tracking, and reporting functionalities, ExamTrack aims to enhance efficiency and accuracy during exam administration.
 
+[User Manual](ExamTrack_UserManual.pdf)
+[App (standalone executable)](https://www.dropbox.com/scl/fi/f480085pdddkxv1uj547a/ExamTrack.rar?rlkey=shd1oqyhh86k9hkukoy53r09t&dl=0)
+
 # Features
 ## 1. Exam Face Recognition
 Face Recognition: Utilizes facial recognition technology to identify students.
