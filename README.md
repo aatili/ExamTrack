@@ -5,28 +5,28 @@ ExamTrack is an innovative application designed to streamline the process of man
 [App (standalone executable)](https://www.dropbox.com/scl/fi/f480085pdddkxv1uj547a/ExamTrack.rar?rlkey=shd1oqyhh86k9hkukoy53r09t&dl=0)<br>
 
 # Features
-## 1. Exam Face Recognition
+## Exam Face Recognition
 Face Recognition: Utilizes facial recognition technology to identify students.
 Allows users to confirm attendance or dismiss loaded information.
-## 2. Timers
+## Timers
 Original Timer: Tracks the original exam time.
 Extra Time Timer: Activates after the original timer runs out.
 Waiver Timer: Available for modified or special exams.
 Custom Timing: Allows users to add timing as needed.
-## 3. Notes
+## Notes
 Add Notes: Enables users to add and view notes for selected students during exams.
-## 4. Confirm Manually
+## Confirm Manually
 Manual Confirmation: Allows manual confirmation of attendance, providing a reason if necessary.
-## 5. Breaks
+## Breaks
 Break Tracking: Keeps track of breaks, their duration, and reasons.
 View Break History: Displays break history for each student.
-## 6. Search
+## Search
 Search by ID: Allows users to fetch students by ID, with real-time table updates.
 Filter Options: Filters currently attending students, those with extra time, or students on break.
-## 7. Waiver
+## Waiver
 Waiver Option: Provides the option for waivers, with corresponding adjustments in functionalities.
 Undo Waiver: Allows users to revert a waiver if necessary.
-## 8. Reports
+## Reports
 ### Generate Reports: 
 Summarizes exam details and provides offline saving and email reports functionality.
 ### Load Reports: 
